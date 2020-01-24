@@ -8,7 +8,6 @@ import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.direct.ingestion.WavefrontDirectIngestionClient;
 import com.wavefront.sdk.proxy.WavefrontProxyClient;
 import io.micrometer.core.instrument.Clock;
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
@@ -269,16 +268,16 @@ public class Initializer {
 
   @Bean
   @ConditionalOnProperty(value = "enabled", havingValue = "true", matchIfMissing = true)
-  @ConditionalOnMissingBean(MeterRegistry.class)
+  @ConditionalOnMissingBean(WavefrontMeterRegistry.class)
   @ConditionalOnBean(WavefrontConfig.class)
-  public MeterRegistry wavefrontMeterRegistry(WavefrontConfig wavefrontConfig) {
+  public WavefrontMeterRegistry wavefrontMeterRegistry(WavefrontConfig wavefrontConfig) {
     if (wavefrontConfig == null) return null;
 
     logger.info("Activating Wavefront for Micrometer Integration (connection string: " + wavefrontConfig.uri() +
         ", reporting as: " + wavefrontConfig.source() + ")");
 
     // create a new registry
-    MeterRegistry registry = new WavefrontMeterRegistry(wavefrontConfig, Clock.SYSTEM);
+    WavefrontMeterRegistry registry = new WavefrontMeterRegistry(wavefrontConfig, Clock.SYSTEM);
     // default JVM stats
     new ClassLoaderMetrics().bindTo(registry);
     new JvmMemoryMetrics().bindTo(registry);
