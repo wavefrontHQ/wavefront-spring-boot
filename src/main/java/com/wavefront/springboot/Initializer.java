@@ -21,11 +21,12 @@ import io.micrometer.wavefront.WavefrontMeterRegistry;
 import io.opentracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -38,6 +39,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -51,7 +53,7 @@ public class Initializer {
   /**
    * Wavefront URL that supports "freemium" accounts.
    */
-  private static final String WAVEFRONT_DEFAULT_INSTANCE = "https://dev.corp.wavefront.com";
+  static final String WAVEFRONT_DEFAULT_INSTANCE = "https://dev.corp.wavefront.com";
 
   /**
    * Read from ${user.home}, when no token is specified in wavefront.properties. When we obtain a token from the server,
@@ -67,15 +69,15 @@ public class Initializer {
   /**
    * URL for http/https-based reporting. Should be a valid URL.
    */
-  private static final String PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE = "url";
+  public static final String PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE = "url";
   /**
    * Token for http/https-based reporting. Should be a UUID.
    */
-  private static final String PROPERTY_FILE_KEY_WAVEFRONT_TOKEN = "token";
+  public static final String PROPERTY_FILE_KEY_WAVEFRONT_TOKEN = "token";
   /**
    * Wavefront Proxy host name. See: https://github.com/wavefrontHQ/wavefront-proxy
    */
-  private static final String PROPERTY_FILE_KEY_WAVEFRONT_PROXY_HOST = "proxy.host";
+  public static final String PROPERTY_FILE_KEY_WAVEFRONT_PROXY_HOST = "proxy.host";
   /**
    * Metrics port (defaults to 2878).
    */
@@ -115,12 +117,6 @@ public class Initializer {
    */
   private static final String PROPERTY_FILE_KEY_WAVEFRONT_SERVICE = "application.service";
 
-  @Autowired
-  Environment env;
-
-  @Autowired
-  private ApplicationContext applicationContext;
-
   /**
    * {@link WavefrontConfig} is used to configure micrometer but we will reuse it for spans as well if possible. If it's
    * already declared in the user's environment, we'll respect that.
@@ -128,7 +124,8 @@ public class Initializer {
   @Bean
   @ConditionalOnProperty(value = "enabled", havingValue = "true", matchIfMissing = true)
   @ConditionalOnMissingBean(WavefrontConfig.class)
-  public WavefrontConfig getWavefrontConfig() {
+  @Conditional(WavefrontConfigConditional.class)
+  public WavefrontConfig wavefrontConfig(Environment env) {
     // there are two methods to report wavefront observability data (proxy or http)
     // we bias to the proxy if it's defined
     @Nullable
@@ -164,7 +161,6 @@ public class Initializer {
       }
       wavefrontUri = "proxy://" + wavefrontProxyHost + ":" + wavefrontProxyPort;
     }
-    if (wavefrontUri == null) return null;
     String finalWavefrontToken = wavefrontToken;
     int finalWavefrontHistogramPort = wavefrontHistogramPort;
     String finalWavefrontUri = wavefrontUri;
@@ -236,7 +232,7 @@ public class Initializer {
     };
   }
 
-  private static Optional<String> getWavefrontTokenFromWellKnownFile() {
+  static Optional<String> getWavefrontTokenFromWellKnownFile() {
     String userHomeStr = System.getProperty("user.home");
     if (userHomeStr == null || userHomeStr.length() == 0) {
       logger.debug("System.getProperty(\"user.home\") is empty, cannot obtain local Wavefront token");
@@ -251,10 +247,8 @@ public class Initializer {
       File wavefrontToken = new File(userHome, WAVEFRONT_TOKEN_FILENAME);
       if (wavefrontToken.exists() && wavefrontToken.canRead()) {
         try {
-          String token = Files.readString(Paths.get(wavefrontToken.toURI()), StandardCharsets.UTF_8);
-          token = token.replaceAll("\n", "");
-          token = token.trim();
-          UUID uuid = UUID.fromString(token);
+          List<String> tokens = Files.readAllLines(Paths.get(wavefrontToken.toURI()), StandardCharsets.UTF_8);
+          UUID uuid = UUID.fromString(tokens.get(0));
           return Optional.of(uuid.toString());
         } catch (IOException ex) {
           logger.warn("Cannot read Wavefront token from: " + wavefrontToken.getAbsolutePath(), ex);
@@ -276,7 +270,8 @@ public class Initializer {
   @Bean
   @ConditionalOnProperty(value = "enabled", havingValue = "true", matchIfMissing = true)
   @ConditionalOnMissingBean(MeterRegistry.class)
-  public MeterRegistry getMeterRegistry(WavefrontConfig wavefrontConfig) {
+  @ConditionalOnBean(WavefrontConfig.class)
+  public MeterRegistry wavefrontMeterRegistry(WavefrontConfig wavefrontConfig) {
     if (wavefrontConfig == null) return null;
 
     logger.info("Activating Wavefront for Micrometer Integration (connection string: " + wavefrontConfig.uri() +
@@ -298,7 +293,8 @@ public class Initializer {
 
   @Bean
   @ConditionalOnMissingBean(WavefrontSender.class)
-  public WavefrontSender getSender(WavefrontConfig wavefrontConfig) {
+  @ConditionalOnBean(WavefrontConfig.class)
+  public WavefrontSender wavefrontSender(WavefrontConfig wavefrontConfig, Environment env) {
     int wavefrontTracingPort = 30000;
     String tracingPortStr = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_PROXY_TRACING_PORT, "30000");
     try {
@@ -313,14 +309,13 @@ public class Initializer {
           tracingPort(wavefrontTracingPort).
           distributionPort(wavefrontConfig.distributionPort()).build();
     } else {
-      return new WavefrontDirectIngestionClient.Builder(wavefrontConfig.uri(), wavefrontConfig.apiToken()).
-          flushIntervalSeconds((int) wavefrontConfig.step().getSeconds()).build();
+      return new WavefrontDirectIngestionClient.Builder(wavefrontConfig.uri(), wavefrontConfig.apiToken()).build();
     }
   }
 
   @Bean
   @ConditionalOnMissingBean(ApplicationTags.class)
-  public ApplicationTags getApplicationTags() {
+  public ApplicationTags wavefrontApplicationTags(Environment env, ApplicationContext applicationContext) {
     String applicationName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_APPLICATION, "springboot");
     String serviceName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_SERVICE, applicationContext.getApplicationName());
     if (serviceName.trim().length() == 0) {
@@ -331,8 +326,9 @@ public class Initializer {
 
   @Bean
   @ConditionalOnMissingBean(Tracer.class)
-  public Tracer getTracer(WavefrontConfig wavefrontConfig, WavefrontSender wavefrontSender,
-                          ApplicationTags applicationTags) {
+  @ConditionalOnBean({WavefrontConfig.class, WavefrontSender.class, ApplicationTags.class})
+  public Tracer tracer(WavefrontConfig wavefrontConfig, WavefrontSender wavefrontSender,
+                       ApplicationTags applicationTags, Environment env) {
     if (wavefrontSender == null || wavefrontConfig == null) return null;
     @Nullable
     String tracingEnabled = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_TRACING_ENABLED);
@@ -346,7 +342,6 @@ public class Initializer {
         ", reporting as: " + wavefrontConfig.source() +
         " {" + applicationTags.toPointTags().toString() + "})");
 
-    // Step 4. Create the WavefrontTracer.
     return new WavefrontTracer.Builder(spanReporter, applicationTags).build();
   }
 }

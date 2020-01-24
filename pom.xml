@@ -40,25 +40,29 @@
 
   <dependencies>
     <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-registry-wavefront</artifactId>
-      <version>${micrometer.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-autoconfigure</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>javax.annotation</groupId>
       <artifactId>javax.annotation-api</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-wavefront</artifactId>
+      <version>${micrometer.version}</version>
     </dependency>
     <dependency>
       <groupId>io.opentracing.contrib</groupId>
