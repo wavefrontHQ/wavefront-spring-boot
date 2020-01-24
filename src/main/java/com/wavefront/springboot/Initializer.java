@@ -267,12 +267,37 @@ public class Initializer {
   }
 
   @Bean
-  @ConditionalOnProperty(value = "enabled", havingValue = "true", matchIfMissing = true)
   @ConditionalOnMissingBean(WavefrontMeterRegistry.class)
-  @ConditionalOnBean(WavefrontConfig.class)
-  public WavefrontMeterRegistry wavefrontMeterRegistry(WavefrontConfig wavefrontConfig) {
-    if (wavefrontConfig == null) return null;
+  public WavefrontMeterRegistry wavefrontMeterRegistry(WavefrontConfig wavefrontConfig, Environment env) {
+    if (!env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_ENABLED, "true").equalsIgnoreCase("true") ||
+        wavefrontConfig == null) {
+      logger.info("Disabling Wavefront for Micrometer Integration via wavefront.properties (enabled != true)");
+      // once we have the dependency, spring boot will try to configure it (and the apiToken would be missing).
+      // we'll have to return a meter registry *in some way*, unless we have a blackhole meter registry, we'll need to
+      // emit the data to a random url.
+      return new WavefrontMeterRegistry(new WavefrontConfig() {
 
+        @Override
+        public String get(String s) {
+          return null;
+        }
+
+        @Override
+        public Duration step() {
+          return Duration.ofMinutes(5);
+        }
+
+        @Override
+        public String apiToken() {
+          return "abcde";
+        }
+
+        @Override
+        public String uri() {
+          return "http://blackhole-1.iana.org";
+        }
+      }, Clock.SYSTEM);
+    }
     logger.info("Activating Wavefront for Micrometer Integration (connection string: " + wavefrontConfig.uri() +
         ", reporting as: " + wavefrontConfig.source() + ")");
 
@@ -328,7 +353,6 @@ public class Initializer {
   @ConditionalOnBean({WavefrontConfig.class, WavefrontSender.class, ApplicationTags.class})
   public Tracer tracer(WavefrontConfig wavefrontConfig, WavefrontSender wavefrontSender,
                        ApplicationTags applicationTags, Environment env) {
-    if (wavefrontSender == null || wavefrontConfig == null) return null;
     @Nullable
     String tracingEnabled = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_TRACING_ENABLED);
     if (tracingEnabled != null && !tracingEnabled.equalsIgnoreCase("true")) return null;
