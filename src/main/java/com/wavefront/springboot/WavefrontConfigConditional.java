@@ -11,10 +11,10 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-import static com.wavefront.springboot.Initializer.*;
+import static com.wavefront.springboot.WavefrontSpringBootAutoConfiguration.*;
 
 /**
- * Spring {@link Condition} that decides whether the {@link Initializer} would offer a
+ * Spring {@link Condition} that decides whether the {@link WavefrontSpringBootAutoConfiguration} would offer a
  * {@link io.micrometer.wavefront.WavefrontConfig} bean. We need certain conditions to be met before a valid
  * Wavefront Configuration object can be returned successfully.
  *

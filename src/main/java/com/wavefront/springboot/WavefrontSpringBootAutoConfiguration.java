@@ -8,13 +8,6 @@ import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.direct.ingestion.WavefrontDirectIngestionClient;
 import com.wavefront.sdk.proxy.WavefrontProxyClient;
 import io.micrometer.core.instrument.Clock;
-import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
-import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
-import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
-import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
-import io.micrometer.core.instrument.binder.system.FileDescriptorMetrics;
-import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
-import io.micrometer.core.instrument.binder.system.UptimeMetrics;
 import io.micrometer.wavefront.WavefrontConfig;
 import io.micrometer.wavefront.WavefrontMeterRegistry;
 import io.opentracing.Tracer;
@@ -45,9 +38,11 @@ import java.util.UUID;
 @Configuration
 // properties file for additional (optional) configuration
 @PropertySource(value = "classpath:wavefront.properties", ignoreResourceNotFound = true)
-public class Initializer {
+// disable entirely if enabled is not true (defaults to true).
+@ConditionalOnProperty(value = "enabled", havingValue = "true", matchIfMissing = true)
+public class WavefrontSpringBootAutoConfiguration {
 
-  private static final Logger logger = LoggerFactory.getLogger(Initializer.class);
+  private static final Logger logger = LoggerFactory.getLogger(WavefrontSpringBootAutoConfiguration.class);
 
   /**
    * Wavefront URL that supports "freemium" accounts.
@@ -59,12 +54,6 @@ public class Initializer {
    * we will also save that in the file (assuming it's writable).
    */
   private static final String WAVEFRONT_TOKEN_FILENAME = ".wavefront_token";
-
-  /**
-   * This is mainly used to <b>disable</b> wavefront-reporting. If the dependency is present, we would assume reporting
-   * is on-by-default. If enabled=false, we would shut-off all reporting.
-   */
-  private static final String PROPERTY_FILE_KEY_WAVEFRONT_ENABLED = "enabled";
   /**
    * URL for http/https-based reporting. Should be a valid URL.
    */
@@ -121,8 +110,7 @@ public class Initializer {
    * already declared in the user's environment, we'll respect that.
    */
   @Bean
-  @ConditionalOnProperty(value = "enabled", havingValue = "true", matchIfMissing = true)
-  @ConditionalOnMissingBean(WavefrontConfig.class)
+  @ConditionalOnMissingBean
   @Conditional(WavefrontConfigConditional.class)
   public WavefrontConfig wavefrontConfig(Environment env) {
     // there are two methods to report wavefront observability data (proxy or http)
@@ -267,52 +255,12 @@ public class Initializer {
   }
 
   @Bean
-  @ConditionalOnMissingBean(WavefrontMeterRegistry.class)
-  public WavefrontMeterRegistry wavefrontMeterRegistry(WavefrontConfig wavefrontConfig, Environment env) {
-    if (!env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_ENABLED, "true").equalsIgnoreCase("true") ||
-        wavefrontConfig == null) {
-      logger.info("Disabling Wavefront for Micrometer Integration via wavefront.properties (enabled != true)");
-      // once we have the dependency, spring boot will try to configure it (and the apiToken would be missing).
-      // we'll have to return a meter registry *in some way*, unless we have a blackhole meter registry, we'll need to
-      // emit the data to a random url.
-      return new WavefrontMeterRegistry(new WavefrontConfig() {
-
-        @Override
-        public String get(String s) {
-          return null;
-        }
-
-        @Override
-        public Duration step() {
-          return Duration.ofMinutes(5);
-        }
-
-        @Override
-        public String apiToken() {
-          return "abcde";
-        }
-
-        @Override
-        public String uri() {
-          return "http://blackhole-1.iana.org";
-        }
-      }, Clock.SYSTEM);
-    }
-    logger.info("Activating Wavefront for Micrometer Integration (connection string: " + wavefrontConfig.uri() +
+  @ConditionalOnBean(WavefrontConfig.class)
+  public WavefrontMeterRegistry wavefrontMeterRegistry(WavefrontConfig wavefrontConfig) {
+    logger.info("Activating Wavefront Spring Micrometer Reporting (connection string: " + wavefrontConfig.uri() +
         ", reporting as: " + wavefrontConfig.source() + ")");
-
     // create a new registry
-    WavefrontMeterRegistry registry = new WavefrontMeterRegistry(wavefrontConfig, Clock.SYSTEM);
-    // default JVM stats
-    new ClassLoaderMetrics().bindTo(registry);
-    new JvmMemoryMetrics().bindTo(registry);
-    new JvmGcMetrics().bindTo(registry);
-    new ProcessorMetrics().bindTo(registry);
-    new JvmThreadMetrics().bindTo(registry);
-    new FileDescriptorMetrics().bindTo(registry);
-    new UptimeMetrics().bindTo(registry);
-
-    return registry;
+    return new WavefrontMeterRegistry(wavefrontConfig, Clock.SYSTEM);
   }
 
   @Bean
@@ -338,7 +286,6 @@ public class Initializer {
   }
 
   @Bean
-  @ConditionalOnMissingBean(ApplicationTags.class)
   public ApplicationTags wavefrontApplicationTags(Environment env, ApplicationContext applicationContext) {
     String applicationName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_APPLICATION, "springboot");
     String serviceName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_SERVICE, applicationContext.getApplicationName());
@@ -352,7 +299,8 @@ public class Initializer {
   @ConditionalOnMissingBean(Tracer.class)
   @ConditionalOnBean({WavefrontConfig.class, WavefrontSender.class, ApplicationTags.class})
   public Tracer tracer(WavefrontConfig wavefrontConfig, WavefrontSender wavefrontSender,
-                       ApplicationTags applicationTags, Environment env) {
+                       ApplicationTags applicationTags, Environment env,
+                       WavefrontMeterRegistry wavefrontMeterRegistry) {
     @Nullable
     String tracingEnabled = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_TRACING_ENABLED);
     if (tracingEnabled != null && !tracingEnabled.equalsIgnoreCase("true")) return null;
@@ -363,7 +311,7 @@ public class Initializer {
 
     logger.info("Activating Wavefront OpenTracing Tracer (connection string: " + wavefrontConfig.uri() +
         ", reporting as: " + wavefrontConfig.source() +
-        " {" + applicationTags.toPointTags().toString() + "})");
+        " " + applicationTags.toPointTags().toString() + ")");
 
     return new WavefrontTracer.Builder(spanReporter, applicationTags).build();
   }

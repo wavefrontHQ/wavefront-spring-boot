@@ -11,7 +11,7 @@
   </parent>
 
   <groupId>com.wavefront</groupId>
-  <artifactId>springboot-autoconfigure</artifactId>
+  <artifactId>wavefront-spring-boot-autoconfigure</artifactId>
   <version>1.0-SNAPSHOT</version>
 
   <name>Wavefront Spring Boot Integration</name>
