@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -53,7 +52,7 @@ public class WavefrontSpringBootAutoConfiguration {
    * Read from ${user.home}, when no token is specified in wavefront.properties. When we obtain a token from the server,
    * we will also save that in the file (assuming it's writable).
    */
-  private static final String WAVEFRONT_TOKEN_FILENAME = ".wavefront_token";
+  static final String WAVEFRONT_TOKEN_FILENAME = ".wavefront_token";
   /**
    * URL for http/https-based reporting. Should be a valid URL.
    */
@@ -98,16 +97,41 @@ public class WavefrontSpringBootAutoConfiguration {
   /**
    * Name of the application (otherwise we use "springboot"}.
    */
-  private static final String PROPERTY_FILE_KEY_WAVEFRONT_APPLICATION = "application.name";
-
+  static final String PROPERTY_FILE_KEY_WAVEFRONT_APPLICATION = "application.name";
   /**
-   * Name of the service (otherwise we use {@link ApplicationContext#getApplicationName()}.
+   * Name of the service (otherwise we use "unnamed_service")".
    */
-  private static final String PROPERTY_FILE_KEY_WAVEFRONT_SERVICE = "application.service";
+  static final String PROPERTY_FILE_KEY_WAVEFRONT_SERVICE = "application.service";
+  /**
+   * Cluster of the service (otherwise we use null"}.
+   */
+  static final String PROPERTY_FILE_KEY_WAVEFRONT_CLUSTER = "application.cluster";
+  /**
+   * Shard of the service (otherwise we use null)".
+   */
+  static final String PROPERTY_FILE_KEY_WAVEFRONT_SHARD = "application.shard";
+
+  @Bean
+  public ApplicationTags wavefrontApplicationTags(Environment env) {
+    String applicationName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_APPLICATION, "springboot");
+    String serviceName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_SERVICE, "unnamed_service");
+    ApplicationTags.Builder builder = new ApplicationTags.Builder(applicationName, serviceName);
+    @Nullable
+    String clusterName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_CLUSTER);
+    @Nullable
+    String shardName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_SHARD);
+    if (clusterName != null) {
+      builder.cluster(clusterName);
+    }
+    if (shardName != null) {
+      builder.shard(shardName);
+    }
+    return builder.build();
+  }
 
   /**
-   * {@link WavefrontConfig} is used to configure micrometer but we will reuse it for spans as well if possible. If it's
-   * already declared in the user's environment, we'll respect that.
+   * {@link WavefrontConfig} is used to configure micrometer but we will reuse it for spans as
+   * well if possible. If it's already declared in the user's environment, we'll respect that.
    */
   @Bean
   @ConditionalOnMissingBean
@@ -281,18 +305,9 @@ public class WavefrontSpringBootAutoConfiguration {
           tracingPort(wavefrontTracingPort).
           distributionPort(wavefrontConfig.distributionPort()).build();
     } else {
-      return new WavefrontDirectIngestionClient.Builder(wavefrontConfig.uri(), wavefrontConfig.apiToken()).build();
+      return new WavefrontDirectIngestionClient.Builder(wavefrontConfig.uri(),
+          wavefrontConfig.apiToken()).build();
     }
-  }
-
-  @Bean
-  public ApplicationTags wavefrontApplicationTags(Environment env, ApplicationContext applicationContext) {
-    String applicationName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_APPLICATION, "springboot");
-    String serviceName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_SERVICE, applicationContext.getApplicationName());
-    if (serviceName.trim().length() == 0) {
-      serviceName = "unnamed_service";
-    }
-    return new ApplicationTags.Builder(applicationName, serviceName).build();
   }
 
   @Bean
