@@ -16,11 +16,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -136,7 +139,7 @@ public class WavefrontSpringBootAutoConfiguration {
   @Bean
   @ConditionalOnMissingBean
   @Conditional(WavefrontConfigConditional.class)
-  public WavefrontConfig wavefrontConfig(Environment env) {
+  public WavefrontConfig wavefrontConfig(Environment env, ApplicationTags applicationTags) {
     // there are two methods to report wavefront observability data (proxy or http)
     // we bias to the proxy if it's defined
     @Nullable
@@ -150,16 +153,56 @@ public class WavefrontSpringBootAutoConfiguration {
     if (wavefrontProxyHost == null) {
       // we assume http reporting. defaults to wavefront.surf
       wavefrontUri = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE, WAVEFRONT_DEFAULT_INSTANCE);
-
+      boolean manualToken = true;
       wavefrontToken = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_TOKEN);
       if (wavefrontToken == null) {
         // attempt to read from local machine for the token to use.
         Optional<String> existingToken = getWavefrontTokenFromWellKnownFile();
         if (existingToken.isPresent()) wavefrontToken = existingToken.get();
+        manualToken = false;
       }
       if (wavefrontToken == null) {
         logger.warn("Cannot configure Wavefront Observability for Spring Boot (no credentials available)");
         return null;
+      }
+      RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
+      RestTemplate restTemplate = restTemplateBuilder.build();
+      UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.
+          fromUriString(wavefrontUri).path(
+          "/api/v2/trial/spring-boot-autoconfigure").
+          queryParam("application", applicationTags.getApplication()).
+          queryParam("service", applicationTags.getService());
+      if (applicationTags.getCluster() != null) {
+        uriComponentsBuilder.queryParam("cluster", applicationTags.getCluster());
+      }
+      if (applicationTags.getShard() != null) {
+        uriComponentsBuilder.queryParam("shard", applicationTags.getShard());
+      }
+      uriComponentsBuilder.queryParam("t", wavefrontToken);
+      if (!manualToken) {
+        try {
+          AccountProvisioningResponse resp = restTemplate.getForObject(
+              uriComponentsBuilder.build().toUri(),
+              AccountProvisioningResponse.class);
+          if (resp != null && resp.getUrl() != null) {
+            uriComponentsBuilder = UriComponentsBuilder.
+                fromUriString(wavefrontUri).path(resp.getUrl());
+            String message = "See Wavefront Application Observability Data (one-time use link): " +
+                uriComponentsBuilder.build().toUriString();
+            StringBuilder sb = new StringBuilder(message.length());
+            for (int i = 0; i < message.length(); i++) {
+              sb.append("=");
+            }
+            logger.info(sb.toString());
+            logger.info(message);
+            logger.info(sb.toString());
+          }
+        } catch (RuntimeException ex) {
+          // the cluster might not support generating one-time links, we'll just ignore all errors.
+          logger.debug("Failed to invoke /api/v2/trial/spring-boot-autoconfigure on: " + wavefrontUri, ex);
+          logger.warn("Cannot obtain Wavefront one-time use login link, go to: " + wavefrontUri +
+              " to see collected data (or ensure your credentials are still valid)");
+        }
       }
     } else {
       // we will use proxy-based reporting.

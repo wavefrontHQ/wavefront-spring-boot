@@ -85,11 +85,10 @@ public class WavefrontConfigConditional implements Condition {
             return false;
           }
           wavefrontToken = resp.getToken();
-          boolean written = writeWavefrontTokenToWellKnownFile(wavefrontToken);
-          if (!written) return false;
-          logger.info("=====================================================");
-          logger.info("See Wavefront Observability Data at: " + resp.getUrl());
-          logger.info("=====================================================");
+          Optional<String> written = writeWavefrontTokenToWellKnownFile(wavefrontToken);
+          if (!written.isPresent()) return false;
+          logger.info("Auto-negotiation of Wavefront credentials successful, stored token can be found at: " +
+              written.get());
         } catch (RuntimeException ex) {
           logger.debug("Runtime Exception in Wavefront auto-negotiation", ex);
           logger.warn("Cannot auto-negotiate Wavefront credentials, cannot configure Wavefront" +
@@ -101,31 +100,31 @@ public class WavefrontConfigConditional implements Condition {
     return true;
   }
 
-  static boolean writeWavefrontTokenToWellKnownFile(String token) {
+  static Optional<String> writeWavefrontTokenToWellKnownFile(String token) {
     String userHomeStr = System.getProperty("user.home");
     if (userHomeStr == null || userHomeStr.length() == 0) {
       logger.debug("System.getProperty(\"user.home\") is empty, cannot write " +
           "local Wavefront token");
-      return false;
+      return Optional.empty();
     }
     try {
       File userHome = new File(userHomeStr);
       if (!userHome.exists()) {
         logger.debug("System.getProperty(\"user.home\") does not exist, cannot write " +
             "local Wavefront token");
-        return false;
+        return Optional.empty();
       }
       File wavefrontToken = new File(userHome, WAVEFRONT_TOKEN_FILENAME);
       if (!wavefrontToken.exists()) {
         Files.write(Paths.get(wavefrontToken.toURI()), token.getBytes(StandardCharsets.UTF_8));
-        return true;
+        return Optional.of(wavefrontToken.getAbsolutePath());
       } else {
-        return false;
+        return Optional.empty();
       }
     } catch (RuntimeException | IOException ex) {
       logger.warn("Cannot save Wavefront token to: " + userHomeStr + " directory. Cannot report " +
-          "observability data without a valid token", ex);
-      return false;
+          "observability data without a valid token.", ex);
+      return Optional.empty();
     }
   }
 }
