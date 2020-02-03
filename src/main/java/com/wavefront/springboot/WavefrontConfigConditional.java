@@ -61,6 +61,9 @@ public class WavefrontConfigConditional implements Condition {
         String shardName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_SHARD);
         String wavefrontUri = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE,
             WAVEFRONT_DEFAULT_INSTANCE);
+        if (!wavefrontUri.startsWith("http")) {
+          wavefrontUri = "https://" + wavefrontUri;
+        }
         RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
         RestTemplate restTemplate = restTemplateBuilder.build();
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.

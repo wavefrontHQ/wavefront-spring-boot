@@ -153,6 +153,9 @@ public class WavefrontSpringBootAutoConfiguration {
     if (wavefrontProxyHost == null) {
       // we assume http reporting. defaults to wavefront.surf
       wavefrontUri = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE, WAVEFRONT_DEFAULT_INSTANCE);
+      if (!wavefrontUri.startsWith("http")) {
+        wavefrontUri = "https://" + wavefrontUri;
+      }
       boolean manualToken = true;
       wavefrontToken = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_TOKEN);
       if (wavefrontToken == null) {
@@ -166,6 +169,8 @@ public class WavefrontSpringBootAutoConfiguration {
         return null;
       }
       RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
+      restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10));
+      restTemplateBuilder.setReadTimeout(Duration.ofSeconds(10));
       RestTemplate restTemplate = restTemplateBuilder.build();
       UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.
           fromUriString(wavefrontUri).path(
