@@ -75,7 +75,7 @@ public class WavefrontSpringBootAutoConfiguration {
   /**
    * Histogram port (defaults to the same as proxy, which would be 2878).
    */
-  private static final String PROPERTY_FILE_KEY_WAVEFRONT_PROXY_HISTOGRAM_PORT = "proxy.histgoram_port";
+  private static final String PROPERTY_FILE_KEY_WAVEFRONT_PROXY_HISTOGRAM_PORT = "proxy.histogram_port";
   /**
    * Tracing port (defaults to 30000). Refer to https://github.com/wavefrontHQ/wavefront-proxy/tree/master/proxy#set-up-a-wavefront-proxy
    */
