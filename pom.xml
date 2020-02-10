@@ -12,7 +12,7 @@
 
   <groupId>com.wavefront</groupId>
   <artifactId>wavefront-spring-boot-autoconfigure</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>2.0.0-SNAPSHOT</version>
 
   <name>Wavefront Spring Boot Integration</name>
   <description>Configure all necessary settings for full observability (metrics, histograms and traces) for Spring Boot
