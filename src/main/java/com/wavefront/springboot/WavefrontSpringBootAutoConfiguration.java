@@ -8,22 +8,19 @@ import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.direct.ingestion.WavefrontDirectIngestionClient;
 import com.wavefront.sdk.proxy.WavefrontProxyClient;
 import io.micrometer.core.instrument.Clock;
-import io.micrometer.core.instrument.binder.jvm.*;
-import io.micrometer.core.instrument.binder.system.*;
-import io.micrometer.core.instrument.binder.logging.*;
-import io.micrometer.core.instrument.binder.tomcat.*;
 import io.micrometer.wavefront.WavefrontConfig;
 import io.micrometer.wavefront.WavefrontMeterRegistry;
 import io.opentracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.annotation.*;
-import org.springframework.core.Ordered;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -45,7 +42,6 @@ import java.util.UUID;
 @PropertySource(value = "classpath:wavefront.properties", ignoreResourceNotFound = true)
 // disable entirely if enabled is not true (defaults to true).
 @ConditionalOnProperty(value = "enabled", havingValue = "true", matchIfMissing = true)
-// @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
 public class WavefrontSpringBootAutoConfiguration {
 
   private static final Logger logger = LoggerFactory.getLogger(WavefrontSpringBootAutoConfiguration.class);
@@ -384,19 +380,7 @@ public class WavefrontSpringBootAutoConfiguration {
     logger.info("Activating Wavefront Spring Micrometer Reporting (connection string: " + wavefrontConfig.uri() +
         ", reporting as: " + wavefrontConfig.source() + ")");
     // create a new registry
-    WavefrontMeterRegistry registry = new WavefrontMeterRegistry(wavefrontConfig, Clock.SYSTEM);
-    /* optional registry that you can pre-set for micrometer,
-       if you want additional system metrics - Howard
-
-    new ClassLoaderMetrics().bindTo(registry);
-    new JvmMemoryMetrics().bindTo(registry);
-    new JvmGcMetrics().bindTo(registry);
-    new ProcessorMetrics().bindTo(registry);
-    new JvmThreadMetrics().bindTo(registry);
-    new UptimeMetrics().bindTo(registry);
-    new FileDescriptorMetrics().bindTo(registry);
-    */
-    return registry;
+    return new WavefrontMeterRegistry(wavefrontConfig, Clock.SYSTEM);
   }
 
   @Bean
