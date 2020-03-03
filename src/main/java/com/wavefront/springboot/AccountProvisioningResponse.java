@@ -3,7 +3,7 @@ package com.wavefront.springboot;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AccountProvisioningResponse {
+class AccountProvisioningResponse {
   private String url;
   private String token;
 
