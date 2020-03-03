@@ -8,19 +8,22 @@ import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.direct.ingestion.WavefrontDirectIngestionClient;
 import com.wavefront.sdk.proxy.WavefrontProxyClient;
 import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.binder.jvm.*;
+import io.micrometer.core.instrument.binder.system.*;
+import io.micrometer.core.instrument.binder.logging.*;
+import io.micrometer.core.instrument.binder.tomcat.*;
 import io.micrometer.wavefront.WavefrontConfig;
 import io.micrometer.wavefront.WavefrontMeterRegistry;
 import io.opentracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
+import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -42,6 +45,7 @@ import java.util.UUID;
 @PropertySource(value = "classpath:wavefront.properties", ignoreResourceNotFound = true)
 // disable entirely if enabled is not true (defaults to true).
 @ConditionalOnProperty(value = "enabled", havingValue = "true", matchIfMissing = true)
+// @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
 public class WavefrontSpringBootAutoConfiguration {
 
   private static final Logger logger = LoggerFactory.getLogger(WavefrontSpringBootAutoConfiguration.class);
@@ -114,6 +118,11 @@ public class WavefrontSpringBootAutoConfiguration {
    */
   static final String PROPERTY_FILE_KEY_WAVEFRONT_SHARD = "application.shard";
 
+  /**
+   * Howard Mar 1, 2020 internal key for onetimelink - did not exist in original
+   */
+  static final String PROPERTY_WAVEFRONT_ONETIMELINK = "wavefront.onetimelink";
+
   @Bean
   public ApplicationTags wavefrontApplicationTags(Environment env) {
     String applicationName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_APPLICATION, "springboot");
@@ -135,6 +144,13 @@ public class WavefrontSpringBootAutoConfiguration {
   /**
    * {@link WavefrontConfig} is used to configure micrometer but we will reuse it for spans as
    * well if possible. If it's already declared in the user's environment, we'll respect that.
+   *
+   * <p>Change List</p>
+   * <ul>
+   *     <li>Changes in getWavefronttokenFromWellKnownFile to retrieve both uri and token.</li>
+   *     <li>Changes in logic to first check the uri and token from well known file.</li>
+   *     <li>When there is no uri or token found, the original logic would assume.</li>
+   * </ul>
    */
   @Bean
   @ConditionalOnMissingBean
@@ -144,26 +160,44 @@ public class WavefrontSpringBootAutoConfiguration {
     // we bias to the proxy if it's defined
     @Nullable
     String wavefrontProxyHost = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_PROXY_HOST);
-    String wavefrontUri;
+    @Nullable
+    String wavefrontUri = null;
+    @Nullable
+    String oneTimeLink = null;
     @Nullable
     String wavefrontToken = null;
     int wavefrontHistogramPort = 2878;
     @Nullable
     String wavefrontSource = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_REPORTING_SOURCE);
     if (wavefrontProxyHost == null) {
-      // we assume http reporting. defaults to wavefront.surf
+      boolean manualToken = true;
+      // attempt to read from local machine for the url and token to use first.
+      Optional<String[]> existingUrlToken = getWavefrontUriTokenFromWellKnownFile();
+
+      // first try to locate the uri from property file (always precedence)
       wavefrontUri = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE, WAVEFRONT_DEFAULT_INSTANCE);
-      if (!wavefrontUri.startsWith("http")) {
+      if(wavefrontUri == null) {
+        if (existingUrlToken.isPresent()) {
+          wavefrontUri = existingUrlToken.get()[0];
+          if (wavefrontUri != null && !wavefrontUri.startsWith("http")) {
+            // init the uri for new registration
+            wavefrontUri = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE, WAVEFRONT_DEFAULT_INSTANCE);
+            // proceed to generate account registration url
+            manualToken = false;
+          }
+        }
+      }
+      // post process uri by adding https prefix if not found
+      if (wavefrontUri != null && !wavefrontUri.startsWith("http")) {
         wavefrontUri = "https://" + wavefrontUri;
       }
-      boolean manualToken = true;
       wavefrontToken = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_TOKEN);
       if (wavefrontToken == null) {
-        // attempt to read from local machine for the token to use.
-        Optional<String> existingToken = getWavefrontTokenFromWellKnownFile();
-        if (existingToken.isPresent()) wavefrontToken = existingToken.get();
-        manualToken = false;
+        if(existingUrlToken.isPresent()) {
+          wavefrontToken = existingUrlToken.get()[1];
+        }
       }
+      // if token is still not found, raise warning.
       if (wavefrontToken == null) {
         logger.warn("Cannot configure Wavefront Observability for Spring Boot (no credentials available)");
         return null;
@@ -194,6 +228,8 @@ public class WavefrontSpringBootAutoConfiguration {
                 fromUriString(wavefrontUri).path(resp.getUrl());
             String message = "See Wavefront Application Observability Data (one-time use link): " +
                 uriComponentsBuilder.build().toUriString();
+            oneTimeLink = uriComponentsBuilder.build().toUriString();
+
             StringBuilder sb = new StringBuilder(message.length());
             for (int i = 0; i < message.length(); i++) {
               sb.append("=");
@@ -223,6 +259,7 @@ public class WavefrontSpringBootAutoConfiguration {
     String finalWavefrontToken = wavefrontToken;
     int finalWavefrontHistogramPort = wavefrontHistogramPort;
     String finalWavefrontUri = wavefrontUri;
+    String finalOneTimeLink = oneTimeLink;
     return new WavefrontConfig() {
 
       @Override
@@ -284,14 +321,25 @@ public class WavefrontSpringBootAutoConfiguration {
         return env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_REPORTING_PREFIX, "");
       }
 
+      /**
+       * <p>Changes</p>
+       * <ul>
+       *     <li>Added logic to return finalOneTimeLink given.</li>
+       * </ul>
+       * @param s
+       * @return
+       */
       @Override
       public String get(String s) {
+        if(s.equalsIgnoreCase(PROPERTY_WAVEFRONT_ONETIMELINK)) {
+          return finalOneTimeLink;
+        }
         return null;
       }
     };
   }
 
-  static Optional<String> getWavefrontTokenFromWellKnownFile() {
+  static Optional<String[]> getWavefrontUriTokenFromWellKnownFile() {
     String userHomeStr = System.getProperty("user.home");
     if (userHomeStr == null || userHomeStr.length() == 0) {
       logger.debug("System.getProperty(\"user.home\") is empty, cannot obtain local Wavefront token");
@@ -307,8 +355,12 @@ public class WavefrontSpringBootAutoConfiguration {
       if (wavefrontToken.exists() && wavefrontToken.canRead()) {
         try {
           List<String> tokens = Files.readAllLines(Paths.get(wavefrontToken.toURI()), StandardCharsets.UTF_8);
-          UUID uuid = UUID.fromString(tokens.get(0));
-          return Optional.of(uuid.toString());
+          String uri = tokens.get(0);
+          UUID uuid = UUID.fromString(tokens.get(1));
+          String[] result = new String[2];
+          result[0] = uri;
+          result[1] = uuid.toString();
+          return Optional.of(result);
         } catch (IOException ex) {
           logger.warn("Cannot read Wavefront token from: " + wavefrontToken.getAbsolutePath(), ex);
           return Optional.empty();
@@ -332,7 +384,19 @@ public class WavefrontSpringBootAutoConfiguration {
     logger.info("Activating Wavefront Spring Micrometer Reporting (connection string: " + wavefrontConfig.uri() +
         ", reporting as: " + wavefrontConfig.source() + ")");
     // create a new registry
-    return new WavefrontMeterRegistry(wavefrontConfig, Clock.SYSTEM);
+    WavefrontMeterRegistry registry = new WavefrontMeterRegistry(wavefrontConfig, Clock.SYSTEM);
+    /* optional registry that you can pre-set for micrometer,
+       if you want additional system metrics - Howard
+
+    new ClassLoaderMetrics().bindTo(registry);
+    new JvmMemoryMetrics().bindTo(registry);
+    new JvmGcMetrics().bindTo(registry);
+    new ProcessorMetrics().bindTo(registry);
+    new JvmThreadMetrics().bindTo(registry);
+    new UptimeMetrics().bindTo(registry);
+    new FileDescriptorMetrics().bindTo(registry);
+    */
+    return registry;
   }
 
   @Bean
