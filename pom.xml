@@ -100,12 +100,12 @@
     <dependency>
       <groupId>io.opentracing</groupId>
       <artifactId>opentracing-api</artifactId>
-      <version>[0.33.0, )</version>
+      <version>0.33.0</version>
     </dependency>
     <dependency>
       <groupId>com.wavefront</groupId>
       <artifactId>wavefront-opentracing-sdk-java</artifactId>
-      <version>[1.13, )</version>
+      <version>1.13</version>
     </dependency>
   </dependencies>
 
