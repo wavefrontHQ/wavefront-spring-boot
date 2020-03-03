@@ -56,14 +56,11 @@ public class WavefrontConfigConditional implements Condition {
           // if url from the file does not start with http, we should update it to do so
           if (!wavefrontUrl.startsWith("http")) {
             wavefrontUrl = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE,
-                    WAVEFRONT_DEFAULT_INSTANCE);
+                WAVEFRONT_DEFAULT_INSTANCE);
             if (!wavefrontUrl.startsWith("http")) {
               wavefrontUrl = "https://" + wavefrontUrl;
             }
             Optional<String> written = writeWavefrontUriTokenToWellKnownFile(wavefrontUrl, wavefrontToken);
-            if(written.isPresent()) {
-              logger.info("updated " + written.get() + " with proper wavefront url");
-            }
           }
         }
       }
