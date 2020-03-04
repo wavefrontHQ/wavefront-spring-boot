@@ -11,8 +11,8 @@ import io.micrometer.core.instrument.Clock;
 import io.micrometer.wavefront.WavefrontConfig;
 import io.micrometer.wavefront.WavefrontMeterRegistry;
 import io.opentracing.Tracer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -44,12 +44,12 @@ import java.util.UUID;
 @ConditionalOnProperty(value = "enabled", havingValue = "true", matchIfMissing = true)
 public class WavefrontSpringBootAutoConfiguration {
 
-  private static final Logger logger = LoggerFactory.getLogger(WavefrontSpringBootAutoConfiguration.class);
+  private static final Log logger = LogFactory.getLog(WavefrontSpringBootAutoConfiguration.class);
 
   /**
    * Wavefront URL that supports "freemium" accounts.
    */
-  static final String WAVEFRONT_DEFAULT_INSTANCE = "https://dev.corp.wavefront.com";
+  static final String WAVEFRONT_DEFAULT_INSTANCE = "https://wavefront.surf";
 
   /**
    * Read from ${user.home}, when no token is specified in wavefront.properties. When we obtain a token from the server,
@@ -236,7 +236,9 @@ public class WavefrontSpringBootAutoConfiguration {
           }
         } catch (RuntimeException ex) {
           // the cluster might not support generating one-time links, we'll just ignore all errors.
-          logger.debug("Failed to invoke /api/v2/trial/spring-boot-autoconfigure on: " + wavefrontUri, ex);
+          if (logger.isDebugEnabled()) {
+            logger.debug("Failed to invoke /api/v2/trial/spring-boot-autoconfigure on: " + wavefrontUri, ex);
+          }
           logger.warn("Cannot obtain Wavefront one-time use login link, go to: " + wavefrontUri +
               " to see collected data (or ensure your credentials are still valid)");
         }
@@ -338,13 +340,17 @@ public class WavefrontSpringBootAutoConfiguration {
   static Optional<String[]> getWavefrontUriTokenFromWellKnownFile() {
     String userHomeStr = System.getProperty("user.home");
     if (userHomeStr == null || userHomeStr.length() == 0) {
-      logger.debug("System.getProperty(\"user.home\") is empty, cannot obtain local Wavefront token");
+      if (logger.isDebugEnabled()) {
+        logger.debug("System.getProperty(\"user.home\") is empty, cannot obtain local Wavefront token");
+      }
       return Optional.empty();
     }
     try {
       File userHome = new File(userHomeStr);
       if (!userHome.exists()) {
-        logger.debug("System.getProperty(\"user.home\") does not exist, cannot obtain local Wavefront token");
+        if (logger.isDebugEnabled()) {
+          logger.debug("System.getProperty(\"user.home\") does not exist, cannot obtain local Wavefront token");
+        }
         return Optional.empty();
       }
       File wavefrontToken = new File(userHome, WAVEFRONT_TOKEN_FILENAME);
@@ -365,7 +371,9 @@ public class WavefrontSpringBootAutoConfiguration {
           return Optional.empty();
         }
       } else {
-        logger.debug("No token found (or readable) in: " + wavefrontToken.getAbsolutePath());
+        if (logger.isDebugEnabled()) {
+          logger.debug("No token found (or readable) in: " + wavefrontToken.getAbsolutePath());
+        }
         return Optional.empty();
       }
     } catch (RuntimeException ex) {

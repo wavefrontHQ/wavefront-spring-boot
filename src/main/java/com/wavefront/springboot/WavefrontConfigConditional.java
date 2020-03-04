@@ -1,7 +1,9 @@
 package com.wavefront.springboot;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
+import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
@@ -29,12 +31,12 @@ import static com.wavefront.springboot.WavefrontSpringBootAutoConfiguration.*;
  * @author Clement Pang (clement@wavefront.com).
  */
 @PropertySource(value = "classpath:wavefront.properties", ignoreResourceNotFound = true)
-public class WavefrontConfigConditional implements Condition {
+public class WavefrontConfigConditional extends SpringBootCondition {
 
-  private static final Logger logger = LoggerFactory.getLogger(WavefrontConfigConditional.class);
+  private static final Log logger = LogFactory.getLog(WavefrontConfigConditional.class);
 
   @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+  public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
     Environment env = context.getEnvironment();
     // there are two methods to report wavefront observability data (proxy or http)
     // we bias to the proxy if it's defined
@@ -91,7 +93,9 @@ public class WavefrontConfigConditional implements Condition {
         if (shardName != null) {
           uriComponentsBuilder.queryParam("shard", shardName);
         }
-        logger.debug("Auto-negotiating Wavefront credentials from: " + wavefrontUri);
+        if (logger.isDebugEnabled()) {
+          logger.debug("Auto-negotiating Wavefront credentials from: " + wavefrontUri);
+        }
         try {
           AccountProvisioningResponse resp = restTemplate.postForObject(
               uriComponentsBuilder.build().toUri(), null,
@@ -99,25 +103,29 @@ public class WavefrontConfigConditional implements Condition {
           if (resp == null) {
             logger.warn("Cannot auto-negotiate Wavefront credentials (null response), " +
                 "cannot configure Wavefront Observability for Spring Boot");
-            return false;
+            return ConditionOutcome.noMatch("Cannot auto-negotiate Wavefront credentials (null response)");
           }
           wavefrontToken = resp.getToken();
           wavefrontUrl = resp.getUrl();   // uri which is string for initial logging in
 
           // saving wavefrontUrl that were received
           Optional<String> written = writeWavefrontUriTokenToWellKnownFile(wavefrontUrl, wavefrontToken);
-          if (!written.isPresent()) return false;
+          if (!written.isPresent()) {
+            return ConditionOutcome.noMatch("Cannot write Wavefront credentials to disk");
+          }
           logger.info("Auto-negotiation of Wavefront credentials successful, stored token can be found at: " +
               written.get());
         } catch (RuntimeException ex) {
-          logger.debug("Runtime Exception in Wavefront auto-negotiation", ex);
+          if (logger.isDebugEnabled()) {
+            logger.debug("Runtime Exception in Wavefront auto-negotiation", ex);
+          }
           logger.warn("Cannot auto-negotiate Wavefront credentials, cannot configure Wavefront" +
               " Observability for Spring Boot");
-          return false;
+          return ConditionOutcome.noMatch("RuntimeException in Wavefront auto-negotiation");
         }
       }
     }
-    return true;
+    return ConditionOutcome.match();
   }
 
   /**
@@ -133,15 +141,19 @@ public class WavefrontConfigConditional implements Condition {
   static Optional<String> writeWavefrontUriTokenToWellKnownFile(String uri, String token) {
     String userHomeStr = System.getProperty("user.home");
     if (userHomeStr == null || userHomeStr.length() == 0) {
-      logger.debug("System.getProperty(\"user.home\") is empty, cannot write " +
-          "local Wavefront token");
+      if (logger.isDebugEnabled()) {
+        logger.debug("System.getProperty(\"user.home\") is empty, cannot write " +
+            "local Wavefront token");
+      }
       return Optional.empty();
     }
     try {
       File userHome = new File(userHomeStr);
       if (!userHome.exists()) {
-        logger.debug("System.getProperty(\"user.home\") does not exist, cannot write " +
-            "local Wavefront token");
+        if (logger.isDebugEnabled()) {
+          logger.debug("System.getProperty(\"user.home\") does not exist, cannot write " +
+              "local Wavefront token");
+        }
         return Optional.empty();
       }
       File wavefrontToken = new File(userHome, WAVEFRONT_TOKEN_FILENAME);
