@@ -1,6 +1,6 @@
 # Wavefront for Spring Boot Autoconfigure/Starter
 
-`wavefront-spring-boot-autoconfigure` uses Spring Boot's `@EnableAutoConfiguration`, which configures various Spring components to emit metrics, histograms, and traces to the Wavefront service. It removes any code changes (apart from configuration or custom reporting dimensions) that do not enable observability for a Spring Boot application. 
+`wavefront-spring-boot-starter` uses Spring Boot's `@EnableAutoConfiguration`, which configures various Spring components to emit metrics, histograms, and traces to the Wavefront service. It removes any code changes (apart from configuration or custom reporting dimensions) that do not enable observability for a Spring Boot application. 
 
 ## Table of Content
 
@@ -12,11 +12,11 @@
 ## Prerequisite
 
 * Java 8 or above.
-* Introduce the latest `wavefront-spring-boot-autoconfigure` to your application by adding the following dependency to your pom.xml file.
+* Introduce the latest `wavefront-spring-boot-starter` to your application by adding the following dependency to your pom.xml file.
   ```xml
   <dependency>
       <groupId>com.wavefront</groupId>
-      <artifactId>wavefront-spring-boot-autoconfigure</artifactId>
+      <artifactId>wavefront-spring-boot-starter</artifactId>
       <version>2.0.0</version>
   </dependency>
   ```
