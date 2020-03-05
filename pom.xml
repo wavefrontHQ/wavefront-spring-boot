@@ -11,10 +11,10 @@
   </parent>
 
   <groupId>com.wavefront</groupId>
-  <artifactId>wavefront-spring-boot-autoconfigure</artifactId>
+  <artifactId>wavefront-spring-boot-starter</artifactId>
   <version>2.0.0-SNAPSHOT</version>
 
-  <name>Wavefront Spring Boot Integration</name>
+  <name>Wavefront by VMware for Spring Boot</name>
   <description>Configure all necessary settings for full observability (metrics, histograms and traces) for Spring Boot
     applications</description>
   <url>http://www.wavefront.com</url>
@@ -33,9 +33,9 @@
     </developer>
   </developers>
   <scm>
-    <connection>scm:git:git@github.com:wavefrontHQ/springboot-autoconfigure.git</connection>
-    <developerConnection>scm:git:git@github.com:wavefrontHQ/springboot-autoconfigure.git</developerConnection>
-    <url>git@github.com:wavefrontHQ/springboot-autoconfigure.git</url>
+    <connection>scm:git:git@github.com:wavefrontHQ/wavefront-spring-boot.git</connection>
+    <developerConnection>scm:git:git@github.com:wavefrontHQ/wavefront-spring-boot.git</developerConnection>
+    <url>git@github.com:wavefrontHQ/wavefront-spring-boot.git</url>
     <tag>HEAD</tag>
   </scm>
 
