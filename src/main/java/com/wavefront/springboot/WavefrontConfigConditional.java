@@ -44,27 +44,13 @@ public class WavefrontConfigConditional extends SpringBootCondition {
     String wavefrontProxyHost = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_PROXY_HOST);
     @Nullable
     String wavefrontToken;
-    @Nullable
-    String wavefrontUrl;
     if (wavefrontProxyHost == null) {
       // we assume http reporting. defaults to wavefront.surf
       wavefrontToken = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_TOKEN);
       if (wavefrontToken == null) {
         // attempt to read from local machine for the token to use.
-        Optional<String[]> existingToken = getWavefrontUriTokenFromWellKnownFile();
-        if (existingToken.isPresent()) {
-          wavefrontUrl = existingToken.get()[0];
-          wavefrontToken = existingToken.get()[1];
-          // if url from the file does not start with http, we should update it to do so
-          if (!wavefrontUrl.startsWith("http")) {
-            wavefrontUrl = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE,
-                WAVEFRONT_DEFAULT_INSTANCE);
-            if (!wavefrontUrl.startsWith("http")) {
-              wavefrontUrl = "https://" + wavefrontUrl;
-            }
-            Optional<String> written = writeWavefrontUriTokenToWellKnownFile(wavefrontUrl, wavefrontToken);
-          }
-        }
+        Optional<String> existingToken = getWavefrontTokenFromWellKnownFile();
+        if (existingToken.isPresent()) wavefrontToken = existingToken.get();
       }
       if (wavefrontToken == null) {
         String applicationName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_APPLICATION,
@@ -106,10 +92,7 @@ public class WavefrontConfigConditional extends SpringBootCondition {
             return ConditionOutcome.noMatch("Cannot auto-negotiate Wavefront credentials (null response)");
           }
           wavefrontToken = resp.getToken();
-          wavefrontUrl = resp.getUrl();   // uri which is string for initial logging in
-
-          // saving wavefrontUrl that were received
-          Optional<String> written = writeWavefrontUriTokenToWellKnownFile(wavefrontUrl, wavefrontToken);
+          Optional<String> written = writeWavefrontTokenToWellKnownFile(wavefrontToken);
           if (!written.isPresent()) {
             return ConditionOutcome.noMatch("Cannot write Wavefront credentials to disk");
           }
@@ -128,17 +111,7 @@ public class WavefrontConfigConditional extends SpringBootCondition {
     return ConditionOutcome.match();
   }
 
-  /**
-   * <p>Change list</p>
-   * <ul>
-   *     <li>Name change to include Uri</li>
-   *     <li>Uri and token will be stored to the file, delimited by line return.</li>
-   * </ul>
-   * @param uri
-   * @param token
-   * @return Path of the absolute path fo the file created.
-   */
-  static Optional<String> writeWavefrontUriTokenToWellKnownFile(String uri, String token) {
+  static Optional<String> writeWavefrontTokenToWellKnownFile(String token) {
     String userHomeStr = System.getProperty("user.home");
     if (userHomeStr == null || userHomeStr.length() == 0) {
       if (logger.isDebugEnabled()) {
@@ -157,9 +130,12 @@ public class WavefrontConfigConditional extends SpringBootCondition {
         return Optional.empty();
       }
       File wavefrontToken = new File(userHome, WAVEFRONT_TOKEN_FILENAME);
-      String data = uri + "\n" + token;
-      Files.write(Paths.get(wavefrontToken.toURI()), data.getBytes(StandardCharsets.UTF_8));
-      return Optional.of(wavefrontToken.getAbsolutePath());
+      if (!wavefrontToken.exists()) {
+        Files.write(Paths.get(wavefrontToken.toURI()), token.getBytes(StandardCharsets.UTF_8));
+        return Optional.of(wavefrontToken.getAbsolutePath());
+      } else {
+        return Optional.empty();
+      }
     } catch (RuntimeException | IOException ex) {
       logger.warn("Cannot save Wavefront token to: " + userHomeStr + " directory. Cannot report " +
           "observability data without a valid token.", ex);
