@@ -20,7 +20,6 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -38,13 +37,16 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Configuration
-// properties file for additional (optional) configuration
-@PropertySource(value = "classpath:wavefront.properties", ignoreResourceNotFound = true)
 // disable entirely if enabled is not true (defaults to true).
 @ConditionalOnProperty(value = "enabled", havingValue = "true", matchIfMissing = true)
 public class WavefrontSpringBootAutoConfiguration {
 
   private static final Log logger = LogFactory.getLog(WavefrontSpringBootAutoConfiguration.class);
+
+  /**
+   * This should not be changed as it mirrors what's in @see <a href=https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready-metrics-export-wavefront>Spring Boot for Wavefront</a>.
+   */
+  static final String PROPERTY_FILE_PREFIX = "management.metrics.export.wavefront.";
 
   /**
    * Wavefront URL that supports "freemium" accounts.
@@ -59,60 +61,52 @@ public class WavefrontSpringBootAutoConfiguration {
   /**
    * URL for http/https-based reporting. Should be a valid URL.
    */
-  public static final String PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE = "url";
+  public static final String PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE = PROPERTY_FILE_PREFIX + "uri";
   /**
    * Token for http/https-based reporting. Should be a UUID.
    */
-  public static final String PROPERTY_FILE_KEY_WAVEFRONT_TOKEN = "token";
-  /**
-   * Wavefront Proxy host name. See: https://github.com/wavefrontHQ/wavefront-proxy
-   */
-  public static final String PROPERTY_FILE_KEY_WAVEFRONT_PROXY_HOST = "proxy.host";
-  /**
-   * Metrics port (defaults to 2878).
-   */
-  private static final String PROPERTY_FILE_KEY_WAVEFRONT_PROXY_PORT = "proxy.port";
+  public static final String PROPERTY_FILE_KEY_WAVEFRONT_TOKEN = PROPERTY_FILE_PREFIX + "apiToken";
   /**
    * Histogram port (defaults to the same as proxy, which would be 2878).
    */
-  private static final String PROPERTY_FILE_KEY_WAVEFRONT_PROXY_HISTOGRAM_PORT = "proxy.histogram_port";
+  private static final String PROPERTY_FILE_KEY_WAVEFRONT_PROXY_HISTOGRAM_PORT = PROPERTY_FILE_PREFIX + "distributionPort";
   /**
    * Tracing port (defaults to 30000). Refer to https://github.com/wavefrontHQ/wavefront-proxy/tree/master/proxy#set-up-a-wavefront-proxy
    */
-  private static final String PROPERTY_FILE_KEY_WAVEFRONT_PROXY_TRACING_PORT = "proxy.tracing_port";
+  private static final String PROPERTY_FILE_KEY_WAVEFRONT_PROXY_TRACING_PORT = PROPERTY_FILE_PREFIX + "spanPort";
   /**
    * Reporting duration for metrics (defaults to 1 minute).
    */
-  private static final String PROPERTY_FILE_KEY_WAVEFRONT_REPORTING_DURATION = "reporting.duration";
+  private static final String PROPERTY_FILE_KEY_WAVEFRONT_REPORTING_DURATION = PROPERTY_FILE_PREFIX + "step";
   /**
    * Prefix for metrics (only affects custom-metrics, tracing related metrics/histograms/spans are unaffected).
    */
-  private static final String PROPERTY_FILE_KEY_WAVEFRONT_REPORTING_PREFIX = "reporting.prefix";
+  private static final String PROPERTY_FILE_KEY_WAVEFRONT_REPORTING_PREFIX = PROPERTY_FILE_PREFIX + "globalPrefix";
   /**
    * Source used for reporting to Wavefront (source tag on metrics/histograms/traces). Defaults to
    * {@link java.net.InetAddress#getLocalHost}.
    */
-  private static final String PROPERTY_FILE_KEY_WAVEFRONT_REPORTING_SOURCE = "reporting.source";
+  private static final String PROPERTY_FILE_KEY_WAVEFRONT_REPORTING_SOURCE = PROPERTY_FILE_PREFIX + "source";
   /**
    * Whether to report traces (defaults to true).
    */
-  private static final String PROPERTY_FILE_KEY_WAVEFRONT_TRACING_ENABLED = "reporting.traces";
+  private static final String PROPERTY_FILE_KEY_WAVEFRONT_TRACING_ENABLED = PROPERTY_FILE_PREFIX + "enableTraces";
   /**
    * Name of the application (otherwise we use "springboot"}.
    */
-  static final String PROPERTY_FILE_KEY_WAVEFRONT_APPLICATION = "application.name";
+  static final String PROPERTY_FILE_KEY_WAVEFRONT_APPLICATION = PROPERTY_FILE_PREFIX + "application.name";
   /**
    * Name of the service (otherwise we use "unnamed_service")".
    */
-  static final String PROPERTY_FILE_KEY_WAVEFRONT_SERVICE = "application.service";
+  static final String PROPERTY_FILE_KEY_WAVEFRONT_SERVICE = PROPERTY_FILE_PREFIX + "application.service";
   /**
    * Cluster of the service (otherwise we use null"}.
    */
-  static final String PROPERTY_FILE_KEY_WAVEFRONT_CLUSTER = "application.cluster";
+  static final String PROPERTY_FILE_KEY_WAVEFRONT_CLUSTER = PROPERTY_FILE_PREFIX + "application.cluster";
   /**
    * Shard of the service (otherwise we use null)".
    */
-  static final String PROPERTY_FILE_KEY_WAVEFRONT_SHARD = "application.shard";
+  static final String PROPERTY_FILE_KEY_WAVEFRONT_SHARD = PROPERTY_FILE_PREFIX + "application.shard";
 
   @Bean
   public ApplicationTags wavefrontApplicationTags(Environment env) {
@@ -141,16 +135,14 @@ public class WavefrontSpringBootAutoConfiguration {
   @Conditional(WavefrontConfigConditional.class)
   public WavefrontConfig wavefrontConfig(Environment env, ApplicationTags applicationTags) {
     // there are two methods to report wavefront observability data (proxy or http)
-    // we bias to the proxy if it's defined
-    @Nullable
-    String wavefrontProxyHost = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_PROXY_HOST);
-    String wavefrontUri;
+    String wavefrontUri = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE, WAVEFRONT_DEFAULT_INSTANCE);
+    boolean proxyReporting = wavefrontUri.startsWith("proxy://");
     @Nullable
     String wavefrontToken = null;
     int wavefrontHistogramPort = 2878;
     @Nullable
     String wavefrontSource = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_REPORTING_SOURCE);
-    if (wavefrontProxyHost == null) {
+    if (!proxyReporting) {
       // we assume http reporting. defaults to wavefront.surf
       wavefrontUri = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE, WAVEFRONT_DEFAULT_INSTANCE);
       if (!wavefrontUri.startsWith("http")) {
@@ -213,14 +205,12 @@ public class WavefrontSpringBootAutoConfiguration {
       }
     } else {
       // we will use proxy-based reporting.
-      String wavefrontProxyPort = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_PROXY_PORT, "2878");
-      String histogramPortStr = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_PROXY_HISTOGRAM_PORT, wavefrontProxyPort);
+      String histogramPortStr = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_PROXY_HISTOGRAM_PORT, "2878");
       try {
         wavefrontHistogramPort = Integer.parseInt(histogramPortStr);
       } catch (RuntimeException ex) {
         throw new IllegalArgumentException("Cannot parse Wavefront histogram port: " + histogramPortStr);
       }
-      wavefrontUri = "proxy://" + wavefrontProxyHost + ":" + wavefrontProxyPort;
     }
     String finalWavefrontToken = wavefrontToken;
     int finalWavefrontHistogramPort = wavefrontHistogramPort;
@@ -231,7 +221,7 @@ public class WavefrontSpringBootAutoConfiguration {
       public Duration step() {
         String duration = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_REPORTING_DURATION, "60");
         try {
-          return Duration.ofSeconds(Integer.parseInt(duration));
+          return Duration.parse(duration);
         } catch (IllegalArgumentException ex) {
           throw new IllegalArgumentException("Invalid Wavefront duration: \"" + duration + "\"", ex);
         }
@@ -347,14 +337,14 @@ public class WavefrontSpringBootAutoConfiguration {
   @ConditionalOnMissingBean(WavefrontSender.class)
   @ConditionalOnBean(WavefrontConfig.class)
   public WavefrontSender wavefrontSender(WavefrontConfig wavefrontConfig, Environment env) {
-    int wavefrontTracingPort = 30000;
-    String tracingPortStr = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_PROXY_TRACING_PORT, "30000");
-    try {
-      wavefrontTracingPort = Integer.parseInt(tracingPortStr);
-    } catch (RuntimeException ex) {
-      throw new IllegalArgumentException("Cannot parse Wavefront tracing port: " + wavefrontTracingPort);
-    }
     if (wavefrontConfig.uri().startsWith("proxy::")) {
+      int wavefrontTracingPort = 30000;
+      String tracingPortStr = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_PROXY_TRACING_PORT, "30000");
+      try {
+        wavefrontTracingPort = Integer.parseInt(tracingPortStr);
+      } catch (RuntimeException ex) {
+        throw new IllegalArgumentException("Cannot parse Wavefront tracing port: " + wavefrontTracingPort);
+      }
       URI wavefrontUri = URI.create(wavefrontConfig.uri());
       return new WavefrontProxyClient.Builder(wavefrontUri.getHost()).
           metricsPort(wavefrontUri.getPort()).

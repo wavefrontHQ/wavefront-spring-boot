@@ -7,7 +7,6 @@ import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.web.client.RestTemplate;
@@ -30,7 +29,6 @@ import static com.wavefront.springboot.WavefrontSpringBootAutoConfiguration.*;
  *
  * @author Clement Pang (clement@wavefront.com).
  */
-@PropertySource(value = "classpath:wavefront.properties", ignoreResourceNotFound = true)
 public class WavefrontConfigConditional extends SpringBootCondition {
 
   private static final Log logger = LogFactory.getLog(WavefrontConfigConditional.class);
@@ -39,12 +37,12 @@ public class WavefrontConfigConditional extends SpringBootCondition {
   public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
     Environment env = context.getEnvironment();
     // there are two methods to report wavefront observability data (proxy or http)
-    // we bias to the proxy if it's defined
-    @Nullable
-    String wavefrontProxyHost = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_PROXY_HOST);
+    // there are two methods to report wavefront observability data (proxy or http)
+    String wavefrontUri = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE, WAVEFRONT_DEFAULT_INSTANCE);
+    boolean proxyReporting = wavefrontUri.startsWith("proxy://");
     @Nullable
     String wavefrontToken;
-    if (wavefrontProxyHost == null) {
+    if (!proxyReporting) {
       // we assume http reporting. defaults to wavefront.surf
       wavefrontToken = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_TOKEN);
       if (wavefrontToken == null) {
@@ -61,8 +59,6 @@ public class WavefrontConfigConditional extends SpringBootCondition {
         String clusterName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_CLUSTER);
         @Nullable
         String shardName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_SHARD);
-        String wavefrontUri = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_INSTANCE,
-            WAVEFRONT_DEFAULT_INSTANCE);
         if (!wavefrontUri.startsWith("http")) {
           wavefrontUri = "https://" + wavefrontUri;
         }
@@ -98,6 +94,7 @@ public class WavefrontConfigConditional extends SpringBootCondition {
           }
           logger.info("Auto-negotiation of Wavefront credentials successful, stored token can be found at: " +
               written.get());
+          return ConditionOutcome.match("Auto-negotiation of Wavefront credentials successful");
         } catch (RuntimeException ex) {
           if (logger.isDebugEnabled()) {
             logger.debug("Runtime Exception in Wavefront auto-negotiation", ex);
@@ -106,9 +103,12 @@ public class WavefrontConfigConditional extends SpringBootCondition {
               " Observability for Spring Boot");
           return ConditionOutcome.noMatch("RuntimeException in Wavefront auto-negotiation");
         }
+      } else {
+        return ConditionOutcome.match("Existing Wavefront token found");
       }
+    } else {
+      return ConditionOutcome.noMatch("Proxy reporting for Wavefront configured");
     }
-    return ConditionOutcome.match();
   }
 
   static Optional<String> writeWavefrontTokenToWellKnownFile(String token) {
