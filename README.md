@@ -4,12 +4,12 @@
 
 ## Table of Content
 
-* [Prerequisite](#Prerequisite)
+* [Prerequisites](#Prerequisites)
 * [Auto Configuration](#auto-configuration)
 * [Custom Configuration](#custom-configuration)
 * [FAQ](#faq)
 
-## Prerequisite
+## Prerequisites
 
 * Java 8 or above.
 * Introduce the latest `wavefront-spring-boot-starter` to your application by adding the following dependency to your pom.xml file.
@@ -23,7 +23,7 @@
 
 ## Auto Configuration
 
-Once the application starts, you get a single-use login URL. Use it to log in to the Wavefront service and access the data collected via the browser.
+Once the application starts, you get a single-use-login URL. Use it to log in to the Wavefront service and access the data collected via the browser.
 <br/> Example:
 ```text
 w.s.WavefrontSpringBootAutoConfiguration : ======================================================================================================
@@ -66,6 +66,10 @@ application.shard=(defaults to nothing)
 
 You can also supply your own bean for WavefrontSender, WavefrontConfig, and ApplicationTags for code-based configuration. 
 
+## License
+
+[Open Source License](open_source_licenses.txt)
+
 ## FAQ
 
 #### What is the difference between the free Spring Boot cluster and a Wavefront trial?
@@ -102,4 +106,4 @@ When you sign-in to your account via the single-use link, click the gear icon on
 
 #### How do I get help?
 
-We have a public [Slack channel](https://www.wavefront.com/join-public-slack) as well as in-product help, documentation, and chat.
+We have a public [Slack channel](https://www.wavefront.com/join-public-slack) as well as in-product help, [documentation](https://docs.wavefront.com/), and chat.
