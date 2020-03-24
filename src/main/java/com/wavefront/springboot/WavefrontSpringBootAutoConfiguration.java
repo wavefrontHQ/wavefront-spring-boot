@@ -109,6 +109,7 @@ public class WavefrontSpringBootAutoConfiguration {
   static final String PROPERTY_FILE_KEY_WAVEFRONT_SHARD = PROPERTY_FILE_PREFIX + "application.shard";
 
   @Bean
+  @ConditionalOnMissingBean(ApplicationTags.class)
   public ApplicationTags wavefrontApplicationTags(Environment env) {
     String applicationName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_APPLICATION, "springboot");
     String serviceName = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_SERVICE, "unnamed_service");
