@@ -4,15 +4,15 @@
 
 ## Table of Content
 
-* [Prerequisite](#Prerequisite)
+* [Prerequisites](#Prerequisites)
 * [Auto Configuration](#auto-configuration)
 * [Custom Configuration](#custom-configuration)
 * [FAQ](#faq)
 
-## Prerequisite
+## Prerequisites
 
 * Java 8 or above.
-* Introduce the latest `wavefront-spring-boot-starter` to your application by adding the following dependency to your pom.xml file.
+* Add the following dependency to your `pom.xml` file, to introduce the latest `wavefront-spring-boot-starter` to your application.
   ```xml
   <dependency>
       <groupId>com.wavefront</groupId>
@@ -23,7 +23,7 @@
 
 ## Auto Configuration
 
-Once the application starts, you get a single-use login URL. Use it to log in to the Wavefront service and access the data collected via the browser.
+When the application starts, you get a single-use login URL. Use it to log in to the Wavefront service and access the data that the `wavefront-springboot-starter` collected.
 <br/> Example:
 ```text
 w.s.WavefrontSpringBootAutoConfiguration : ======================================================================================================
@@ -32,7 +32,7 @@ w.s.WavefrontSpringBootAutoConfiguration : =====================================
 ```
 
 > **Note**:
-> Wavefront uses a secret token to ingest data. A local file (defaulting to ~/.wavefront_token) stores this token. It enables repeated deployments or local runs of a Spring Boot service to reuse the same account on the Wavefront service. If the file is deleted or if the service is moved to another machine, a new account is created, and you lose the data in the old account. See the section given below to use a consistent token/URL to report data to Wavefront.
+> Wavefront uses a secret token to ingest data. A local file (defaulting to `~/.wavefront_token`) stores this token. It enables repeated deployments or local runs of a Spring Boot service to reuse the same account on the Wavefront service. If the file is deleted or if the service is moved to another machine, a new account is created, and you lose the data in the old account. See the section given below to use a consistent token/URL to report data to Wavefront.
 
 ## Custom Configuration
 
@@ -64,7 +64,11 @@ application.cluster=(defaults to nothing)
 application.shard=(defaults to nothing)
 ```
 
-You can also supply your own bean for WavefrontSender, WavefrontConfig, and ApplicationTags for code-based configuration. 
+You can also supply your own bean for the `WavefrontSender`, `WavefrontConfig`, and `ApplicationTags`, for code-based configuration. 
+
+## License
+
+[Open Source License](open_source_licenses.txt)
 
 ## FAQ
 
@@ -102,4 +106,4 @@ When you sign-in to your account via the single-use link, click the gear icon on
 
 #### How do I get help?
 
-We have a public [Slack channel](https://www.wavefront.com/join-public-slack) as well as in-product help, documentation, and chat.
+We have a public [Slack channel](https://www.wavefront.com/join-public-slack) as well as in-product help, [documentation](https://docs.wavefront.com/), and chat.
