@@ -21,6 +21,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -32,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -164,6 +168,8 @@ public class WavefrontSpringBootAutoConfiguration {
       RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
       restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10));
       restTemplateBuilder.setReadTimeout(Duration.ofSeconds(10));
+      HttpHeaders headers = new HttpHeaders();
+      headers.set("Authorization", "Bearer " + wavefrontToken);
       RestTemplate restTemplate = restTemplateBuilder.build();
       UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.
           fromUriString(wavefrontUri).path(
@@ -176,12 +182,12 @@ public class WavefrontSpringBootAutoConfiguration {
       if (applicationTags.getShard() != null) {
         uriComponentsBuilder.queryParam("shard", applicationTags.getShard());
       }
-      uriComponentsBuilder.queryParam("t", wavefrontToken);
       if (!manualToken) {
         try {
-          AccountProvisioningResponse resp = restTemplate.getForObject(
-              uriComponentsBuilder.build().toUri(),
-              AccountProvisioningResponse.class);
+          AccountProvisioningResponse resp = restTemplate.exchange(
+              uriComponentsBuilder.build().toUri(), HttpMethod.GET,
+              new HttpEntity<>(headers),
+              AccountProvisioningResponse.class).getBody();
           if (resp != null && resp.getUrl() != null) {
             uriComponentsBuilder = UriComponentsBuilder.
                 fromUriString(wavefrontUri).path(resp.getUrl());
@@ -222,8 +228,13 @@ public class WavefrontSpringBootAutoConfiguration {
       public Duration step() {
         String duration = env.getProperty(PROPERTY_FILE_KEY_WAVEFRONT_REPORTING_DURATION, "60");
         try {
+          int parsedSeconds = Integer.parseInt(duration);
+          return Duration.ofSeconds(parsedSeconds);
+        } catch (NumberFormatException ignored) {
+        }
+        try {
           return Duration.parse(duration);
-        } catch (IllegalArgumentException ex) {
+        } catch (DateTimeParseException ex) {
           throw new IllegalArgumentException("Invalid Wavefront duration: \"" + duration + "\"", ex);
         }
       }
