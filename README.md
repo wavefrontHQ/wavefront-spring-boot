@@ -19,16 +19,7 @@ auto-negotiate one for you and save the api token in your home directory at
 * Spring Boot 2.3 or above
 
 This starter reuses the [existing Wavefront support](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html#production-ready-metrics-export-wavefront)
-in Spring Boot and thefore requires the Actuator (i.e. `spring-boot-starter-actuator`). 
-
-* Add the following dependency to your `pom.xml` file, to introduce the latest `wavefront-spring-boot-starter` to your application.
-  ```xml
-  <dependency>
-      <groupId>com.wavefront</groupId>
-      <artifactId>wavefront-spring-boot-starter</artifactId>
-      <version>2.0.0</version>
-  </dependency>
-  ```
+in Spring Boot and therefore requires the Actuator (i.e. `spring-boot-starter-actuator`). 
 
 ## Getting Started
 
@@ -39,7 +30,15 @@ project first. Invoke the following in the root directory:
 $ ./mvnw clean install
 ```
 
-Then add the following dependency to your `pom.xml:
+A sample is available to showcase a basic usage of the starter. To start a simple webapp
+on `locahlhost:8080`, invoke the following in the root directory:
+
+```shell script
+$ ./mvnw spring-boot:run -pl wavefront-spring-boot-sample
+```
+
+If you have an existing Spring Boot application, make sure first it uses Spring Boot 2.3
+or later and then add the following dependency to your `pom.xml:
 
 ```xml
 <dependency>
@@ -63,6 +62,8 @@ Every time the application starts, either an account is auto-negotiated, or it i
 from `~/.wavefront_token`. At the end of the startup phase, a message is logged with a
 single-use login URL. Use it to log in to the Wavefront service and access the data that
 has been collected so far.
+
+Here is an example message when an existing account is restored from `~/.wavefront_token`:
 
 ```text
 Your existing Wavefront account information has been restored from disk.
