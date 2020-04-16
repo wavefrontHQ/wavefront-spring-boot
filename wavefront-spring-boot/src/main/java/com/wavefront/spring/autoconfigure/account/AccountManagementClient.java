@@ -50,8 +50,7 @@ class AccountManagementClient {
       String json = this.restTemplate.postForObject(requestUri, null, String.class);
       Map<String, Object> content = new BasicJsonParser().parseMap(json);
       return new AccountInfo((String) content.get("token"), (String) content.get("url"));
-    }
-    catch (HttpClientErrorException ex) {
+    } catch (HttpClientErrorException ex) {
       throw new AccountManagementFailedException(ex.getResponseBodyAsString());
     }
   }
@@ -76,8 +75,7 @@ class AccountManagementClient {
           .exchange(requestUri, HttpMethod.GET, new HttpEntity<>(headers), String.class).getBody();
       Map<String, Object> content = new BasicJsonParser().parseMap(json);
       return new AccountInfo(apiToken, (String) content.get("url"));
-    }
-    catch (HttpClientErrorException ex) {
+    } catch (HttpClientErrorException ex) {
       throw new AccountManagementFailedException(ex.getResponseBodyAsString());
     }
   }
