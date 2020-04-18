@@ -173,7 +173,7 @@
       <dependency>
         <groupId>com.wavefront</groupId>
         <artifactId>wavefront-opentracing-sdk-java</artifactId>
-        <version>1.14</version>
+        <version>1.16</version>
       </dependency>
       <dependency>
         <groupId>com.wavefront</groupId>
