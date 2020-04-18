@@ -30,10 +30,11 @@
     </dependency>
 
     <dependency>
-      <groupId>com.wavefront</groupId>
-      <artifactId>wavefront-opentracing-sdk-java</artifactId>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-sleuth-core</artifactId>
       <optional>true</optional>
     </dependency>
+
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-wavefront</artifactId>
@@ -51,7 +52,18 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webflux</artifactId>
+      <version>${spring-boot.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- TODO: figure out why IntegratedTracingTests dies on missing ReflectionWorld -->
+    <dependency>
+      <groupId>org.aspectj</groupId>
+      <artifactId>aspectjweaver</artifactId>
+      <version>1.9.5</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
-
-
 </project>

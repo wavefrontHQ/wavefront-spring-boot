@@ -3,12 +3,13 @@ package com.wavefront.spring.autoconfigure;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.wavefront.opentracing.WavefrontTracer;
-import com.wavefront.opentracing.reporting.Reporter;
+import brave.Tracer;
+import brave.TracingCustomizer;
+import brave.handler.FinishedSpanHandler;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.opentracing.Tracer;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
@@ -18,10 +19,9 @@ import org.springframework.boot.actuate.autoconfigure.metrics.export.wavefront.W
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.AbstractApplicationContextRunner;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -128,16 +128,21 @@ class WavefrontAutoConfigurationTests {
 
   @Test
   void tracerIsConfiguredWithWavefrontSender() {
-    this.contextRunner.withPropertyValues().with(wavefrontMetrics(() -> {
-      WavefrontSender sender = mock(WavefrontSender.class);
-      given(sender.getFailureCount()).willReturn(42);
-      return sender;
-    })).run((context) -> {
-      assertThat(context).hasSingleBean(Tracer.class).hasSingleBean(WavefrontTracer.class);
-      Reporter reporter = (Reporter) ReflectionTestUtils.getField(context.getBean(WavefrontTracer.class),
-          "reporter");
-      assertThat(reporter.getFailureCount()).isEqualTo(42);
-    });
+    WavefrontSender sender = mock(WavefrontSender.class);
+    this.contextRunner.withPropertyValues()
+        .with(wavefrontMetrics(() -> sender))
+        .with(sleuth())
+        .run((context) -> {
+          assertThat(context).hasSingleBean(TracingCustomizer.class);
+
+          assertThat(context.getBean(Tracer.class))
+              .extracting("finishedSpanHandler.handlers")
+              .asInstanceOf(InstanceOfAssertFactories.array(FinishedSpanHandler[].class))
+              .filteredOn(h -> h instanceof WavefrontSpanHandler)
+              .hasSize(1)
+              .extracting("wavefrontSender")
+              .contains(sender);
+        });
   }
 
   @Test
@@ -168,4 +173,8 @@ class WavefrontAutoConfigurationTests {
 
   }
 
+  @SuppressWarnings("unchecked")
+  private static <T extends AbstractApplicationContextRunner<?, ?, ?>> Function<T, T> sleuth() {
+    return (runner) -> (T) runner.withConfiguration(AutoConfigurations.of(TraceAutoConfiguration.class));
+  }
 }
