@@ -123,7 +123,7 @@ full power of the Wavefront platform by bringing in data from your cloud environ
 into a single observability platform. We ask that you tell us more about yourself when
 signing up for a trial.
 
-One you've signed up, you can [retrieve an API token](https://longboard.wavefront.com/userprofile/apiaccess)
+One you've signed up, you can [retrieve an API token](https://docs.wavefront.com/users_account_managing.html#generate-an-api-token)
 and configure it in your `application.properties`
 
 #### What is the retention and Service Level Agreement (SLA) on the free cluster?
@@ -148,7 +148,7 @@ to create a login for your account first.
 #### How do I make sure I send data to the same account all the time (across multiple machines and deployments)?
 
 * If you are just trying out Wavefront, see [Manage Service Accounts](
-https://docs.wavefront.com/service_accounts.html) to create a service account that has a
+https://docs.wavefront.com/accounts.html#service-accounts) to create a service account that has a
 static token for reporting. Once you have the token, add it to `application.properties`.
 * If you are using Wavefront in a larger deployment, sign-up for a Wavefront trial at
 www.wavefront.com and see [Manage Service Accounts](
