@@ -152,7 +152,7 @@ https://docs.wavefront.com/service_accounts.html) to create a service account th
 static token for reporting. Once you have the token, add it to `application.properties`.
 * If you are using Wavefront in a larger deployment, sign-up for a Wavefront trial at
 www.wavefront.com and see [Manage Service Accounts](
-https://docs.wavefront.com/service_accounts.html) to learn how to create a service account.
+https://docs.wavefront.com/accounts.html#service-accounts) to learn how to create a service account.
 Next, add the token and URL to `application.properties`. We are more than happy to help
 you with sizing and designing large-scale collection architectures for metrics,
 histograms, and traces.
@@ -160,7 +160,7 @@ histograms, and traces.
 #### How do I setup an email/password login to the account?
 
 When you sign-in to your account via the single-use link, click the gear icon on the
-top-right and select User Management. Next, you can invite yourself by email (a password
+top-right and select Account Management. Next, you can invite yourself by email (a password
 setup link is sent to your email address, and you can use it to set up a password).
 
 #### How do I get help?
