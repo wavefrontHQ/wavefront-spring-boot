@@ -19,7 +19,10 @@ auto-negotiate one for you and save the api token in your home directory at
 * Spring Boot 2.3 or above
 
 This starter reuses the [existing Wavefront support](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html#production-ready-metrics-export-wavefront)
-in Spring Boot and therefore requires the Actuator (i.e. `spring-boot-starter-actuator`). 
+in Spring Boot and therefore requires the Actuator (i.e. `spring-boot-starter-actuator`).
+
+An `OpenTracing` `Tracer` is auto-configured as well. To send traces, consider adding
+`io.opentracing.contrib:opentracing-spring-cloud-starter`.
 
 ## Getting Started
 
@@ -31,7 +34,7 @@ $ ./mvnw clean install
 ```
 
 A sample is available to showcase a basic usage of the starter. To start a simple webapp
-on `locahlhost:8080`, invoke the following in the root directory:
+on `localhost:8080`, invoke the following in the root directory:
 
 ```shell script
 $ ./mvnw spring-boot:run -pl wavefront-spring-boot-sample
@@ -75,6 +78,29 @@ To share this account, make sure the following is added to your configuration:
 
 Connect to your Wavefront dashboard using this one-time use link:
 https://wavefront.surf/us/example
+```
+
+If you want to send traces as well, additional dependencies are required, see the
+[opentracing-contrib project](https://github.com/opentracing-contrib) for more details.
+
+To get started, consider adding the following dependency to your `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>io.opentracing.contrib</groupId>
+    <artifactId>opentracing-spring-cloud-starter</artifactId>
+    <version>0.5.3</version>
+</dependency>
+```
+
+Or to your `build.gradle` if you are using Gradle:
+
+```
+dependencies {
+  ...
+  implementation 'io.opentracing.contrib:opentracing-spring-cloud-starter:0.5.3'
+
+}
 ```
 
 ## Custom Configuration
