@@ -53,6 +53,10 @@ class AccountManagementEnvironmentPostProcessor
 
   @Override
   public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+    if (environment.getPropertySources().contains("bootstrap")) {
+      // Do not run in the bootstrap phase as the user configuration is not available yet
+      return;
+    }
     application.addListeners(this);
     if (!isApiTokenRequired(environment)) {
       return;

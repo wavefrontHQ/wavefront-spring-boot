@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.function.Supplier;
 
 import com.wavefront.sdk.common.application.ApplicationTags;
@@ -16,7 +17,7 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mock.env.MockEnvironment;
@@ -25,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /**
@@ -43,11 +45,10 @@ class AccountManagementEnvironmentPostProcessorTests {
 
   @Test
   void accountProvisioningIsNotNeededWhenApiTokenExists() {
-    ConfigurableEnvironment environment = mock(ConfigurableEnvironment.class);
-    given(environment.getProperty(API_TOKEN_PROPERTY)).willReturn("test");
+    MockEnvironment environment = new MockEnvironment().withProperty(API_TOKEN_PROPERTY, "test");
     new AccountManagementEnvironmentPostProcessor().postProcessEnvironment(environment, this.application);
-    verify(environment).getProperty(API_TOKEN_PROPERTY);
-    verifyNoMoreInteractions(environment);
+    assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("test");
+    assertThat(environment.getProperty(URI_PROPERTY)).isNull();
   }
 
   @Test
@@ -196,6 +197,21 @@ class AccountManagementEnvironmentPostProcessorTests {
     new AccountManagementEnvironmentPostProcessor().getExistingAccount(client, clusterUri, applicationTags,
         apiToken);
     verify(client).getExistingAccount(clusterUri, applicationTags, apiToken);
+  }
+
+  @Test
+  void environmentPostProcessorIgnoresBootstrapPhase() throws IOException {
+    Resource apiTokenResource = mockApiTokenResource("abc-def");
+    MockEnvironment environment = new MockEnvironment();
+    environment.getPropertySources().addLast(new MapPropertySource("bootstrap", Collections.singletonMap("test", "test")));
+    TestAccountManagementEnvironmentPostProcessor postProcessor = TestAccountManagementEnvironmentPostProcessor
+        .forExistingAccount(apiTokenResource, () -> new AccountInfo("abc-def", "/us/test1"));
+    SpringApplication application = mock(SpringApplication.class);
+    postProcessor.postProcessEnvironment(environment, application);
+    verifyNoInteractions(application);
+    verifyNoInteractions(apiTokenResource);
+    assertThat(environment.containsProperty(API_TOKEN_PROPERTY)).isFalse();
+    assertThat(environment.containsProperty(URI_PROPERTY)).isFalse();
   }
 
   private Resource mockApiTokenResource(String apiToken) throws IOException {
