@@ -176,11 +176,6 @@
         <version>1.16</version>
       </dependency>
       <dependency>
-        <groupId>com.wavefront</groupId>
-        <artifactId>wavefront-sdk-java</artifactId>
-        <version>2.2</version>
-      </dependency>
-      <dependency>
         <groupId>io.opentracing.contrib</groupId>
         <artifactId>opentracing-spring-cloud-starter</artifactId>
         <version>0.5.3</version>
