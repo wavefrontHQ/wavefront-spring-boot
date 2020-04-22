@@ -46,6 +46,8 @@ class AccountManagementEnvironmentPostProcessor
 
   private static final String URI_PROPERTY = "management.metrics.export.wavefront.uri";
 
+  private static final String MANAGED_ACCOUNT_PROPERTY = "wavefront.managed-account";
+
   private static final String DEFAULT_CLUSTER_URI = "https://wavefront.surf";
 
   private final DeferredLog logger = new DeferredLog();
@@ -186,6 +188,7 @@ class AccountManagementEnvironmentPostProcessor
 
   private void registerApiToken(ConfigurableEnvironment environment, String apiToken) {
     Map<String, Object> wavefrontSettings = new HashMap<>();
+    wavefrontSettings.put(MANAGED_ACCOUNT_PROPERTY, true);
     wavefrontSettings.put(API_TOKEN_PROPERTY, apiToken);
     String configuredClusterUri = environment.getProperty(URI_PROPERTY);
     if (!StringUtils.hasText(configuredClusterUri)) {
