@@ -1,4 +1,4 @@
-package com.wavefront.spring.autoconfigure.account;
+package com.wavefront.spring.autoconfigure;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -13,7 +13,8 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 import com.wavefront.sdk.common.application.ApplicationTags;
-import com.wavefront.spring.autoconfigure.ApplicationTagsFactory;
+import com.wavefront.spring.account.AccountInfo;
+import com.wavefront.spring.account.AccountManagementClient;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.context.event.ApplicationFailedEvent;
@@ -140,7 +141,7 @@ class AccountManagementEnvironmentPostProcessor
     sb.append(String.format("\t%s=%s%n", API_TOKEN_PROPERTY, accountInfo.getApiToken()));
     sb.append(String.format("\t%s=%s%n%n", URI_PROPERTY, clusterUri));
     sb.append(String.format("Connect to your Wavefront dashboard using this one-time use link:%n%s%n",
-        accountInfo.determineLoginUrl(clusterUri)));
+        accountInfo.getLoginUrl()));
     return sb::toString;
   }
 
@@ -178,7 +179,7 @@ class AccountManagementEnvironmentPostProcessor
   private AccountInfo invokeAccountManagementClient(ConfigurableEnvironment environment,
       BiFunction<AccountManagementClient, ApplicationTags, AccountInfo> accountProvider) {
     RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
-    AccountManagementClient client = new AccountManagementClient(this.logger, restTemplateBuilder);
+    AccountManagementClient client = new AccountManagementClient(restTemplateBuilder);
     ApplicationTags applicationTags = new ApplicationTagsFactory().createFromEnvironment(environment);
     return accountProvider.apply(client, applicationTags);
   }
@@ -200,11 +201,13 @@ class AccountManagementEnvironmentPostProcessor
 
   protected AccountInfo getExistingAccount(AccountManagementClient client, String clusterUri,
       ApplicationTags applicationTags, String apiToken) {
+    this.logger.debug("Retrieving existing account from " + clusterUri);
     return client.getExistingAccount(clusterUri, applicationTags, apiToken);
   }
 
   protected AccountInfo provisionAccount(AccountManagementClient client, String clusterUri,
       ApplicationTags applicationTags) {
+    this.logger.debug("Auto-negotiating Wavefront user account from " + clusterUri);
     return client.provisionAccount(clusterUri, applicationTags);
   }
 

@@ -1,4 +1,4 @@
-package com.wavefront.spring.autoconfigure.account;
+package com.wavefront.spring.autoconfigure;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -8,6 +8,9 @@ import java.util.Collections;
 import java.util.function.Supplier;
 
 import com.wavefront.sdk.common.application.ApplicationTags;
+import com.wavefront.spring.account.AccountInfo;
+import com.wavefront.spring.account.AccountManagementClient;
+import com.wavefront.spring.account.AccountManagementFailedException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -64,7 +67,7 @@ class AccountManagementEnvironmentPostProcessorTests {
     Resource apiTokenResource = mockApiTokenResource("abc-def");
     MockEnvironment environment = new MockEnvironment();
     TestAccountManagementEnvironmentPostProcessor postProcessor = TestAccountManagementEnvironmentPostProcessor
-        .forExistingAccount(apiTokenResource, () -> new AccountInfo("abc-def", "/us/test1"));
+        .forExistingAccount(apiTokenResource, () -> new AccountInfo("abc-def", "https://wavefront.surf/us/test1"));
     postProcessor.postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("abc-def");
     assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://wavefront.surf");
@@ -98,7 +101,7 @@ class AccountManagementEnvironmentPostProcessorTests {
     assertThat(apiTokenFile).doesNotExist();
     MockEnvironment environment = new MockEnvironment();
     TestAccountManagementEnvironmentPostProcessor postProcessor = TestAccountManagementEnvironmentPostProcessor
-        .forNewAccount(new PathResource(apiTokenFile), () -> new AccountInfo("abc-def", "/us/test"));
+        .forNewAccount(new PathResource(apiTokenFile), () -> new AccountInfo("abc-def","https://wavefront.surf/us/test"));
     postProcessor.postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("abc-def");
     assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://wavefront.surf");
