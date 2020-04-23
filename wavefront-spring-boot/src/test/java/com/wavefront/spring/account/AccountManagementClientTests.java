@@ -1,8 +1,7 @@
-package com.wavefront.spring.autoconfigure.account;
+package com.wavefront.spring.account;
 
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.spring.autoconfigure.ApplicationTagsFactory;
-import org.apache.commons.logging.Log;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.web.client.MockServerRestTemplateCustomizer;
@@ -16,7 +15,6 @@ import org.springframework.test.web.client.MockRestServiceServer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestToUriTemplate;
@@ -36,7 +34,7 @@ class AccountManagementClientTests {
   AccountManagementClientTests() {
     MockServerRestTemplateCustomizer restTemplateCustomizer = new MockServerRestTemplateCustomizer();
     RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder().customizers(restTemplateCustomizer);
-    this.client = new AccountManagementClient(mock(Log.class), restTemplateBuilder);
+    this.client = new AccountManagementClient(restTemplateBuilder);
     this.mockServer = restTemplateCustomizer.getServer();
   }
 
@@ -51,7 +49,7 @@ class AccountManagementClientTests {
             .body("{\"url\":\"/us/test123\",\"token\":\"ee479a71-abcd-abcd-abcd-62b0e8416989\"}\n"));
     AccountInfo accountInfo = this.client.provisionAccount("https://example.com", createDefaultApplicationTags());
     assertThat(accountInfo.getApiToken()).isEqualTo("ee479a71-abcd-abcd-abcd-62b0e8416989");
-    assertThat(accountInfo.determineLoginUrl("https://example.com")).isEqualTo("https://example.com/us/test123");
+    assertThat(accountInfo.getLoginUrl()).isEqualTo("https://example.com/us/test123");
   }
 
   @Test
@@ -69,7 +67,7 @@ class AccountManagementClientTests {
     AccountInfo accountInfo = this.client.provisionAccount("https://example.com",
         new ApplicationTagsFactory().createFromEnvironment(environment));
     assertThat(accountInfo.getApiToken()).isEqualTo("ee479a71-abcd-abcd-abcd-62b0e8416989");
-    assertThat(accountInfo.determineLoginUrl("https://example.com")).isEqualTo("https://example.com/us/test123");
+    assertThat(accountInfo.getLoginUrl()).isEqualTo("https://example.com/us/test123");
   }
 
   @Test
@@ -97,7 +95,7 @@ class AccountManagementClientTests {
     AccountInfo accountInfo = this.client.getExistingAccount("https://example.com", createDefaultApplicationTags(),
         "ee479a71-abcd-abcd-abcd-62b0e8416989");
     assertThat(accountInfo.getApiToken()).isEqualTo("ee479a71-abcd-abcd-abcd-62b0e8416989");
-    assertThat(accountInfo.determineLoginUrl("https://example.com")).isEqualTo("https://example.com/us/test123");
+    assertThat(accountInfo.getLoginUrl()).isEqualTo("https://example.com/us/test123");
   }
 
   @Test

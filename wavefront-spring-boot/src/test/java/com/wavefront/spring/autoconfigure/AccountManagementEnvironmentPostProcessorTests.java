@@ -1,4 +1,4 @@
-package com.wavefront.spring.autoconfigure.account;
+package com.wavefront.spring.autoconfigure;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -8,6 +8,9 @@ import java.util.Collections;
 import java.util.function.Supplier;
 
 import com.wavefront.sdk.common.application.ApplicationTags;
+import com.wavefront.spring.account.AccountInfo;
+import com.wavefront.spring.account.AccountManagementClient;
+import com.wavefront.spring.account.AccountManagementFailedException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -41,6 +44,8 @@ class AccountManagementEnvironmentPostProcessorTests {
 
   private static final String URI_PROPERTY = "management.metrics.export.wavefront.uri";
 
+  private static final String MANAGED_ACCOUNT_PROPERTY = "wavefront.managed-account";
+
   private final SpringApplication application = mock(SpringApplication.class);
 
   @Test
@@ -49,6 +54,7 @@ class AccountManagementEnvironmentPostProcessorTests {
     new AccountManagementEnvironmentPostProcessor().postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("test");
     assertThat(environment.getProperty(URI_PROPERTY)).isNull();
+    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isNull();
   }
 
   @Test
@@ -57,6 +63,7 @@ class AccountManagementEnvironmentPostProcessorTests {
     environment.setProperty(URI_PROPERTY, "proxy://example.com:2878");
     new AccountManagementEnvironmentPostProcessor().postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isNull();
+    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isNull();
   }
 
   @Test
@@ -64,10 +71,11 @@ class AccountManagementEnvironmentPostProcessorTests {
     Resource apiTokenResource = mockApiTokenResource("abc-def");
     MockEnvironment environment = new MockEnvironment();
     TestAccountManagementEnvironmentPostProcessor postProcessor = TestAccountManagementEnvironmentPostProcessor
-        .forExistingAccount(apiTokenResource, () -> new AccountInfo("abc-def", "/us/test1"));
+        .forExistingAccount(apiTokenResource, () -> new AccountInfo("abc-def", "https://wavefront.surf/us/test1"));
     postProcessor.postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("abc-def");
     assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://wavefront.surf");
+    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isEqualTo("true");
     postProcessor.onApplicationEvent(mockApplicationStartedEvent());
     assertThat(output).contains("Your existing Wavefront account information has been restored from disk.\n" + "\n"
         + "To share this account, make sure the following is added to your configuration:\n\n"
@@ -98,10 +106,11 @@ class AccountManagementEnvironmentPostProcessorTests {
     assertThat(apiTokenFile).doesNotExist();
     MockEnvironment environment = new MockEnvironment();
     TestAccountManagementEnvironmentPostProcessor postProcessor = TestAccountManagementEnvironmentPostProcessor
-        .forNewAccount(new PathResource(apiTokenFile), () -> new AccountInfo("abc-def", "/us/test"));
+        .forNewAccount(new PathResource(apiTokenFile), () -> new AccountInfo("abc-def","https://wavefront.surf/us/test"));
     postProcessor.postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("abc-def");
     assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://wavefront.surf");
+    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isEqualTo("true");
     assertThat(apiTokenFile).exists();
     assertThat(apiTokenFile).hasContent("abc-def");
     postProcessor.onApplicationEvent(mockApplicationStartedEvent());
@@ -144,6 +153,7 @@ class AccountManagementEnvironmentPostProcessorTests {
         .postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("test");
     assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://wavefront.surf");
+    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isEqualTo("true");
   }
 
   @Test
@@ -158,6 +168,7 @@ class AccountManagementEnvironmentPostProcessorTests {
         .postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("test");
     assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://wavefront.surf");
+    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isEqualTo("true");
   }
 
   @Test
@@ -171,6 +182,7 @@ class AccountManagementEnvironmentPostProcessorTests {
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("abc-def");
     assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://example.com");
     assertThat(environment.getPropertySources().get("wavefront").getProperty(URI_PROPERTY)).isNull();
+    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isEqualTo("true");
   }
 
   @Test
