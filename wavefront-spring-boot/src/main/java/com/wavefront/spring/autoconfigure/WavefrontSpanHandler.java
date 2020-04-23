@@ -1,5 +1,6 @@
 package com.wavefront.spring.autoconfigure;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,6 +8,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 import brave.handler.FinishedSpanHandler;
@@ -17,6 +19,8 @@ import brave.propagation.TraceContext;
 import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.entities.tracing.SpanLog;
 import com.wavefront.sdk.entities.tracing.WavefrontTracingSpanSender;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -45,26 +49,62 @@ import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
  * {@link UUID#timestamp()} on UUIDs converted here, or in other Wavefront code, as it might
  * throw.
  */
-final class WavefrontSpanHandler extends FinishedSpanHandler {
+final class WavefrontSpanHandler extends FinishedSpanHandler implements Runnable, Closeable {
   private static final Log LOG = LogFactory.getLog(WavefrontSpanHandler.class);
   // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L113-L114
   private static final String DEFAULT_SPAN_NAME = "defaultOperation";
 
+  final LinkedBlockingQueue<Pair<TraceContext, MutableSpan>> spanBuffer;
   final WavefrontTracingSpanSender wavefrontSender;
+  final Counter spansDropped;
+  final Counter spansReceived;
+  final Counter reportErrors;
+  final Thread sendingThread;
+
+  private volatile boolean stop = false;
+
   final String source;
   final List<Pair<String, String>> defaultTags;
   final Set<String> defaultTagKeys;
 
-  WavefrontSpanHandler(WavefrontTracingSpanSender wavefrontSender, String source,
-      List<Pair<String, String>> defaultTags) {
+  WavefrontSpanHandler(int maxQueueSize, WavefrontTracingSpanSender wavefrontSender, MeterRegistry
+      meterRegistry, String source, List<Pair<String, String>> defaultTags) {
     this.wavefrontSender = wavefrontSender;
     this.source = source;
     this.defaultTags = defaultTags;
     this.defaultTagKeys = defaultTags.stream().map(p -> p._1).collect(Collectors.toSet());
     this.defaultTagKeys.add(SOURCE_KEY);
+
+    this.spanBuffer = new LinkedBlockingQueue<>(maxQueueSize);
+
+    // init internal metrics
+    meterRegistry.gauge("reporter.queue.size", spanBuffer, sb -> (double) sb.size());
+    meterRegistry.gauge("reporter.queue.remaining_capacity", spanBuffer,
+        sb -> (double) sb.remainingCapacity());
+    this.spansReceived = meterRegistry.counter("reporter.spans.received");
+    this.spansDropped = meterRegistry.counter("reporter.spans.dropped");
+    this.reportErrors = meterRegistry.counter("reporter.errors");
+
+    this.sendingThread = new Thread(this, "wavefrontSpanReporter");
+    this.sendingThread.setDaemon(true);
+    this.sendingThread.start();
   }
 
+  // Exact same behavior as WavefrontSpanReporter
+  // https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/f1f08d8daf7b692b9b61dcd5bc24ca6befa8e710/src/main/java/com/wavefront/opentracing/reporting/WavefrontSpanReporter.java#L163-L179
   @Override public boolean handle(TraceContext context, MutableSpan span) {
+    spansReceived.increment();
+    if (!spanBuffer.offer(Pair.of(context, span))) {
+      spansDropped.increment();
+      if (LOG.isWarnEnabled()) {
+        LOG.warn("Buffer full, dropping span: " + span);
+        LOG.warn("Total spans dropped: " + spansDropped.count());
+      }
+    }
+    return true; // regardless of error, other handlers should run
+  }
+
+  private void send(TraceContext context, MutableSpan span) {
     UUID traceId = new UUID(context.traceIdHigh(), context.traceId());
     UUID spanId = new UUID(0L, context.spanId());
 
@@ -126,7 +166,31 @@ final class WavefrontSpanHandler extends FinishedSpanHandler {
         LOG.debug("error sending span " + context, t);
       }
     }
-    return true; // regardless of error, other handlers should run
+  }
+
+  @Override public void run() {
+    while (!stop) {
+      try {
+        Pair<TraceContext, MutableSpan> contextAndSpan = spanBuffer.take();
+        send(contextAndSpan._1, contextAndSpan._2);
+      } catch (InterruptedException ex) {
+        if (LOG.isInfoEnabled()) {
+          LOG.info("reporting thread interrupted");
+        }
+      } catch (Throwable ex) {
+        LOG.warn("Error processing buffer", ex);
+      }
+    }
+  }
+
+  @Override public void close() {
+    stop = true;
+    try {
+      // wait for 5 secs max
+      sendingThread.join(5000);
+    } catch (InterruptedException ex) {
+      // no-op
+    }
   }
 
   static class WavefrontConsumer

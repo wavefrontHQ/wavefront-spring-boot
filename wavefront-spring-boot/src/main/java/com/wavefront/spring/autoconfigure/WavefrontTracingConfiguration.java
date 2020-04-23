@@ -1,13 +1,15 @@
 package com.wavefront.spring.autoconfigure;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import brave.TracingCustomizer;
 import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.entities.tracing.WavefrontTracingSpanSender;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.wavefront.WavefrontConfig;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -39,8 +41,8 @@ import static com.wavefront.sdk.common.Constants.SHARD_TAG_KEY;
 class WavefrontTracingConfiguration {
   static final String BEAN_NAME = "wavefrontTracingCustomizer";
   /**
-   * Wavefront use a combination of null and non-values in defaults. Some non-values are not
-   * defined by constants. This constant helps reduce drift in non-value comparison.
+   * Wavefront use a combination of null and non-values in defaults. Some non-values are not defined
+   * by constants. This constant helps reduce drift in non-value comparison.
    */
   static final String DEFAULT_SERVICE = new WavefrontProperties().getApplication().getService();
 
@@ -48,13 +50,17 @@ class WavefrontTracingConfiguration {
   @ConditionalOnMissingBean(name = BEAN_NAME)
   @ConditionalOnBean(WavefrontTracingSpanSender.class)
   TracingCustomizer wavefrontTracingCustomizer(
+      MeterRegistry meterRegistry,
       WavefrontTracingSpanSender wavefrontSender,
       ApplicationTags applicationTags,
       WavefrontConfig wavefrontConfig,
       @LocalServiceName String serviceName
   ) {
     WavefrontSpanHandler spanHandler = new WavefrontSpanHandler(
+        // https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/f1f08d8daf7b692b9b61dcd5bc24ca6befa8e710/src/main/java/com/wavefront/opentracing/reporting/WavefrontSpanReporter.java#L54
+        50000, // TODO: maxQueueSize should be a property, ya?
         wavefrontSender,
+        meterRegistry,
         wavefrontConfig.source(),
         createDefaultTags(applicationTags, serviceName)
     );
@@ -69,7 +75,7 @@ class WavefrontTracingConfiguration {
     result.add(Pair.of(APPLICATION_TAG_KEY, applicationTags.getApplication()));
     // Prefer the user's service name unless they overwrote it with the wavefront property
     // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L263-L266
-    if (!Objects.equals(applicationTags.getService(), DEFAULT_SERVICE) ) {
+    if (!Objects.equals(applicationTags.getService(), DEFAULT_SERVICE)) {
       result.add(Pair.of(SERVICE_TAG_KEY, applicationTags.getService()));
     } else {
       result.add(Pair.of(SERVICE_TAG_KEY, serviceName));
