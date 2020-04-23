@@ -33,7 +33,8 @@ import static com.wavefront.sdk.common.Constants.SHARD_TAG_KEY;
  */
 @ConditionalOnClass(TracingCustomizer.class)
 @AutoConfigureBefore(TraceAutoConfiguration.class)
-@Import(SamplerAutoConfiguration.class) // TODO: investigate
+// This import is safe, but can be removed in Sleuth 2.2.3 or 3.0.0.M2
+@Import(SamplerAutoConfiguration.class)
 @ConditionalOnProperty(value = "wavefront.tracing.enabled", matchIfMissing = true)
 class WavefrontTracingConfiguration {
   static final String BEAN_NAME = "wavefrontTracingCustomizer";
