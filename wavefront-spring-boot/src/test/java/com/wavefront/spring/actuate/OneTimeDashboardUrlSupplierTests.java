@@ -5,12 +5,14 @@ import java.net.URI;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.spring.account.AccountInfo;
 import com.wavefront.spring.account.AccountManagementClient;
+import com.wavefront.spring.account.AccountManagementFailedException;
 import io.micrometer.wavefront.WavefrontConfig;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -32,6 +34,18 @@ class OneTimeDashboardUrlSupplierTests {
     URI dashboardUrl = new OneTimeDashboardUrlSupplier(client, wavefrontConfig,
         applicationTags).get();
     assertThat(dashboardUrl).isEqualTo(URI.create("https://example.com/123"));
+    verify(client).getExistingAccount("https://example.com", applicationTags, "abc-def");
+  }
+
+  @Test
+  void clusterUriIsUsedIfAccountRetrievalFailed() {
+    ApplicationTags applicationTags = mock(ApplicationTags.class);
+    WavefrontConfig wavefrontConfig = testWavefrontConfig("https://example.com", "abc-def");
+    AccountManagementClient client = mock(AccountManagementClient.class);
+    given(client.getExistingAccount("https://example.com", applicationTags, "abc-def"))
+        .willThrow(new AccountManagementFailedException("Test Exception"));
+    assertThatThrownBy(() -> new OneTimeDashboardUrlSupplier(client, wavefrontConfig,
+        applicationTags).get()).hasMessageContaining("Test Exception");
     verify(client).getExistingAccount("https://example.com", applicationTags, "abc-def");
   }
 
