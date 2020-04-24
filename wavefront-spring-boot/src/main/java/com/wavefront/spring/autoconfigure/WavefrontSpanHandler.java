@@ -4,11 +4,15 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import brave.handler.FinishedSpanHandler;
@@ -16,7 +20,11 @@ import brave.handler.MutableSpan;
 import brave.handler.MutableSpan.AnnotationConsumer;
 import brave.handler.MutableSpan.TagConsumer;
 import brave.propagation.TraceContext;
+import com.wavefront.internal.reporter.WavefrontInternalReporter;
+import com.wavefront.sdk.appagent.jvm.reporter.WavefrontJvmReporter;
 import com.wavefront.sdk.common.Pair;
+import com.wavefront.sdk.common.WavefrontSender;
+import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.entities.tracing.SpanLog;
 import com.wavefront.sdk.entities.tracing.WavefrontTracingSpanSender;
 import io.micrometer.core.instrument.Counter;
@@ -24,10 +32,15 @@ import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import static com.wavefront.sdk.common.Constants.COMPONENT_TAG_KEY;
 import static com.wavefront.sdk.common.Constants.DEBUG_TAG_KEY;
 import static com.wavefront.sdk.common.Constants.ERROR_TAG_KEY;
+import static com.wavefront.sdk.common.Constants.NULL_TAG_VAL;
 import static com.wavefront.sdk.common.Constants.SOURCE_KEY;
 import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
+import static com.wavefront.spring.autoconfigure.SpanDerivedMetricsUtils.TRACING_DERIVED_PREFIX;
+import static com.wavefront.spring.autoconfigure.SpanDerivedMetricsUtils.reportHeartbeats;
+import static com.wavefront.spring.autoconfigure.SpanDerivedMetricsUtils.reportWavefrontGeneratedData;
 
 /**
  * This converts a span recorded by Brave and invokes {@link WavefrontTracingSpanSender#sendSpan}.
@@ -54,22 +67,62 @@ final class WavefrontSpanHandler extends FinishedSpanHandler implements Runnable
   // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L114-L114
   private static final String DEFAULT_SPAN_NAME = "defaultOperation";
 
+  private final static String DEFAULT_SOURCE = "wavefront-spring-boot";
+  private final static String WAVEFRONT_GENERATED_COMPONENT = "wavefront-generated";
+
   final LinkedBlockingQueue<Pair<TraceContext, MutableSpan>> spanBuffer;
-  final WavefrontTracingSpanSender wavefrontSender;
+  final WavefrontSender wavefrontSender;
+  final WavefrontInternalReporter wfInternalReporter;
+  final WavefrontJvmReporter wfJvmReporter;
+  final Set<String> traceDerivedCustomTagKeys;
   final Counter spansDropped;
   final Counter spansReceived;
   final Counter reportErrors;
   final Thread sendingThread;
 
   private volatile boolean stop = false;
+  private final ConcurrentMap<HeartbeatMetricKey, Boolean> discoveredHeartbeatMetrics;
 
   final String source;
   final List<Pair<String, String>> defaultTags;
   final Set<String> defaultTagKeys;
+  final ApplicationTags applicationTags;
 
-  WavefrontSpanHandler(int maxQueueSize, WavefrontTracingSpanSender wavefrontSender, MeterRegistry
-      meterRegistry, String source, List<Pair<String, String>> defaultTags) {
+  WavefrontSpanHandler(int maxQueueSize, WavefrontSender wavefrontSender,
+                       MeterRegistry meterRegistry, String source,
+                       List<Pair<String, String>> defaultTags,
+                       ApplicationTags applicationTags,
+                       boolean isIncludeJvmMetrics,
+                       List<String> traceDerivedCustomTagKeys) {
     this.wavefrontSender = wavefrontSender;
+    this.applicationTags = applicationTags;
+    this.discoveredHeartbeatMetrics = new ConcurrentHashMap<>();
+
+    if (traceDerivedCustomTagKeys != null && !traceDerivedCustomTagKeys.isEmpty()) {
+      this.traceDerivedCustomTagKeys = new HashSet<>(traceDerivedCustomTagKeys);
+    } else {
+      this.traceDerivedCustomTagKeys = new HashSet<>();
+    }
+
+    if (wavefrontSender != null) {
+      wfInternalReporter = new WavefrontInternalReporter.Builder().
+          prefixedWith(TRACING_DERIVED_PREFIX).withSource(DEFAULT_SOURCE).reportMinuteDistribution().
+          build(wavefrontSender);
+      // Start the reporter
+      wfInternalReporter.start(1, TimeUnit.MINUTES);
+    } else {
+      wfInternalReporter = null;
+    }
+
+    if (wavefrontSender != null && isIncludeJvmMetrics) {
+      wfJvmReporter = new WavefrontJvmReporter.Builder(applicationTags).
+          withSource(source).build(wavefrontSender);
+      // Start the JVM reporter
+      wfJvmReporter.start();
+    } else {
+      wfJvmReporter = null;
+    }
+
     this.source = source;
     this.defaultTags = defaultTags;
     this.defaultTagKeys = defaultTags.stream().map(p -> p._1).collect(Collectors.toSet());
@@ -166,6 +219,23 @@ final class WavefrontSpanHandler extends FinishedSpanHandler implements Runnable
         LOG.debug("error sending span " + context, t);
       }
     }
+
+    // report stats irrespective of span sampling.
+    if (wfInternalReporter != null) {
+      // report converted metrics/histograms from the span
+      try {
+        discoveredHeartbeatMetrics.putIfAbsent(reportWavefrontGeneratedData(wfInternalReporter,
+            name, applicationTags.getApplication(), applicationTags.getService(),
+            applicationTags.getCluster() == null ? NULL_TAG_VAL : applicationTags.getCluster(),
+            applicationTags.getShard() == null ? NULL_TAG_VAL : applicationTags.getShard(),
+            source, wavefrontConsumer.componentTagValue, wavefrontConsumer.isError, durationMillis,
+            this.traceDerivedCustomTagKeys, tags), true);
+      } catch (RuntimeException t) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("error sending span RED metrics " + context, t);
+        }
+      }
+    }
   }
 
   @Override public void run() {
@@ -179,6 +249,12 @@ final class WavefrontSpanHandler extends FinishedSpanHandler implements Runnable
         }
       } catch (Throwable ex) {
         LOG.warn("Error processing buffer", ex);
+      }
+
+      try {
+        reportHeartbeats(WAVEFRONT_GENERATED_COMPONENT, wavefrontSender, discoveredHeartbeatMetrics);
+      } catch (IOException e) {
+        LOG.warn("Cannot report heartbeat metric to wavefront");
       }
     }
   }
@@ -196,7 +272,8 @@ final class WavefrontSpanHandler extends FinishedSpanHandler implements Runnable
   static class WavefrontConsumer
       implements AnnotationConsumer<List<SpanLog>>, TagConsumer<List<Pair<String, String>>> {
     final Set<String> defaultTagKeys;
-    boolean debug, hasAnnotations;
+    boolean debug, hasAnnotations, isError;
+    String componentTagValue = NULL_TAG_VAL;
 
     WavefrontConsumer(Set<String> defaultTagKeys) {
       this.defaultTagKeys = defaultTagKeys;
@@ -217,6 +294,10 @@ final class WavefrontSpanHandler extends FinishedSpanHandler implements Runnable
       }
       if (lcKey.equals(ERROR_TAG_KEY)) {
         value = "true"; // Ignore the original error value
+        isError = true;
+      }
+      if (lcKey.equals(COMPONENT_TAG_KEY)) {
+        componentTagValue = value;
       }
       target.add(Pair.of(key, value));
     }

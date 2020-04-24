@@ -6,8 +6,8 @@ import java.util.Objects;
 
 import brave.TracingCustomizer;
 import com.wavefront.sdk.common.Pair;
+import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
-import com.wavefront.sdk.entities.tracing.WavefrontTracingSpanSender;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.wavefront.WavefrontConfig;
 import org.aspectj.weaver.tools.PointcutPrimitive;
@@ -53,17 +53,23 @@ class WavefrontTracingSleuthConfiguration {
 
   @Bean(BEAN_NAME)
   @ConditionalOnMissingBean(name = BEAN_NAME)
-  @ConditionalOnBean({ MeterRegistry.class, WavefrontConfig.class, WavefrontTracingSpanSender.class })
+  @ConditionalOnBean({ MeterRegistry.class, WavefrontConfig.class, WavefrontSender.class })
   TracingCustomizer wavefrontTracingCustomizer(MeterRegistry meterRegistry,
-      WavefrontTracingSpanSender wavefrontSender, ApplicationTags applicationTags,
-      WavefrontConfig wavefrontConfig, @LocalServiceName String serviceName) {
+                                               WavefrontSender wavefrontSender,
+                                               ApplicationTags applicationTags,
+                                               WavefrontConfig wavefrontConfig,
+                                               WavefrontProperties wavefrontProperties,
+                                               @LocalServiceName String serviceName) {
     WavefrontSpanHandler spanHandler = new WavefrontSpanHandler(
         // https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/f1f08d8daf7b692b9b61dcd5bc24ca6befa8e710/src/main/java/com/wavefront/opentracing/reporting/WavefrontSpanReporter.java#L54
         50000, // TODO: maxQueueSize should be a property, ya?
         wavefrontSender,
         meterRegistry,
         wavefrontConfig.source(),
-        createDefaultTags(applicationTags, serviceName)
+        createDefaultTags(applicationTags, serviceName),
+        applicationTags,
+        wavefrontProperties.isIncludeJvmMetrics(),
+        wavefrontProperties.getTraceDerivedCustomTagKeys()
     );
 
     return t -> t.traceId128Bit(true).supportsJoin(false).addFinishedSpanHandler(spanHandler);
