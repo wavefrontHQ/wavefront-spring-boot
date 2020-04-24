@@ -21,9 +21,10 @@
       <artifactId>wavefront-spring-boot</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-sleuth-core</artifactId>
+      <groupId>com.wavefront</groupId>
+      <artifactId>wavefront-opentracing-sdk-java</artifactId>
     </dependency>
+
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-wavefront</artifactId>

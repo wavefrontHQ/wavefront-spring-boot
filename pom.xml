@@ -42,7 +42,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>1.8</java.version>
     <spring-boot.version>2.3.0.BUILD-SNAPSHOT</spring-boot.version>
-    <spring-cloud-sleuth.version>2.2.2.RELEASE</spring-cloud-sleuth.version>
+    <spring-cloud.version>Hoxton.SR4</spring-cloud.version>
   </properties>
 
   <modules>
@@ -173,8 +173,8 @@
       </dependency>
       <dependency>
         <groupId>com.wavefront</groupId>
-        <artifactId>wavefront-sdk-java</artifactId>
-        <version>2.2</version>
+        <artifactId>wavefront-opentracing-sdk-java</artifactId>
+        <version>1.16</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
@@ -196,8 +196,10 @@
       </dependency>
       <dependency>
         <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-sleuth-core</artifactId>
-        <version>${spring-cloud-sleuth.version}</version>
+        <artifactId>spring-cloud-dependencies</artifactId>
+        <version>${spring-cloud.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>

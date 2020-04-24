@@ -21,8 +21,9 @@ auto-negotiate one for you and save the api token in your home directory at
 This starter reuses the [existing Wavefront support](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html#production-ready-metrics-export-wavefront)
 in Spring Boot and therefore requires the Actuator (i.e. `spring-boot-starter-actuator`).
 
-An `OpenTracing` `Tracer` is auto-configured as well. To send traces, consider adding
-`io.opentracing.contrib:opentracing-spring-cloud-starter`.
+This starter also configures [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth)
+to send traces to Wavefront. To use this feature, consider adding
+`org.springframework.cloud:spring-cloud-starter-sleuth`.
 
 ## Getting Started
 
@@ -81,15 +82,16 @@ https://wavefront.surf/us/example
 ```
 
 If you want to send traces as well, additional dependencies are required, see the
-[opentracing-contrib project](https://github.com/opentracing-contrib) for more details.
+[Spring Cloud Sleuth project](https://spring.io/projects/spring-cloud-sleuth) for more
+details.
 
 To get started, consider adding the following dependency to your `pom.xml`:
 
 ```xml
 <dependency>
-    <groupId>io.opentracing.contrib</groupId>
-    <artifactId>opentracing-spring-cloud-starter</artifactId>
-    <version>0.5.3</version>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-sleuth</artifactId>
+    <version>2.2.2.RELEASE</version>
 </dependency>
 ```
 
@@ -98,7 +100,7 @@ Or to your `build.gradle` if you are using Gradle:
 ```
 dependencies {
   ...
-  implementation 'io.opentracing.contrib:opentracing-spring-cloud-starter:0.5.3'
+  implementation 'org.springframework.cloud:spring-cloud-starter-sleuth:2.2.2.RELEASE'
 
 }
 ```
