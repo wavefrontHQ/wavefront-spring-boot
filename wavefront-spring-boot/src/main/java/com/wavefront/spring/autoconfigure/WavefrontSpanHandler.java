@@ -51,7 +51,7 @@ import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
  */
 final class WavefrontSpanHandler extends FinishedSpanHandler implements Runnable, Closeable {
   private static final Log LOG = LogFactory.getLog(WavefrontSpanHandler.class);
-  // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L113-L114
+  // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L114-L114
   private static final String DEFAULT_SPAN_NAME = "defaultOperation";
 
   final LinkedBlockingQueue<Pair<TraceContext, MutableSpan>> spanBuffer;
@@ -122,8 +122,8 @@ final class WavefrontSpanHandler extends FinishedSpanHandler implements Runnable
     if (name == null) name = DEFAULT_SPAN_NAME;
 
     // Start and duration become 0L if unset. Any positive duration rounds up to 1 millis.
-    long start = span.startTimestamp() / 1000L, finish = span.finishTimestamp() / 1000L;
-    long duration = start != 0 && finish != 0L ? Math.max(finish - start, 1L) : 0L;
+    long startMillis = span.startTimestamp() / 1000L, finishMillis = span.finishTimestamp() / 1000L;
+    long durationMillis = startMillis != 0 && finishMillis != 0L ? Math.max(finishMillis - startMillis, 1L) : 0L;
 
     WavefrontConsumer wavefrontConsumer = new WavefrontConsumer(defaultTagKeys);
 
@@ -159,7 +159,7 @@ final class WavefrontSpanHandler extends FinishedSpanHandler implements Runnable
     }
 
     try {
-      wavefrontSender.sendSpan(name, start, duration, source, traceId, spanId,
+      wavefrontSender.sendSpan(name, startMillis, durationMillis, source, traceId, spanId,
           parents, followsFrom, tags, spanLogs);
     } catch (IOException | RuntimeException t) {
       if (LOG.isDebugEnabled()) {
