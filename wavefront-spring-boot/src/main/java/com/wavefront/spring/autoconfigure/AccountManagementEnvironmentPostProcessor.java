@@ -158,7 +158,7 @@ class AccountManagementEnvironmentPostProcessor
   private String readExistingApiToken(Resource localApiTokenResource) {
     if (localApiTokenResource.isReadable()) {
       try (InputStream in = localApiTokenResource.getInputStream()) {
-        return StreamUtils.copyToString(in, StandardCharsets.UTF_8);
+        return StreamUtils.copyToString(in, StandardCharsets.UTF_8).trim();
       }
       catch (IOException ex) {
         this.logger.error("Failed to read wavefront token from " + localApiTokenResource, ex);

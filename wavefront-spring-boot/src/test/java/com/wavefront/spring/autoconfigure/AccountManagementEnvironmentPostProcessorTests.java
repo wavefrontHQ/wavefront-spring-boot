@@ -86,6 +86,20 @@ class AccountManagementEnvironmentPostProcessorTests {
   }
 
   @Test
+  void existingAccountIsConfiguredWhenApiTokenFileExistWithNewLines() throws IOException {
+    Resource apiTokenResource = mockApiTokenResource("\nabc-def\n");
+    MockEnvironment environment = new MockEnvironment();
+    TestAccountManagementEnvironmentPostProcessor postProcessor = TestAccountManagementEnvironmentPostProcessor
+        .forExistingAccount(apiTokenResource, () -> {
+          throw new IllegalStateException("Test exception");
+        });
+    postProcessor.postProcessEnvironment(environment, this.application);
+    assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("abc-def");
+    assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://wavefront.surf");
+    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isEqualTo("true");
+  }
+
+  @Test
   void existingAccountRetrievalFailureLogsWarning(CapturedOutput output) throws IOException {
     Resource apiTokenResource = mockApiTokenResource("abc-def");
     MockEnvironment environment = new MockEnvironment().withProperty(URI_PROPERTY, "https://example.com");
