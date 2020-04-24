@@ -125,6 +125,15 @@ wavefront.application.name=my-application
 wavefront.application.service=my-service
 ```
 
+Or if you are using yaml:
+
+```yaml
+wavefront:
+  application:
+    name: my-application
+    service: my-service
+``` 
+
 The cluster and shard can also be specified the same way. That information is used to
 tag metrics and traces out-of-the-box. If you want to take full control over the
 `ApplicationTags`, you can create your own `@Bean`. If you want to customize the instance
