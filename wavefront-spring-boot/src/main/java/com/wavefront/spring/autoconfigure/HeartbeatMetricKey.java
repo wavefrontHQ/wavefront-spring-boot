@@ -6,6 +6,7 @@ import javax.annotation.Nonnull;
 
 /**
  * Composition class that makes up the heartbeat metric.
+ * TODO: Move to Wavefront SDK Java (https://github.com/wavefrontHQ/wavefront-sdk-java)
  *
  * @author Hao Song (songhao@vmware.com).
  */

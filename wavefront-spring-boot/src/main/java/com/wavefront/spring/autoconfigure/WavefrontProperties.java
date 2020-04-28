@@ -98,7 +98,7 @@ public class WavefrontProperties {
     return traceDerivedCustomTagKeys;
   }
 
-  public void setIgnoredFilenames(List<String> traceDerivedCustomTagKeys) {
+  public void setTraceDerivedCustomTagKeys(List<String> traceDerivedCustomTagKeys) {
     this.traceDerivedCustomTagKeys = traceDerivedCustomTagKeys;
   }
 }
