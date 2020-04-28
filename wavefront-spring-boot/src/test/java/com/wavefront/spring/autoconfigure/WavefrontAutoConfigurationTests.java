@@ -142,7 +142,7 @@ class WavefrontAutoConfigurationTests {
           assertThat(context.getBean(Tracer.class))
               .extracting("finishedSpanHandler.handlers")
               .asInstanceOf(InstanceOfAssertFactories.array(FinishedSpanHandler[].class))
-              .filteredOn(h -> h instanceof WavefrontSpanHandler)
+              .filteredOn(h -> h instanceof WavefrontSleuthSpanHandler)
               .hasSize(1)
               .extracting("wavefrontSender")
               .contains(sender);

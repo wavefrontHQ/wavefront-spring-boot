@@ -2,6 +2,9 @@ package com.wavefront.spring.autoconfigure;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Advanced configuration properties for Wavefront.
  *
@@ -11,6 +14,17 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class WavefrontProperties {
 
   private final Application application = new Application();
+
+  /**
+   * Emit JVM Metrics or not.
+   */
+  private boolean includeJvmMetrics = true;
+
+  /**
+   * Custom Tags for span RED metrics
+   * (https://docs.wavefront.com/tracing_integrations.html#custom-tags-for-red-metrics)
+   */
+  private List<String> traceDerivedCustomTagKeys = new ArrayList<>();
 
   public Application getApplication() {
     return this.application;
@@ -72,4 +86,19 @@ public class WavefrontProperties {
 
   }
 
+  public boolean isIncludeJvmMetrics() {
+    return includeJvmMetrics;
+  }
+
+  public void setIncludeJvmMetrics(boolean includeJvmMetrics) {
+    this.includeJvmMetrics = includeJvmMetrics;
+  }
+
+  public List<String> getTraceDerivedCustomTagKeys() {
+    return traceDerivedCustomTagKeys;
+  }
+
+  public void setTraceDerivedCustomTagKeys(List<String> traceDerivedCustomTagKeys) {
+    this.traceDerivedCustomTagKeys = traceDerivedCustomTagKeys;
+  }
 }

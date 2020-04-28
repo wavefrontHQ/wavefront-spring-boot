@@ -14,6 +14,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashSet;
+
 /**
  * A fallback configuration for OpenTracing if Spring Cloud Sleuth is not available.
  *
@@ -28,10 +30,17 @@ class WavefrontTracingOpenTracingConfiguration {
   @ConditionalOnMissingBean(Tracer.class)
   @ConditionalOnBean(WavefrontSender.class)
   WavefrontTracer wavefrontTracer(WavefrontSender wavefrontSender, ApplicationTags applicationTags,
-      WavefrontConfig wavefrontConfig) {
+      WavefrontConfig wavefrontConfig, WavefrontProperties wavefrontProperties) {
     Reporter spanReporter = new WavefrontSpanReporter.Builder().withSource(wavefrontConfig.source())
         .build(wavefrontSender);
-    return new WavefrontTracer.Builder(spanReporter, applicationTags).build();
+    WavefrontTracer.Builder builder = new WavefrontTracer.Builder(spanReporter, applicationTags);
+    if (!wavefrontProperties.isIncludeJvmMetrics()) {
+      builder.excludeJvmMetrics();
+    }
+    if (!wavefrontProperties.getTraceDerivedCustomTagKeys().isEmpty()) {
+      builder.redMetricsCustomTagKeys(new HashSet<>(wavefrontProperties.getTraceDerivedCustomTagKeys()));
+    }
+    return builder.build();
   }
 
 }

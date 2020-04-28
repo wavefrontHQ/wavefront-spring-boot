@@ -16,14 +16,18 @@
 
 package com.wavefront.spring.autoconfigure;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import com.wavefront.sdk.common.Pair;
+import com.wavefront.sdk.common.WavefrontSender;
+import com.wavefront.sdk.entities.histograms.HistogramGranularity;
 import com.wavefront.sdk.entities.tracing.SpanLog;
-import com.wavefront.sdk.entities.tracing.WavefrontTracingSpanSender;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
@@ -61,6 +65,9 @@ public class WavefrontTracingIntegrationTests {
 
   @Autowired
   private BlockingDeque<SpanRecord> spanRecordQueue;
+
+  @Autowired
+  private BlockingDeque<String> metricAndHistogramRecordQueue;
 
   @Test
   void sendsToWavefront() throws Exception {
@@ -100,6 +107,10 @@ public class WavefrontTracingIntegrationTests {
         Pair.of("mvc.controller.class", "Controller"),
         Pair.of("span.kind", "server")
     );
+
+    // Wait for 60s to let RED metrics being reported.
+    Thread.sleep(60000);
+    assertThat(metricAndHistogramRecordQueue.isEmpty()).isFalse();
   }
 
   @Configuration
@@ -119,13 +130,62 @@ public class WavefrontTracingIntegrationTests {
     }
 
     @Bean
-    @Primary
-    WavefrontTracingSpanSender wavefrontTracingSpanSender(BlockingDeque<SpanRecord> queue) {
-      return (name, startMillis, durationMillis, source, traceId, spanId, parents, followsFrom, tags, spanLogs) ->
-          queue.add(new SpanRecord(name, startMillis, durationMillis, source, traceId, spanId,
-              parents, followsFrom, tags, spanLogs));
+    BlockingDeque<String> metricAndHistogramRecordQueue() {
+      return new LinkedBlockingDeque<>();
     }
 
+    @Bean
+    @Primary
+    WavefrontSender wavefrontSender(BlockingDeque<SpanRecord> spanRecordQueue,
+                                    BlockingDeque<String> metricAndHistogramRecordQueue) {
+      return new WavefrontSender() {
+        @Override
+        public String getClientId() {
+          return null;
+        }
+
+        @Override
+        public void flush() throws IOException {
+
+        }
+
+        @Override
+        public int getFailureCount() {
+          return 0;
+        }
+
+        @Override
+        public void sendDistribution(String name, List<Pair<Double, Integer>> centroids,
+                                     Set<HistogramGranularity> histogramGranularities,
+                                     Long timestamp, String source, Map<String, String> tags) throws IOException {
+          metricAndHistogramRecordQueue.add(name);
+        }
+
+        @Override
+        public void sendMetric(String name, double value, Long timestamp, String source,
+                               Map<String, String> tags) throws IOException {
+          metricAndHistogramRecordQueue.add(name);
+        }
+
+        @Override
+        public void sendFormattedMetric(String point) throws IOException {
+
+        }
+
+        @Override
+        public void sendSpan(String name, long startMillis, long durationMillis, String source,
+                             UUID traceId, UUID spanId, List<UUID> parents, List<UUID> followsFrom,
+                             List<Pair<String, String>> tags, List<SpanLog> spanLogs) throws IOException {
+          spanRecordQueue.add(new SpanRecord(name, startMillis, durationMillis, source, traceId,
+              spanId, parents, followsFrom, tags, spanLogs));
+        }
+
+        @Override
+        public void close() throws IOException {
+
+        }
+      };
+    }
   }
 
   static final class Controller implements HandlerFunction<ServerResponse> {
