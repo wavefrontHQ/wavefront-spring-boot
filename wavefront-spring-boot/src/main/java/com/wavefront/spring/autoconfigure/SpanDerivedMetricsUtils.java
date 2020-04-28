@@ -26,6 +26,8 @@ import static io.opentracing.tag.Tags.SPAN_KIND;
 
 /**
  * Util methods to generate data (metrics/histograms/heartbeats) from tracing spans
+ * https://github.com/wavefrontHQ/wavefront-proxy/blob/master/proxy/src/main/java/com/wavefront/agent/listeners/tracing/SpanDerivedMetricsUtils.java
+ * TODO: Move to Wavefront Internal Reporter (https://github.com/wavefrontHQ/wavefront-internal-reporter-java)
  *
  * @author Hao Song (songhao@vmware.com).
  */

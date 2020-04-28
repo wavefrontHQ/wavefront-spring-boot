@@ -158,14 +158,12 @@ public class WavefrontTracingIntegrationTests {
         public void sendDistribution(String name, List<Pair<Double, Integer>> centroids,
                                      Set<HistogramGranularity> histogramGranularities,
                                      Long timestamp, String source, Map<String, String> tags) throws IOException {
-          System.out.println(name);
           metricAndHistogramRecordQueue.add(name);
         }
 
         @Override
         public void sendMetric(String name, double value, Long timestamp, String source,
                                Map<String, String> tags) throws IOException {
-          System.out.println(name);
           metricAndHistogramRecordQueue.add(name);
         }
 
