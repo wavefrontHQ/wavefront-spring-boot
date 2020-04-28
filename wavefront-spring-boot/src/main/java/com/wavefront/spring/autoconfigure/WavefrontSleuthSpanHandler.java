@@ -116,7 +116,13 @@ final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Ru
     this.discoveredHeartbeatMetrics = new ConcurrentHashMap<>();
 
     this.heartbeatMetricsScheduledExecutorService = Executors.newScheduledThreadPool(1,
-        new NamedThreadFactory("sleuth-heart-beater"));
+        runnable -> {
+          Thread thread = new NamedThreadFactory("sleuth-heart-beater").
+              newThread(runnable);
+          thread.setDaemon(true);
+          return thread;
+        });
+
     // Emit Heartbeats Metrics every 1 min.
     heartbeatMetricsScheduledExecutorService.scheduleAtFixedRate(() -> {
       try {
@@ -282,6 +288,7 @@ final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Ru
     try {
       // wait for 5 secs max
       sendingThread.join(5000);
+      heartbeatMetricsScheduledExecutorService.shutdownNow();
     } catch (InterruptedException ex) {
       // no-op
     }
