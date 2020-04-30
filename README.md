@@ -4,7 +4,7 @@ This project provides a Spring Boot starter for Wavefront. Adding the starter to
 that uses the Actuator is all that is required to emit metrics, histograms, and traces to
 a Wavefront cluster. If you do not have a Wavefront account yet, the starter will
 auto-negotiate one for you and save the api token in your home directory at
-`~/.wavefront_token`.  
+`~/.wavefront_freemium`.  
 
 ## Table of Content
 
@@ -63,11 +63,11 @@ dependencies {
 ```
 
 Every time the application starts, either an account is auto-negotiated, or it is restored
-from `~/.wavefront_token`. At the end of the startup phase, a message is logged with a
+from `~/.wavefront_freemium`. At the end of the startup phase, a message is logged with a
 single-use login URL. Use it to log in to the Wavefront service and access the data that
 has been collected so far.
 
-Here is an example message when an existing account is restored from `~/.wavefront_token`:
+Here is an example message when an existing account is restored from `~/.wavefront_freemium`:
 
 ```text
 Your existing Wavefront account information has been restored from disk.
@@ -108,7 +108,7 @@ dependencies {
 ## Custom Configuration
 
 Wavefront uses a secret token to ingest data. Once an account has been auto-negotiated it
-is restored from `~/.wavefront_token` as long as you run the app from the same machine and
+is restored from `~/.wavefront_freemium` as long as you run the app from the same machine and
 user. If that file is removed, a new account will be created the next time you start the
 app. To prevent that from happening, create a login for your account (see the FAQ) and
 store the settings in your `application.properties`.

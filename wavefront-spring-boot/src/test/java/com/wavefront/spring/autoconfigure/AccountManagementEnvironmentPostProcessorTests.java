@@ -226,7 +226,7 @@ class AccountManagementEnvironmentPostProcessorTests {
   @Test
   void defaultApiTokenFile() {
     Resource localApiTokenResource = new AccountManagementEnvironmentPostProcessor().getLocalApiTokenResource();
-    assertThat(localApiTokenResource.getFilename()).isEqualTo(".wavefront_token");
+    assertThat(localApiTokenResource.getFilename()).isEqualTo(".wavefront_freemium");
   }
 
   @Test
