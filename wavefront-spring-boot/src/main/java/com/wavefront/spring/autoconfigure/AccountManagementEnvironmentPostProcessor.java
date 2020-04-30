@@ -199,7 +199,7 @@ class AccountManagementEnvironmentPostProcessor
   }
 
   protected Resource getLocalApiTokenResource() {
-    return new PathResource(Paths.get(System.getProperty("user.home"), ".wavefront_token"));
+    return new PathResource(Paths.get(System.getProperty("user.home"), ".wavefront_freemium"));
   }
 
   protected AccountInfo getExistingAccount(AccountManagementClient client, String clusterUri,
