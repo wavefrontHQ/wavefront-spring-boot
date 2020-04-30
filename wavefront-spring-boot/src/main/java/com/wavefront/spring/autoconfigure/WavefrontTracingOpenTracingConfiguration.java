@@ -1,10 +1,13 @@
 package com.wavefront.spring.autoconfigure;
 
+import java.util.HashSet;
+
 import com.wavefront.opentracing.WavefrontTracer;
 import com.wavefront.opentracing.reporting.Reporter;
 import com.wavefront.opentracing.reporting.WavefrontSpanReporter;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
+import com.wavefront.spring.autoconfigure.WavefrontProperties.Tracing;
 import io.micrometer.wavefront.WavefrontConfig;
 import io.opentracing.Tracer;
 
@@ -13,8 +16,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.HashSet;
 
 /**
  * A fallback configuration for OpenTracing if Spring Cloud Sleuth is not available.
@@ -34,12 +35,11 @@ class WavefrontTracingOpenTracingConfiguration {
     Reporter spanReporter = new WavefrontSpanReporter.Builder().withSource(wavefrontConfig.source())
         .build(wavefrontSender);
     WavefrontTracer.Builder builder = new WavefrontTracer.Builder(spanReporter, applicationTags);
-    if (!wavefrontProperties.isIncludeJvmMetrics()) {
+    Tracing tracingProperties = wavefrontProperties.getTracing();
+    if (!tracingProperties.isExtractJvmMetrics()) {
       builder.excludeJvmMetrics();
     }
-    if (!wavefrontProperties.getTraceDerivedCustomTagKeys().isEmpty()) {
-      builder.redMetricsCustomTagKeys(new HashSet<>(wavefrontProperties.getTraceDerivedCustomTagKeys()));
-    }
+    builder.redMetricsCustomTagKeys(new HashSet<>(tracingProperties.getRedMetricsCustomTagKeys()));
     return builder.build();
   }
 

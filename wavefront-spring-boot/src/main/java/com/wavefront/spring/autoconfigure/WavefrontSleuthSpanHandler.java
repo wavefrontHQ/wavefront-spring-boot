@@ -127,11 +127,8 @@ final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Ru
       }
     }, 1, 1, TimeUnit.MINUTES);
 
-    if (wavefrontProperties.getTraceDerivedCustomTagKeys() != null) {
-      this.traceDerivedCustomTagKeys = new HashSet<>(wavefrontProperties.getTraceDerivedCustomTagKeys());
-    } else {
-      this.traceDerivedCustomTagKeys = new HashSet<>();
-    }
+    this.traceDerivedCustomTagKeys = new HashSet<>(
+        wavefrontProperties.getTracing().getRedMetricsCustomTagKeys());
 
     // Start the reporter
     wfInternalReporter = new WavefrontInternalReporter.Builder().
@@ -139,7 +136,7 @@ final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Ru
         build(wavefrontSender);
     wfInternalReporter.start(1, TimeUnit.MINUTES);
 
-    if (wavefrontProperties.isIncludeJvmMetrics()) {
+    if (wavefrontProperties.getTracing().isExtractJvmMetrics()) {
       wfJvmReporter = new WavefrontJvmReporter.Builder(applicationTags).
           withSource(source).build(wavefrontSender);
       // Start the JVM reporter

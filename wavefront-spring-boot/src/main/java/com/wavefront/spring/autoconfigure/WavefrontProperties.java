@@ -1,9 +1,9 @@
 package com.wavefront.spring.autoconfigure;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import java.util.HashSet;
+import java.util.Set;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Advanced configuration properties for Wavefront.
@@ -15,19 +15,14 @@ public class WavefrontProperties {
 
   private final Application application = new Application();
 
-  /**
-   * Emit JVM Metrics or not.
-   */
-  private boolean includeJvmMetrics = true;
-
-  /**
-   * Custom Tags for span RED metrics
-   * (https://docs.wavefront.com/tracing_integrations.html#custom-tags-for-red-metrics)
-   */
-  private List<String> traceDerivedCustomTagKeys = new ArrayList<>();
+  private final Tracing tracing = new Tracing();
 
   public Application getApplication() {
     return this.application;
+  }
+
+  public Tracing getTracing() {
+    return this.tracing;
   }
 
   public static class Application {
@@ -89,19 +84,35 @@ public class WavefrontProperties {
 
   }
 
-  public boolean isIncludeJvmMetrics() {
-    return includeJvmMetrics;
+  public static class Tracing {
+
+    /**
+     * Extract JMV metrics from traces.
+     */
+    private boolean extractJvmMetrics = true;
+
+    /**
+     * Tags that should be associated with RED metrics. If the span has any of the
+     * specified tags, then those get reported to generated RED metrics.
+     */
+    private Set<String> redMetricsCustomTagKeys = new HashSet<>();
+
+    public boolean isExtractJvmMetrics() {
+      return this.extractJvmMetrics;
+    }
+
+    public void setExtractJvmMetrics(boolean extractJvmMetrics) {
+      this.extractJvmMetrics = extractJvmMetrics;
+    }
+
+    public Set<String> getRedMetricsCustomTagKeys() {
+      return this.redMetricsCustomTagKeys;
+    }
+
+    public void setRedMetricsCustomTagKeys(Set<String> redMetricsCustomTagKeys) {
+      this.redMetricsCustomTagKeys = redMetricsCustomTagKeys;
+    }
+
   }
 
-  public void setIncludeJvmMetrics(boolean includeJvmMetrics) {
-    this.includeJvmMetrics = includeJvmMetrics;
-  }
-
-  public List<String> getTraceDerivedCustomTagKeys() {
-    return traceDerivedCustomTagKeys;
-  }
-
-  public void setTraceDerivedCustomTagKeys(List<String> traceDerivedCustomTagKeys) {
-    this.traceDerivedCustomTagKeys = traceDerivedCustomTagKeys;
-  }
 }

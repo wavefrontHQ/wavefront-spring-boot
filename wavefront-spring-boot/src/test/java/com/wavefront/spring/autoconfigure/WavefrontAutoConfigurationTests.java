@@ -1,5 +1,6 @@
 package com.wavefront.spring.autoconfigure;
 
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -11,7 +12,6 @@ import com.wavefront.opentracing.reporting.Reporter;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import io.micrometer.core.instrument.MeterRegistry;
-import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
@@ -139,14 +139,32 @@ class WavefrontAutoConfigurationTests {
         .with(sleuth())
         .run((context) -> {
           assertThat(context).hasSingleBean(TracingCustomizer.class);
-          assertThat(context.getBean(Tracer.class))
-              .extracting("finishedSpanHandler.handlers")
-              .asInstanceOf(InstanceOfAssertFactories.array(FinishedSpanHandler[].class))
-              .filteredOn(h -> h instanceof WavefrontSleuthSpanHandler)
-              .hasSize(1)
-              .extracting("wavefrontSender")
-              .contains(sender);
+          WavefrontSleuthSpanHandler spanHandler = extractSpanHandler(context.getBean(Tracer.class));
+          assertThat(spanHandler).hasFieldOrPropertyWithValue("wavefrontSender", sender);
         });
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  void tracingWithSleuthCanBeConfigured() {
+    WavefrontSender sender = mock(WavefrontSender.class);
+    this.contextRunner.withPropertyValues()
+        .withPropertyValues("wavefront.tracing.red-metrics-custom-tag-keys=region,test")
+        .with(wavefrontMetrics(() -> sender))
+        .with(sleuth())
+        .run((context) -> {
+          assertThat(context).hasSingleBean(TracingCustomizer.class);
+          WavefrontSleuthSpanHandler spanHandler = extractSpanHandler(context.getBean(Tracer.class));
+          Set<String> traceDerivedCustomTagKeys = (Set<String>) ReflectionTestUtils.getField(
+              spanHandler, "traceDerivedCustomTagKeys");
+          assertThat(traceDerivedCustomTagKeys).containsExactlyInAnyOrder("region", "test");
+        });
+  }
+
+  private WavefrontSleuthSpanHandler extractSpanHandler(Tracer tracer) {
+    FinishedSpanHandler[] handlers = (FinishedSpanHandler[]) ReflectionTestUtils.getField(
+        ReflectionTestUtils.getField(tracer, "finishedSpanHandler"), "handlers");
+    return (WavefrontSleuthSpanHandler) handlers[0];
   }
 
   @Test
@@ -155,19 +173,24 @@ class WavefrontAutoConfigurationTests {
         .run((context) -> assertThat(context).hasSingleBean(TracingCustomizer.class).doesNotHaveBean(io.opentracing.Tracer.class));
   }
 
+  @SuppressWarnings("unchecked")
   @Test
-  void tracingWithOpenTracingCanBeConfiguredWithWavefrontSenderWhenSleuthIsNotAvailable() {
+  void tracingWithOpenTracingCanBeConfiguredWhenSleuthIsNotAvailable() {
     this.contextRunner
         .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth"))
+        .withPropertyValues("wavefront.tracing.red-metrics-custom-tag-keys=region,test")
         .with(wavefrontMetrics(() -> {
           WavefrontSender sender = mock(WavefrontSender.class);
           given(sender.getFailureCount()).willReturn(42);
           return sender;
         })).run((context) -> {
       assertThat(context).hasSingleBean(io.opentracing.Tracer.class).hasSingleBean(WavefrontTracer.class);
-      Reporter reporter = (Reporter) ReflectionTestUtils.getField(context.getBean(WavefrontTracer.class),
-          "reporter");
+      WavefrontTracer wavefrontTracer = context.getBean(WavefrontTracer.class);
+      Reporter reporter = (Reporter) ReflectionTestUtils.getField(wavefrontTracer, "reporter");
       assertThat(reporter.getFailureCount()).isEqualTo(42);
+      Set<String> redMetricsCustomTagKeys = (Set<String>) ReflectionTestUtils.getField(wavefrontTracer,
+          "redMetricsCustomTagKeys");
+      assertThat(redMetricsCustomTagKeys).containsExactlyInAnyOrder("span.kind", "region", "test");
     });
   }
 
