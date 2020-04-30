@@ -5,6 +5,7 @@ import java.net.URI;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.spring.account.AccountManagementClient;
 import com.wavefront.spring.autoconfigure.WavefrontAutoConfiguration;
+import com.wavefront.spring.autoconfigure.WavefrontProperties;
 import io.micrometer.wavefront.WavefrontConfig;
 
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
@@ -16,7 +17,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -38,11 +38,10 @@ public class WavefrontEndpointAutoConfiguration {
 
   @Bean
   @ConditionalOnMissingBean
-  WavefrontController wavefrontController(Environment environment,
+  WavefrontController wavefrontController(WavefrontProperties properties,
       AccountManagementClient accountManagementClient, WavefrontConfig wavefrontConfig,
       ApplicationTags applicationTags) {
-    Boolean managedAccount = environment.getProperty("wavefront.managed-account", Boolean.class, false);
-    if (managedAccount) {
+    if (properties.isFreemiumAccount()) {
       return new WavefrontController(new OneTimeDashboardUrlSupplier(
           accountManagementClient, wavefrontConfig, applicationTags));
     }

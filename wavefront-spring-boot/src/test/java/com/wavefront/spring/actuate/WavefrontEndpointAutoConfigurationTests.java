@@ -5,12 +5,14 @@ import java.net.URI;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.spring.account.AccountInfo;
 import com.wavefront.spring.account.AccountManagementClient;
+import com.wavefront.spring.autoconfigure.WavefrontProperties;
 import io.micrometer.wavefront.WavefrontConfig;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.actuate.cache.CachesEndpoint;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,8 +34,7 @@ class WavefrontEndpointAutoConfigurationTests {
 
   @Test
   void runShouldHaveEndpointBean() {
-    this.contextRunner.withBean(WavefrontConfig.class, () -> mock(WavefrontConfig.class))
-        .withBean(ApplicationTags.class, () -> mock(ApplicationTags.class))
+    this.contextRunner.withUserConfiguration(AccountManagementConfiguration.class)
         .withPropertyValues("management.endpoints.web.exposure.include=wavefront")
         .run((context) -> assertThat(context).hasSingleBean(WavefrontController.class));
   }
@@ -70,9 +71,9 @@ class WavefrontEndpointAutoConfigurationTests {
   }
 
   @Test
-  void runWithManagedAccount() {
+  void runWithFremiumAccount() {
     this.contextRunner.withUserConfiguration(AccountManagementConfiguration.class)
-        .withPropertyValues("wavefront.managed-account=true",
+        .withPropertyValues("wavefront.freemium-account=true",
             "management.endpoints.web.exposure.include=wavefront")
         .run((context) -> {
           assertThat(context).hasSingleBean(WavefrontController.class);
@@ -82,7 +83,7 @@ class WavefrontEndpointAutoConfigurationTests {
   }
 
   @Test
-  void runWithNonManagedAccount() {
+  void runWithNonFreemiumAccount() {
     this.contextRunner.withUserConfiguration(AccountManagementConfiguration.class)
         .withPropertyValues("management.endpoints.web.exposure.include=wavefront")
         .run((context) -> {
@@ -93,6 +94,7 @@ class WavefrontEndpointAutoConfigurationTests {
   }
 
   @Configuration
+  @EnableConfigurationProperties(WavefrontProperties.class)
   static class AccountManagementConfiguration {
 
     private final ApplicationTags applicationTags = mock(ApplicationTags.class);
