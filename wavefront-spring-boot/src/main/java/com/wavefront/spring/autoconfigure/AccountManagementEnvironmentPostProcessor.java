@@ -46,7 +46,7 @@ class AccountManagementEnvironmentPostProcessor
 
   private static final String URI_PROPERTY = "management.metrics.export.wavefront.uri";
 
-  private static final String MANAGED_ACCOUNT_PROPERTY = "wavefront.managed-account";
+  private static final String FREEMIUM_ACCOUNT_PROPERTY = "wavefront.freemium-account";
 
   private static final String DEFAULT_CLUSTER_URI = "https://wavefront.surf";
 
@@ -61,15 +61,16 @@ class AccountManagementEnvironmentPostProcessor
       return;
     }
     application.addListeners(this);
+    String clusterUri = environment.getProperty(URI_PROPERTY, DEFAULT_CLUSTER_URI);
     if (!isApiTokenRequired(environment)) {
+      this.accountConfigurationOutcome = validateExistingConfiguration(environment, clusterUri);
       return;
     }
-    String clusterUri = environment.getProperty(URI_PROPERTY, DEFAULT_CLUSTER_URI);
     Resource localApiTokenResource = getLocalApiTokenResource();
     String existingApiToken = readExistingApiToken(localApiTokenResource);
     if (existingApiToken != null) {
-      this.accountConfigurationOutcome = configureExistingAccount(environment, clusterUri, localApiTokenResource,
-          existingApiToken);
+      this.accountConfigurationOutcome = configureExistingAccount(environment, clusterUri,
+          existingApiToken, localApiTokenResource);
     }
     else {
       this.accountConfigurationOutcome = configureNewAccount(environment, clusterUri, localApiTokenResource);
@@ -102,8 +103,29 @@ class AccountManagementEnvironmentPostProcessor
     return true;
   }
 
+  private Supplier<String> validateExistingConfiguration(ConfigurableEnvironment environment, String clusterUri) {
+    Boolean freemiumAccount = environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY, boolean.class, false);
+    String apiToken = environment.getProperty(API_TOKEN_PROPERTY);
+    if (!freemiumAccount || !StringUtils.hasText(apiToken)) {
+      return null;
+    }
+    try {
+      AccountInfo accountInfo = invokeAccountManagementClient(environment,
+          (client, applicationTags) -> getExistingAccount(client, clusterUri, applicationTags, apiToken));
+      StringBuilder sb = new StringBuilder();
+      sb.append(String.format("%nConnect to your Wavefront dashboard using this one-time use link:%n%s%n",
+          accountInfo.getLoginUrl()));
+      return sb::toString;
+    } catch (Exception ex) {
+      return accountManagementFailure(
+          String.format("Failed to retrieve existing account information from %s.", clusterUri),
+          ex.getMessage());
+    }
+
+  }
+
   private Supplier<String> configureExistingAccount(ConfigurableEnvironment environment, String clusterUri,
-      Resource localApiTokenResource, String apiToken) {
+      String apiToken, Resource localApiTokenResource) {
     try {
       this.logger.debug("Existing Wavefront api token found from " + localApiTokenResource);
       registerApiToken(environment, apiToken);
@@ -188,7 +210,7 @@ class AccountManagementEnvironmentPostProcessor
 
   private void registerApiToken(ConfigurableEnvironment environment, String apiToken) {
     Map<String, Object> wavefrontSettings = new HashMap<>();
-    wavefrontSettings.put(MANAGED_ACCOUNT_PROPERTY, true);
+    wavefrontSettings.put(FREEMIUM_ACCOUNT_PROPERTY, true);
     wavefrontSettings.put(API_TOKEN_PROPERTY, apiToken);
     String configuredClusterUri = environment.getProperty(URI_PROPERTY);
     if (!StringUtils.hasText(configuredClusterUri)) {

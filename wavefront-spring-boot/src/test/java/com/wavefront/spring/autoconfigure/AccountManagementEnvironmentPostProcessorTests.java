@@ -44,7 +44,7 @@ class AccountManagementEnvironmentPostProcessorTests {
 
   private static final String URI_PROPERTY = "management.metrics.export.wavefront.uri";
 
-  private static final String MANAGED_ACCOUNT_PROPERTY = "wavefront.managed-account";
+  private static final String FREEMIUM_ACCOUNT_PROPERTY = "wavefront.freemium-account";
 
   private final SpringApplication application = mock(SpringApplication.class);
 
@@ -54,7 +54,7 @@ class AccountManagementEnvironmentPostProcessorTests {
     new AccountManagementEnvironmentPostProcessor().postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("test");
     assertThat(environment.getProperty(URI_PROPERTY)).isNull();
-    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isNull();
+    assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isNull();
   }
 
   @Test
@@ -63,7 +63,31 @@ class AccountManagementEnvironmentPostProcessorTests {
     environment.setProperty(URI_PROPERTY, "proxy://example.com:2878");
     new AccountManagementEnvironmentPostProcessor().postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isNull();
-    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isNull();
+    assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isNull();
+  }
+
+  @Test
+  void configurationOfRegularAccountDoesNotRetrieveOneTimeLoginUrl(CapturedOutput output) {
+    MockEnvironment environment = new MockEnvironment().withProperty(API_TOKEN_PROPERTY, "test");
+    TestAccountManagementEnvironmentPostProcessor postProcessor = TestAccountManagementEnvironmentPostProcessor
+        .forExistingAccount(mock(Resource.class), () -> {
+          throw new IllegalStateException("Should not be called");
+        });
+    postProcessor.postProcessEnvironment(environment, this.application);
+    postProcessor.onApplicationEvent(mockApplicationStartedEvent());
+    assertThat(output).doesNotContain("Connect to your Wavefront dashboard using this one-time use link");
+  }
+
+  @Test
+  void configurationOfFreemiumAccountDisplayOneTimeLoginUrl(CapturedOutput output) {
+    MockEnvironment environment = new MockEnvironment().withProperty(API_TOKEN_PROPERTY, "test")
+        .withProperty(FREEMIUM_ACCOUNT_PROPERTY, "true");
+    TestAccountManagementEnvironmentPostProcessor postProcessor = TestAccountManagementEnvironmentPostProcessor
+        .forExistingAccount(mock(Resource.class), () -> new AccountInfo("abc-def", "https://wavefront.surf/us/test1"));
+    postProcessor.postProcessEnvironment(environment, this.application);
+    postProcessor.onApplicationEvent(mockApplicationStartedEvent());
+    assertThat(output).contains("Connect to your Wavefront dashboard using this one-time use link:\n"
+        + "https://wavefront.surf/us/test1\n");
   }
 
   @Test
@@ -75,7 +99,7 @@ class AccountManagementEnvironmentPostProcessorTests {
     postProcessor.postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("abc-def");
     assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://wavefront.surf");
-    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isEqualTo("true");
+    assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isEqualTo("true");
     postProcessor.onApplicationEvent(mockApplicationStartedEvent());
     assertThat(output).contains("Your existing Wavefront account information has been restored from disk.\n" + "\n"
         + "To share this account, make sure the following is added to your configuration:\n\n"
@@ -96,7 +120,7 @@ class AccountManagementEnvironmentPostProcessorTests {
     postProcessor.postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("abc-def");
     assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://wavefront.surf");
-    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isEqualTo("true");
+    assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isEqualTo("true");
   }
 
   @Test
@@ -120,11 +144,11 @@ class AccountManagementEnvironmentPostProcessorTests {
     assertThat(apiTokenFile).doesNotExist();
     MockEnvironment environment = new MockEnvironment();
     TestAccountManagementEnvironmentPostProcessor postProcessor = TestAccountManagementEnvironmentPostProcessor
-        .forNewAccount(new PathResource(apiTokenFile), () -> new AccountInfo("abc-def","https://wavefront.surf/us/test"));
+        .forNewAccount(new PathResource(apiTokenFile), () -> new AccountInfo("abc-def", "https://wavefront.surf/us/test"));
     postProcessor.postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("abc-def");
     assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://wavefront.surf");
-    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isEqualTo("true");
+    assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isEqualTo("true");
     assertThat(apiTokenFile).exists();
     assertThat(apiTokenFile).hasContent("abc-def");
     postProcessor.onApplicationEvent(mockApplicationStartedEvent());
@@ -167,7 +191,7 @@ class AccountManagementEnvironmentPostProcessorTests {
         .postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("test");
     assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://wavefront.surf");
-    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isEqualTo("true");
+    assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isEqualTo("true");
   }
 
   @Test
@@ -182,7 +206,7 @@ class AccountManagementEnvironmentPostProcessorTests {
         .postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("test");
     assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://wavefront.surf");
-    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isEqualTo("true");
+    assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isEqualTo("true");
   }
 
   @Test
@@ -196,7 +220,7 @@ class AccountManagementEnvironmentPostProcessorTests {
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("abc-def");
     assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://example.com");
     assertThat(environment.getPropertySources().get("wavefront").getProperty(URI_PROPERTY)).isNull();
-    assertThat(environment.getProperty(MANAGED_ACCOUNT_PROPERTY)).isEqualTo("true");
+    assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isEqualTo("true");
   }
 
   @Test

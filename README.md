@@ -184,7 +184,7 @@ for more information.
 not support automatic account provisioning, which currently only applies to our free
 cluster. Therefore, make sure you log in to your cluster via the login page or SSO.
 * You have configured an API token explicitly in your `application.properties`. Make sure
-to create a login for your account first.
+to also add `wavefront.freemium-account=true` or create a login for your account.
 
 #### How do I make sure I send data to the same account all the time (across multiple machines and deployments)?
 
@@ -203,6 +203,9 @@ histograms, and traces.
 When you sign-in to your account via the single-use link, click the gear icon on the
 top-right and select Account Management. Next, you can invite yourself by email (a password
 setup link is sent to your email address, and you can use it to set up a password).
+
+If you have set `wavefront.freemium-account=true` in your `application.properties`, make
+sure to remove it so that a single-use login URL is no longer requested on startup.
 
 #### How do I get help?
 
