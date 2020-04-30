@@ -11,4 +11,9 @@ public class HomeController {
     return "Hello World!";
   }
 
+  @GetMapping("/oops")
+  public void error() {
+    throw new IllegalStateException("Test exception");
+  }
+
 }
