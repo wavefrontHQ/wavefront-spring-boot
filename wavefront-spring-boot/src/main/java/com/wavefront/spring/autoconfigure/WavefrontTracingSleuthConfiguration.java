@@ -1,11 +1,6 @@
 package com.wavefront.spring.autoconfigure;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
 import brave.TracingCustomizer;
-import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -23,12 +18,6 @@ import org.springframework.cloud.sleuth.sampler.SamplerAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
-import static com.wavefront.sdk.common.Constants.APPLICATION_TAG_KEY;
-import static com.wavefront.sdk.common.Constants.CLUSTER_TAG_KEY;
-import static com.wavefront.sdk.common.Constants.NULL_TAG_VAL;
-import static com.wavefront.sdk.common.Constants.SERVICE_TAG_KEY;
-import static com.wavefront.sdk.common.Constants.SHARD_TAG_KEY;
 
 /**
  * Configuration for Wavefront tracing using Spring Cloud Sleuth.
