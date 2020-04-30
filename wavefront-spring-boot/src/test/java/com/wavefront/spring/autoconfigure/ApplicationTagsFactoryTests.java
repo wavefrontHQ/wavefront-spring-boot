@@ -46,6 +46,23 @@ class ApplicationTagsFactoryTests {
   }
 
   @Test
+  void applicationTagsFromEnvironmentWithSpringApplicationName() {
+    MockEnvironment environment = new MockEnvironment();
+    environment.setProperty("spring.application.name", "test");
+    ApplicationTags applicationTags = this.factory.createFromEnvironment(environment);
+    assertThat(applicationTags.getService()).isEqualTo("test");
+  }
+
+  @Test
+  void applicationTagsFromEnvironmentWithSpringApplicationNameAndConfiguredService() {
+    MockEnvironment environment = new MockEnvironment();
+    environment.setProperty("wavefront.application.service", "test-service");
+    environment.setProperty("spring.application.name", "test");
+    ApplicationTags applicationTags = this.factory.createFromEnvironment(environment);
+    assertThat(applicationTags.getService()).isEqualTo("test-service");
+  }
+
+  @Test
   void applicationTagsFromEnvironmentWithConfiguredCluster() {
     MockEnvironment environment = new MockEnvironment();
     environment.setProperty("wavefront.application.cluster", "test-cluster");
@@ -63,7 +80,8 @@ class ApplicationTagsFactoryTests {
 
   @Test
   void applicationTagsFromEmptyProperties() {
-    ApplicationTags applicationTags = this.factory.createFromProperties(new WavefrontProperties());
+    ApplicationTags applicationTags = this.factory.createFromProperties(
+        new MockEnvironment(), new WavefrontProperties());
     assertThat(applicationTags.getApplication()).isEqualTo("unnamed_application");
     assertThat(applicationTags.getService()).isEqualTo("unnamed_service");
     assertThat(applicationTags.getCluster()).isNull();
@@ -74,7 +92,8 @@ class ApplicationTagsFactoryTests {
   void applicationTagsFromPropertiesWithConfiguredApplication() {
     WavefrontProperties properties = new WavefrontProperties();
     properties.getApplication().setName("wavefront-app");
-    ApplicationTags applicationTags = this.factory.createFromProperties(properties);
+    ApplicationTags applicationTags = this.factory.createFromProperties(
+        new MockEnvironment(), properties);
     assertThat(applicationTags.getApplication()).isEqualTo("wavefront-app");
   }
 
@@ -82,7 +101,27 @@ class ApplicationTagsFactoryTests {
   void applicationTagsFromPropertiesWithConfiguredService() {
     WavefrontProperties properties = new WavefrontProperties();
     properties.getApplication().setService("test-service");
-    ApplicationTags applicationTags = this.factory.createFromProperties(properties);
+    ApplicationTags applicationTags = this.factory.createFromProperties(
+        new MockEnvironment(), properties);
+    assertThat(applicationTags.getService()).isEqualTo("test-service");
+  }
+
+  @Test
+  void applicationTagsFromPropertiesWithSpringApplicationName() {
+    WavefrontProperties properties = new WavefrontProperties();
+    MockEnvironment environment = new MockEnvironment()
+        .withProperty("spring.application.name", "test");
+    ApplicationTags applicationTags = this.factory.createFromProperties(environment, properties);
+    assertThat(applicationTags.getService()).isEqualTo("test");
+  }
+
+  @Test
+  void applicationTagsFromPropertiesWithSpringApplicationNameAndConfiguredService() {
+    WavefrontProperties properties = new WavefrontProperties();
+    MockEnvironment environment = new MockEnvironment()
+        .withProperty("spring.application.name", "test");
+    properties.getApplication().setService("test-service");
+    ApplicationTags applicationTags = this.factory.createFromProperties(environment, properties);
     assertThat(applicationTags.getService()).isEqualTo("test-service");
   }
 
@@ -90,7 +129,8 @@ class ApplicationTagsFactoryTests {
   void applicationTagsFromPropertiesWithConfiguredCluster() {
     WavefrontProperties properties = new WavefrontProperties();
     properties.getApplication().setCluster("test-cluster");
-    ApplicationTags applicationTags = this.factory.createFromProperties(properties);
+    ApplicationTags applicationTags = this.factory.createFromProperties(
+        new MockEnvironment(), properties);
     assertThat(applicationTags.getCluster()).isEqualTo("test-cluster");
   }
 
@@ -98,7 +138,8 @@ class ApplicationTagsFactoryTests {
   void applicationTagsFromPropertiesWithConfiguredShard() {
     WavefrontProperties properties = new WavefrontProperties();
     properties.getApplication().setShard("test-shard");
-    ApplicationTags applicationTags = this.factory.createFromProperties(properties);
+    ApplicationTags applicationTags = this.factory.createFromProperties(
+        new MockEnvironment(), properties);
     assertThat(applicationTags.getShard()).isEqualTo("test-shard");
   }
 

@@ -32,6 +32,7 @@ import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.entities.tracing.SpanLog;
+import com.wavefront.spring.autoconfigure.WavefrontProperties.Application;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.logging.Log;
@@ -73,12 +74,6 @@ import static com.wavefront.spring.autoconfigure.SpanDerivedMetricsUtils.reportW
  */
 final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Runnable, Closeable {
   private static final Log LOG = LogFactory.getLog(WavefrontSleuthSpanHandler.class);
-
-  /**
-   * Wavefront use a combination of null and non-values in defaults. Some non-values are not defined
-   * by constants. This constant helps reduce drift in non-value comparison.
-   */
-  private static final String DEFAULT_SERVICE = new WavefrontProperties().getApplication().getService();
 
   // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L114-L114
   private static final String DEFAULT_SPAN_NAME = "defaultOperation";
@@ -335,7 +330,7 @@ final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Ru
     result.add(Pair.of(APPLICATION_TAG_KEY, applicationTags.getApplication()));
     // Prefer the user's service name unless they overwrote it with the wavefront property
     // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L263-L266
-    if (!Objects.equals(applicationTags.getService(), DEFAULT_SERVICE)) {
+    if (!Objects.equals(applicationTags.getService(), Application.DEFAULT_SERVICE_NAME)) {
       result.add(Pair.of(SERVICE_TAG_KEY, applicationTags.getService()));
     }
     else {

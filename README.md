@@ -132,7 +132,10 @@ wavefront:
   application:
     name: my-application
     service: my-service
-``` 
+```
+
+If you have set `spring.application.name` in your application, it is automatically used
+as the service name.
 
 The cluster and shard can also be specified the same way. That information is used to
 tag metrics and traces out-of-the-box. If you want to take full control over the

@@ -14,6 +14,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} to integrate with Wavefront metrics
@@ -30,10 +31,11 @@ public class WavefrontAutoConfiguration {
 
   @Bean
   @ConditionalOnMissingBean
-  public ApplicationTags wavefrontApplicationTags(WavefrontProperties properties,
+  public ApplicationTags wavefrontApplicationTags(Environment environment,
+      WavefrontProperties properties,
       ObjectProvider<ApplicationTagsBuilderCustomizer> customizers) {
     return new ApplicationTagsFactory(customizers.orderedStream().collect(Collectors.toList()))
-        .createFromProperties(properties);
+        .createFromProperties(environment, properties);
   }
 
 }

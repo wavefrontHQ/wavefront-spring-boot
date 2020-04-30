@@ -32,15 +32,18 @@ public class WavefrontProperties {
 
   public static class Application {
 
+    public static String DEFAULT_SERVICE_NAME = "unnamed_service";
+
     /**
      * Name of the application.
      */
     private String name = "unnamed_application";
 
     /**
-     * Name of the service.
+     * Name of the service. If not specified, the value of "spring.application.name" is
+     * used or "unnamed_service" as fallback.
      */
-    private String service = "unnamed_service";
+    private String service;
 
     /**
      * Cluster of the service.

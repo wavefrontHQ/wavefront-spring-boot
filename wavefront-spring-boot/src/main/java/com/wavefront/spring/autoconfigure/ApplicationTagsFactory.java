@@ -10,6 +10,7 @@ import com.wavefront.spring.autoconfigure.WavefrontProperties.Application;
 
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.core.env.Environment;
+import org.springframework.util.StringUtils;
 
 /**
  * Factory that can be used to create an {@link ApplicationTags}.
@@ -40,12 +41,15 @@ public class ApplicationTagsFactory {
 
   /**
    * Create an {@link ApplicationTags} from properties.
+   * @param environment the environment to use for fallback values
    * @param properties the wavefront properties
    * @return a matching {@link ApplicationTags}
    */
-  public ApplicationTags createFromProperties(WavefrontProperties properties) {
+  public ApplicationTags createFromProperties(Environment environment, WavefrontProperties properties) {
     Application application = properties.getApplication();
-    Builder builder = new Builder(application.getName(), application.getService());
+    String service = (StringUtils.hasText(application.getService()))
+        ? application.getService() : defaultServiceName(environment);
+    Builder builder = new Builder(application.getName(), service);
     PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
     mapper.from(application::getCluster).to(builder::cluster);
     mapper.from(application::getShard).to(builder::shard);
@@ -59,9 +63,14 @@ public class ApplicationTagsFactory {
    */
   public ApplicationTags createFromEnvironment(Environment environment) {
     String name = getValue(environment, "name", () -> "unnamed_application");
-    String service = getValue(environment, "service", () -> "unnamed_service");
+    String service = getValue(environment, "service", () -> defaultServiceName(environment));
     return customize(new Builder(name, service).cluster(getValue(environment, "cluster", () -> null))
         .shard(getValue(environment, "shard", () -> null))).build();
+  }
+
+  private String defaultServiceName(Environment environment) {
+    String applicationName = environment.getProperty("spring.application.name");
+    return (StringUtils.hasText(applicationName)) ? applicationName : Application.DEFAULT_SERVICE_NAME;
   }
 
   private Builder customize(Builder builder) {
