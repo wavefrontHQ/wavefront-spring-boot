@@ -223,7 +223,7 @@ final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Ru
     // Throwables. Particularly, RPC frameworks often do not use exceptions as error signals.
     //
     // MutableSpan.tags["error"] could be recorded without MutableSpan.error()
-    // Ex 1. io.opentracing.Span.tag(ERROR, true) -> MutableSpan.tag("error", "false")
+    // Ex 1. io.opentracing.Span.tag(ERROR, true) -> MutableSpan.tag("error", "true")
     // Ex 2. brave.SpanCustomizer.tag("error", "") -> MutableSpan.tag("error", "")
     // Ex 3. brave.Span.tag("error", "CANCELLED") -> MutableSpan.tag("error", "CANCELLED")
     //
