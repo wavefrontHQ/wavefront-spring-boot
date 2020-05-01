@@ -117,6 +117,13 @@ Every time the app starts, it logs the configuration you need to add to
 `application.properties`. If you copy that, the account management will stop and the
 application will simply use that configuration.
 
+IF you have a web application, you can also expose the Wavefront Actuator endpoint at 
+`/actuator/wavefront` to access your Wavefront Dashboard:
+
+```properties
+management.endpoints.web.exposure.include=health,info,...,wavefront
+```
+
 If you have more than one application, you may want to at least specify the names of the
 application and the service in `application.properties`. Here is simple example:
 
@@ -185,6 +192,8 @@ not support automatic account provisioning, which currently only applies to our 
 cluster. Therefore, make sure you log in to your cluster via the login page or SSO.
 * You have configured an API token explicitly in your `application.properties`. Make sure
 to also add `wavefront.freemium-account=true` or create a login for your account.
+* If you have a web application, expose the `wavefront` actuator endpoint to easily get
+access to your dashboard
 
 #### How do I make sure I send data to the same account all the time (across multiple machines and deployments)?
 
