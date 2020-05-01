@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,24 @@
 
 package com.wavefront.spring.autoconfigure;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 
+import brave.Tracing;
+import brave.opentracing.BraveTracer;
 import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.entities.histograms.HistogramGranularity;
 import com.wavefront.sdk.entities.tracing.SpanLog;
+import io.opentracing.Tracer;
+import io.opentracing.tag.Tags;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -38,12 +42,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.web.reactive.function.server.HandlerFunction;
-import org.springframework.web.reactive.function.server.RouterFunction;
-import org.springframework.web.reactive.function.server.RouterFunctions;
-import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -58,6 +63,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.zipkin.service.name=test_service"
     })
 @AutoConfigureWebTestClient
+@DirtiesContext
 public class WavefrontTracingIntegrationTests {
 
   @Autowired
@@ -70,13 +76,13 @@ public class WavefrontTracingIntegrationTests {
   private BlockingDeque<String> metricAndHistogramRecordQueue;
 
   @Test
-  void sendsToWavefront() throws Exception {
+  void sendsToWavefront() throws InterruptedException {
     this.client.get()
         .uri("/api/fn/10")
         .header("b3", "0000000000000001-0000000000000003-1-0000000000000002")
         .exchange().expectStatus().isOk();
 
-    SpanRecord spanRecord = spanRecordQueue.take();
+    SpanRecord spanRecord = takeRecord(spanRecordQueue);
     assertThat(spanRecord.traceId)
         .hasToString("00000000-0000-0000-0000-000000000001");
     assertThat(spanRecord.parents).extracting(UUID::toString)
@@ -97,31 +103,96 @@ public class WavefrontTracingIntegrationTests {
     // Less than a millis should round up to 1, but the test could take longer than 1ms
     assertThat(spanRecord.durationMillis).isPositive();
 
-    assertThat(spanRecord.tags).containsExactly(
+    assertThat(spanRecord.tags).containsExactlyInAnyOrder(
         Pair.of("application", "IntegratedTracingTests"),
         Pair.of("service", "test_service"),
         Pair.of("cluster", "none"),
         Pair.of("shard", "none"),
         Pair.of("http.method", "GET"),
         Pair.of("http.path", "/api/fn/10"),
-        Pair.of("mvc.controller.class", "Controller"),
+        Pair.of("mvc.controller.class", "WebMvcController"),
+        Pair.of("mvc.controller.method", "fn"),
         Pair.of("span.kind", "server")
     );
 
     // Wait for 60s to let RED metrics being reported.
+    // TODO: Better to make a test fixture than rely on whatever this is that's on a minutely poll
+    // The sleep approach slows tests, which discourages running them.
+    // Also, this doesn't verify anything except that there is some processor somewhere that might
+    // have gotten good or bad data
     Thread.sleep(60000);
     assertThat(metricAndHistogramRecordQueue.isEmpty()).isFalse();
+  }
+
+  @Test
+  void http_badRequest_setsStatusCodeAndErrorTrueTags() {
+    this.client.get()
+        .uri("/badrequest")
+        .exchange().expectStatus().isBadRequest();
+
+    SpanRecord spanRecord = takeRecord(spanRecordQueue);
+    assertThat(spanRecord.tags).contains(
+        Pair.of("http.status_code", "400"),
+        Pair.of("error", "true")
+    );
+  }
+
+  @Test
+  void setsStatusCodeAndErrorTrueTags_opentracing() {
+    this.client.get()
+        .uri("/error/opentracing")
+        .exchange().expectStatus().is5xxServerError();
+
+    SpanRecord spanRecord = takeRecord(spanRecordQueue);
+    assertThat(spanRecord.tags).contains(
+        Pair.of("http.status_code", "500"),
+        Pair.of("error", "true") // retains the boolean true
+    );
+  }
+
+  @Test
+  void setsStatusCodeAndErrorTrueTags_brave() {
+    this.client.get()
+        .uri("/error/brave")
+        .exchange().expectStatus().is5xxServerError();
+
+    SpanRecord spanRecord = takeRecord(spanRecordQueue);
+    assertThat(spanRecord.tags).contains(
+        Pair.of("http.status_code", "500"),
+        Pair.of("error", "true") // deletes the user message
+    );
+  }
+
+  @Test
+  void setsStatusCodeAndErrorTrueTags_exception() {
+    this.client.get()
+        .uri("/error/exception")
+        .exchange().expectStatus().is5xxServerError();
+
+    SpanRecord spanRecord = takeRecord(spanRecordQueue);
+    assertThat(spanRecord.tags).contains(
+        Pair.of("http.status_code", "500"),
+        Pair.of("error", "true") // deletes the exception message
+    );
   }
 
   @Configuration
   @EnableAutoConfiguration
   static class Config {
-
+    /**
+     * This uses a {@linkplain Controller WebMVC controller} as it is the most popular way to write
+     * Spring services and has no instrumentation gotchas or scope bugs like reactive tracing.
+     * This allows us to focus on api and data mapping issues, which is the heart of this test.
+     */
     @Bean
-    RouterFunction<ServerResponse> route() {
-      return RouterFunctions.route()
-          .GET("/api/fn/{id}", new Controller())
-          .build();
+    WebMvcController controller() {
+      return new WebMvcController();
+    }
+
+    /** Sleuth would automatically wire this, except there's another impl in the classpath. */
+    @Bean
+    Tracer opentracing(Tracing tracing) {
+      return BraveTracer.create(tracing);
     }
 
     @Bean
@@ -145,7 +216,7 @@ public class WavefrontTracingIntegrationTests {
         }
 
         @Override
-        public void flush() throws IOException {
+        public void flush() {
 
         }
 
@@ -157,45 +228,69 @@ public class WavefrontTracingIntegrationTests {
         @Override
         public void sendDistribution(String name, List<Pair<Double, Integer>> centroids,
                                      Set<HistogramGranularity> histogramGranularities,
-                                     Long timestamp, String source, Map<String, String> tags) throws IOException {
+                                     Long timestamp, String source, Map<String, String> tags) {
           metricAndHistogramRecordQueue.add(name);
         }
 
         @Override
         public void sendMetric(String name, double value, Long timestamp, String source,
-                               Map<String, String> tags) throws IOException {
+                               Map<String, String> tags) {
           metricAndHistogramRecordQueue.add(name);
         }
 
         @Override
-        public void sendFormattedMetric(String point) throws IOException {
+        public void sendFormattedMetric(String point) {
 
         }
 
         @Override
         public void sendSpan(String name, long startMillis, long durationMillis, String source,
                              UUID traceId, UUID spanId, List<UUID> parents, List<UUID> followsFrom,
-                             List<Pair<String, String>> tags, List<SpanLog> spanLogs) throws IOException {
+                             List<Pair<String, String>> tags, List<SpanLog> spanLogs) {
           spanRecordQueue.add(new SpanRecord(name, startMillis, durationMillis, source, traceId,
               spanId, parents, followsFrom, tags, spanLogs));
         }
 
         @Override
-        public void close() throws IOException {
+        public void close() {
 
         }
       };
     }
   }
 
-  static final class Controller implements HandlerFunction<ServerResponse> {
+  @Controller
+  static class WebMvcController {
+    @Autowired Tracer opentracing;
+    @Autowired brave.Tracer tracer;
 
-    @Override
-    public Mono<ServerResponse> handle(ServerRequest serverRequest) {
-      return ServerResponse.ok()
-          .bodyValue(serverRequest.pathVariable("id"));
+    @RequestMapping(value = "/api/fn/{id}")
+    public ResponseEntity<String> fn(@PathVariable("id") String id) {
+      return new ResponseEntity<>(id, HttpStatus.OK);
     }
 
+    @RequestMapping(value = "/error/{api}")
+    public ResponseEntity<Void> error(@PathVariable("api") String api) {
+      switch (api) {
+        case "brave":
+          tracer.currentSpanCustomizer().tag("error", "user message");
+          break;
+        case "opentracing":
+          opentracing.activeSpan().setTag(Tags.ERROR, true);
+          break;
+        case "exception":
+          tracer.currentSpan().error(new RuntimeException("uncaught!"));
+          break;
+        default:
+          return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+      }
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @RequestMapping(value = "/badrequest")
+    public ResponseEntity<Void> badrequest() {
+      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
   }
 
   static final class SpanRecord {
@@ -236,4 +331,33 @@ public class WavefrontTracingIntegrationTests {
 
   }
 
+  /** Helps ensure test bugs don't result in hung tests! */
+  <R> R takeRecord(BlockingDeque<R> queue) {
+    R result;
+    try {
+      result = queue.poll(3, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new AssertionError(e);
+    }
+
+    assertThat(result)
+        .withFailMessage("Record was not reported")
+        .isNotNull();
+    return result;
+  }
+
+  /** Makes sure tests aren't accidentally not verifying all reported data. */
+  @AfterEach
+  void ensureNoExtraSpans() {
+    try {
+      SpanRecord span = spanRecordQueue.poll(100, TimeUnit.MILLISECONDS);
+      assertThat(span)
+          .withFailMessage("Span remaining in queue. Check for redundant reporting: %s", span)
+          .isNull();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new AssertionError(e);
+    }
+  }
 }

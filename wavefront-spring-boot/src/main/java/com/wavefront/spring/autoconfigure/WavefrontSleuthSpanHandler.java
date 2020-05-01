@@ -202,6 +202,38 @@ final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Ru
 
     WavefrontConsumer wavefrontConsumer = new WavefrontConsumer(defaultTagKeys);
 
+    // If MutableSpan.tags["error"] is here, it was from a layered api, instrumentation or the user.
+    // In other words MutableSpan.error() != null does not mean MutableSpan.tags["error"] != null
+    //
+    // MutableSpan.error() could be recorded without MutableSpan.tags["error"]
+    // Ex 1. brave.Span.error(new OutOfMemoryError()) -> MutableSpan.error(new OutOfMemoryError())
+    // Ex 2. brave.Span.error(new RpcException()) -> MutableSpan.error(new RpcException())
+    // Ex 3. brave.Span.error(new NullPointerException()) -> MutableSpan.error(new NullPointerException())
+    //
+    // The above are examples of exceptions that users typically do not process, so are unlikely to
+    // parse into an "error" tag. The opposite is also true as not all errors are derived from
+    // Throwables. Particularly, RPC frameworks often do not use exceptions as error signals.
+    //
+    // MutableSpan.tags["error"] could be recorded without MutableSpan.error()
+    // Ex 1. io.opentracing.Span.tag(ERROR, true) -> MutableSpan.tag("error", "true")
+    // Ex 2. brave.SpanCustomizer.tag("error", "") -> MutableSpan.tag("error", "")
+    // Ex 3. brave.Span.tag("error", "CANCELLED") -> MutableSpan.tag("error", "CANCELLED")
+    //
+    // The above examples are using in-band apis in Brave. FinishedSpanHandler is after the fact.
+    // Since MutableSpan.tags["error"] isn't defaulted, handlers like here can tell the difference
+    // between explicitly set error messages, and what's needed by their format. It may not be
+    // obvious that MutableSpan.error() exists for custom formats including metrics.
+    //
+    // Ex. 1. MutableSpan.tag("error", "") to redact the error message from Zipkin
+    // Ex. 2. MutableSpan.error() -> MutableSpan.tags["exception"] to match metrics dimension
+    // Ex. 3. MutableSpan.error() -> CustomFormat.stackTrace for sophisticated trace formats.
+    //
+    // Until we know more about Wavefront's backend data requirements, We only set an error bit.
+    // Specifically, we set isError when either of the following are not null:
+    //  * MutableSpan.error()
+    //  * MutableSpan.tags["error"]
+    wavefrontConsumer.isError = span.error() != null;
+
     // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L397-L402
     List<SpanLog> spanLogs = new ArrayList<>();
     span.forEachAnnotation(wavefrontConsumer, spanLogs);
