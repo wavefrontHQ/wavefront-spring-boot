@@ -41,7 +41,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>1.8</java.version>
-    <spring-boot.version>2.3.0.BUILD-SNAPSHOT</spring-boot.version>
+    <spring-boot.version>2.3.0.RC1</spring-boot.version>
     <spring-cloud.version>Hoxton.SR4</spring-cloud.version>
   </properties>
 
