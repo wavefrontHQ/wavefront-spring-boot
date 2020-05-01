@@ -140,7 +140,7 @@ specific rights regarding derivate works.
 
 You may obtain a copy of the License at:
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 >>> com.fasterxml.jackson.core:jackson-core-2.10.1
 
@@ -157,7 +157,7 @@ commercially by FasterXML.com.
 Jackson core and extension components may licensed under different licenses.
 To find the details that apply to this artifact see the accompanying LICENSE file.
 For more information, including possible other licensing options, contact
-FasterXML.com (http://fasterxml.com).
+FasterXML.com (https://fasterxml.com).
 
 ## Credits
 
@@ -172,7 +172,7 @@ specific rights regarding derivate works.
 
 You may obtain a copy of the License at:
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 >>> com.fasterxml.jackson.core:jackson-databind-2.10.1
 
@@ -189,7 +189,7 @@ commercially by FasterXML.com.
 Jackson core and extension components may be licensed under different licenses.
 To find the details that apply to this artifact see the accompanying LICENSE file.
 For more information, including possible other licensing options, contact
-FasterXML.com (http://fasterxml.com).
+FasterXML.com (https://fasterxml.com).
 
 ## Credits
 
@@ -205,7 +205,7 @@ specific rights regarding derivate works.
 
 You may obtain a copy of the License at:
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 >>> com.fasterxml.jackson.dataformat:jackson-dataformat-yaml-2.10.1
 
@@ -222,7 +222,7 @@ commercially by FasterXML.com.
 Jackson core and extension components may be licensed under different licenses.
 To find the details that apply to this artifact see the accompanying LICENSE file.
 For more information, including possible other licensing options, contact
-FasterXML.com (http://fasterxml.com).
+FasterXML.com (https://fasterxml.com).
 
 ## Credits
 
@@ -237,7 +237,7 @@ specific rights regarding derivate works.
 
 You may obtain a copy of the License at:
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 >>> com.google.code.findbugs:jsr305-3.0.0
 
@@ -253,7 +253,7 @@ to you under the Apache License, Version 2.0 (the
 "License"); you may not use this file except in compliance
 with the License.  You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing,
 software distributed under the License is distributed on an
@@ -272,7 +272,7 @@ to you under the Apache License, Version 2.0 (the
 "License"); you may not use this file except in compliance
 with the License.  You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing,
 software distributed under the License is distributed on an
@@ -352,7 +352,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -366,7 +366,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -380,7 +380,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -394,7 +394,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -408,7 +408,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -422,7 +422,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -436,7 +436,7 @@ Copyright 2018 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -450,7 +450,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -464,7 +464,7 @@ Copyright 2017-2019 The OpenTracing Authors
   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
   in compliance with the License. You may obtain a copy of the License at
  
-  http://www.apache.org/licenses/LICENSE-2.0
+  https://www.apache.org/licenses/LICENSE-2.0
  
   Unless required by applicable law or agreed to in writing, software distributed under the License
   is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -478,7 +478,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -492,7 +492,7 @@ Copyright 2017-2018 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -506,7 +506,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -520,7 +520,7 @@ Copyright 2017-2019 The OpenTracing Authors
     Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
     in compliance with the License. You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+    https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software distributed under the License
     is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -534,7 +534,7 @@ Copyright 2017-2018 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -548,7 +548,7 @@ Copyright 2017-2018 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -562,7 +562,7 @@ Copyright 2017-2018 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -576,7 +576,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -590,7 +590,7 @@ Copyright 2017-2018 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -604,7 +604,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -618,7 +618,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -632,7 +632,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -646,7 +646,7 @@ Copyright 2017-2018 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -660,7 +660,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -674,7 +674,7 @@ Copyright 2017 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -688,7 +688,7 @@ Copyright 2017-2018 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -718,7 +718,7 @@ Copyright 2017-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -732,7 +732,7 @@ Copyright 2018-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -746,7 +746,7 @@ Copyright 2013-2019 the original author or authors. Copyright 2019 The OpenTraci
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -760,7 +760,7 @@ Copyright 2016-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -775,7 +775,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -790,7 +790,7 @@ Copyright 2016-2018 The OpenTracing Authors
     Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
     in compliance with the License. You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+    https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software distributed under the License
     is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -805,7 +805,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -820,7 +820,7 @@ Copyright 2016-2019 The OpenTracing Authors
     Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
     in compliance with the License. You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+    https://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software distributed under the License
     is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -834,7 +834,7 @@ Copyright 2016-2019 The OpenTracing Authors
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License
 is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -847,7 +847,7 @@ Apache Log4j API
 Copyright 1999-2019 The Apache Software Foundation
 
 This product includes software developed at
-The Apache Software Foundation (http://www.apache.org/).
+The Apache Software Foundation (https://www.apache.org/).
 
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements. See the NOTICE file distributed with
@@ -856,7 +856,7 @@ The ASF licenses this file to You under the Apache license, Version 2.0
 (the "License"); you may not use this file except in compliance with
 the License. You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -870,7 +870,7 @@ Apache Log4j to SLF4J Adapter
 Copyright 1999-2019 The Apache Software Foundation
 
 This product includes software developed at
-The Apache Software Foundation (http://www.apache.org/).
+The Apache Software Foundation (https://www.apache.org/).
 
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements.  See the NOTICE file distributed with
@@ -879,7 +879,7 @@ The ASF licenses this file to You under the Apache License, Version 2.0
 (the "License"); you may not use this file except in compliance with
 the License.  You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -908,9 +908,9 @@ maven pom organized by organization.
 Apache Log4j to SLF4J Adapter
 
 
-From: 'QOS.ch' (http://www.qos.ch)
-- SLF4J API Module (http://www.slf4j.org) org.slf4j:slf4j-api:jar:1.7.25
-License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
+From: 'QOS.ch' (https://www.qos.ch)
+- SLF4J API Module (https://www.slf4j.org) org.slf4j:slf4j-api:jar:1.7.25
+License: MIT License  (https://www.opensource.org/licenses/mit-license.php)
 
 >>> org.springframework.boot:spring-boot-2.3.0.m1
 
@@ -1000,7 +1000,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -1103,13 +1103,13 @@ and has been placed in the public domain for unlimited redistribution.
 
 >>> org.yaml:snakeyaml-1.25
 
-Copyright (c) 2008, http://www.snakeyaml.org
+Copyright (c) 2008, https://www.snakeyaml.org
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -1131,11 +1131,11 @@ www.source-code.biz, www.inventec.ch/chdh
 This module is multi-licensed and may be used under the terms
 of any of the following licenses:
 
-EPL, Eclipse Public License, V1.0 or later, http://www.eclipse.org/legal
-LGPL, GNU Lesser General Public License, V2.1 or later, http://www.gnu.org/licenses/lgpl.html
-GPL, GNU General Public License, V2 or later, http://www.gnu.org/licenses/gpl.html
-AL, Apache License, V2.0 or later, http://www.apache.org/licenses
-BSD, BSD License, http://www.opensource.org/licenses/bsd-license.php
+EPL, Eclipse Public License, V1.0 or later, https://www.eclipse.org/legal
+LGPL, GNU Lesser General Public License, V2.1 or later, https://www.gnu.org/licenses/lgpl.html
+GPL, GNU General Public License, V2 or later, https://www.gnu.org/licenses/gpl.html
+AL, Apache License, V2.0 or later, https://www.apache.org/licenses
+BSD, BSD License, https://www.opensource.org/licenses/bsd-license.php
 
 Please contact the author if you need another license.
 This module is provided "as is", without warranties of any kind.
@@ -1148,14 +1148,14 @@ BSD-STYLE, MIT-STYLE, OR SIMILAR STYLE LICENSES are applicable to the following 
 >>> org.hdrhistogram:hdrhistogram-2.1.11
 
 Written by Gil Tene of Azul Systems, and released to the public domain,
-as explained at http://creativecommons.org/publicdomain/zero/1.0/
+as explained at https://creativecommons.org/publicdomain/zero/1.0/
 
 @author Gil Tene
 
 >>> org.latencyutils:latencyutils-2.0.3
 
 Written by Gil Tene of Azul Systems, and released to the public domain,
-as explained at http://creativecommons.org/publicdomain/zero/1.0/
+as explained at https://creativecommons.org/publicdomain/zero/1.0/
 
 >>> org.slf4j:jul-to-slf4j-1.7.29
 
@@ -1297,7 +1297,7 @@ All rights reserved.
 This program and the accompanying materials are made available
 under the terms of the Eclipse Public License v1.0
 which accompanies this distribution and is available at
-http://eclipse.org/legal/epl-v10.html
+https://eclipse.org/legal/epl-v10.html
 
 Contributors:
 Adrian Colyer			Initial implementation
@@ -1328,7 +1328,7 @@ distribution.
 3. The end-user documentation included with the redistribution,
 if any, must include the following acknowledgment:
 "This product includes software developed by the
-Apache Software Foundation (http://www.apache.org/)."
+Apache Software Foundation (https://www.apache.org/)."
 Alternately, this acknowledgment may appear in the software itself,
 if and wherever such third-party acknowledgments normally appear.
 
@@ -1358,7 +1358,7 @@ SUCH DAMAGE.
 This software consists of voluntary contributions made by many
 individuals on behalf of the Apache Software Foundation.  For more
 information on the Apache Software Foundation, please see
-<http://www.apache.org/>.
+<https://www.apache.org/>.
 
 --------------- SECTION 5: Eclipse Public License, V2.0 ----------
 
@@ -1383,7 +1383,7 @@ Jakarta Annotations is a trademark of the Eclipse Foundation.
 
 This program and the accompanying materials are made available under the terms
 of the Eclipse Public License v. 2.0 which is available at
-http://www.eclipse.org/legal/epl-2.0. This Source Code may also be made
+https://www.eclipse.org/legal/epl-2.0. This Source Code may also be made
 available under the following Secondary Licenses when the conditions for such
 availability set forth in the Eclipse Public License v. 2.0 are satisfied: GNU
 General Public License, version 2 with the GNU Classpath Exception which is
@@ -1420,7 +1420,7 @@ Apache License
 
 Version 2.0, January 2004 
 
-http://www.apache.org/licenses/ 
+https://www.apache.org/licenses/ 
 
 
 
