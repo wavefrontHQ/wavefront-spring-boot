@@ -239,6 +239,10 @@ final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Ru
     span.forEachAnnotation(wavefrontConsumer, spanLogs);
 
     List<Pair<String, String>> tags = new ArrayList<>(defaultTags);
+    // Check for span.error() for uncaught exception in request mapping and add it to Wavefront span tag
+    if (span.error() != null && span.tag("error") == null) {
+      tags.add(Pair.of("error", "true"));
+    }
     span.forEachTag(wavefrontConsumer, tags);
 
     // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L300-L303

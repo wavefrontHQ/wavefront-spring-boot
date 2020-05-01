@@ -176,6 +176,19 @@ public class WavefrontTracingIntegrationTests {
     );
   }
 
+  @Test
+  void setsStatusCodeAndErrorTrueTags_thrownException() {
+    this.client.get()
+            .uri("/throws")
+            .exchange().expectStatus().is5xxServerError();
+
+    SpanRecord spanRecord = takeRecord(spanRecordQueue);
+    assertThat(spanRecord.tags).contains(
+            /* Pair.of("http.status_code", "500"), */ // Able to return error=true span tag but not http.status_code span tag
+            Pair.of("error", "true") // deletes the exception message
+    );
+  }
+
   @Configuration
   @EnableAutoConfiguration
   static class Config {
@@ -290,6 +303,11 @@ public class WavefrontTracingIntegrationTests {
     @RequestMapping(value = "/badrequest")
     public ResponseEntity<Void> badrequest() {
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @RequestMapping("throws")
+    public void toss() {
+      throw new IllegalStateException("boom");
     }
   }
 
