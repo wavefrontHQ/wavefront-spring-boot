@@ -94,7 +94,7 @@ project first. Invoke the following command in the root directory:
 [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth) or [OpenTracing](https://opentracing.io/).
 
   * **Spring Cloud Sleuth**: 
-    To get started, add the following dependency to your `pom.xml` file:
+    <br/>To get started, add the following dependency to your `pom.xml` file:
 
     ```xml
     <dependency>
@@ -114,7 +114,7 @@ project first. Invoke the following command in the root directory:
     }
     ```
   * **OpenTracing**
-    To get started, consider adding the following dependencies to your `pom.xml` file:
+    <br/>To get started, consider adding the following dependencies to your `pom.xml` file:
     ```xml
       <dependency>
         <groupId>io.opentracing.contrib</groupId>
