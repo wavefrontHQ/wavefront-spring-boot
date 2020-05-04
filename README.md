@@ -46,9 +46,9 @@ or later and then add the following dependency to your `pom.xml:
 
 ```xml
 <dependency>
-    <groupId>com.wavefront</groupId>
-    <artifactId>wavefront-spring-boot-starter</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+  <groupId>com.wavefront</groupId>
+  <artifactId>wavefront-spring-boot-starter</artifactId>
+  <version>2.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -60,6 +60,30 @@ dependencies {
   implementation 'com.wavefront:wavefront-spring-boot-starter:2.0.0-SNAPSHOT'
   
 }
+```
+
+To make sure your project brings the blessed versions of required dependencies, a Bill Of
+Materials is provided. You could configure the project as follows:
+
+```xml
+<dependencies>
+  <dependency>
+    <groupId>com.wavefront</groupId>
+    <artifactId>wavefront-spring-boot-starter</artifactId>
+  </dependency>
+</dependencies>
+
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>com.wavefront</groupId>
+      <artifactId>wavefront-spring-boot</artifactId>
+      <version>2.0.0-SNAPSHOT</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
 ```
 
 Every time the application starts, either an account is auto-negotiated, or it is restored
@@ -89,9 +113,9 @@ To get started, consider adding the following dependency to your `pom.xml`:
 
 ```xml
 <dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-sleuth</artifactId>
-    <version>2.2.2.RELEASE</version>
+  <groupId>org.springframework.cloud</groupId>
+  <artifactId>spring-cloud-starter-sleuth</artifactId>
+  <version>2.2.2.RELEASE</version>
 </dependency>
 ```
 
