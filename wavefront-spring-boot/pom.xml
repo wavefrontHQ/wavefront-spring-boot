@@ -7,6 +7,7 @@
     <groupId>com.wavefront</groupId>
     <artifactId>wavefront-spring-boot-parent</artifactId>
     <version>2.0.0-RC1-SNAPSHOT</version>
+    <relativePath>../wavefront-spring-boot-parent</relativePath>
   </parent>
   <artifactId>wavefront-spring-boot</artifactId>
   <name>Wavefront Auto-Configuration</name>

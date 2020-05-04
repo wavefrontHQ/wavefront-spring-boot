@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.wavefront</groupId>
-  <artifactId>wavefront-spring-boot-parent</artifactId>
+  <artifactId>wavefront-spring-boot-build</artifactId>
   <version>2.0.0-RC1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Wavefront Spring Boot</name>
@@ -40,265 +40,29 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <java.version>1.8</java.version>
-    <spring-boot.version>2.3.0.RC1</spring-boot.version>
-    <spring-cloud.version>Hoxton.SR4</spring-cloud.version>
   </properties>
 
   <modules>
     <module>wavefront-spring-boot</module>
+    <module>wavefront-spring-boot-bom</module>
+    <module>wavefront-spring-boot-parent</module>
     <module>wavefront-spring-boot-sample</module>
     <module>wavefront-spring-boot-starter</module>
   </modules>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.8.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-deploy-plugin</artifactId>
-          <version>2.8.2</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-gpg-plugin</artifactId>
-          <version>1.6</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.1.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-release-plugin</artifactId>
-          <version>2.5.3</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-source-plugin</artifactId>
-          <version>3.1.0</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.22.2</version>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>flatten-maven-plugin</artifactId>
-          <version>1.2.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.sonatype.plugins</groupId>
-          <artifactId>nexus-staging-maven-plugin</artifactId>
-          <version>1.6.8</version>
-        </plugin>
-        <plugin>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-maven-plugin</artifactId>
-          <version>${spring-boot.version}</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.8.2</version>
+        <inherited>false</inherited>
         <configuration>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar-no-fork</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>flatten-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>flatten</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>flatten</goal>
-            </goals>
-            <configuration>
-              <updatePomFile>true</updatePomFile>
-              <flattenMode>oss</flattenMode>
-              <pomElements>
-                <parent>expand</parent>
-                <distributionManagement>remove</distributionManagement>
-                <repositories>remove</repositories>
-              </pomElements>
-            </configuration>
-          </execution>
-          <execution>
-            <id>flatten-clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>clean</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <configuration>
-          <autoVersionSubmodules>true</autoVersionSubmodules>
-          <useReleaseProfile>false</useReleaseProfile>
-          <goals>deploy</goals>
-          <tagNameFormat>v@{project.version}</tagNameFormat>
+          <skip>true</skip>
         </configuration>
       </plugin>
     </plugins>
   </build>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>com.wavefront</groupId>
-        <artifactId>wavefront-spring-boot</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.wavefront</groupId>
-        <artifactId>wavefront-spring-boot-starter</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.wavefront</groupId>
-        <artifactId>wavefront-opentracing-sdk-java</artifactId>
-        <version>1.16</version>
-      </dependency>
-      <dependency>
-        <groupId>com.wavefront</groupId>
-        <artifactId>wavefront-sdk-java</artifactId>
-        <version>2.3</version>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-dependencies</artifactId>
-        <version>${spring-boot.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-test</artifactId>
-        <version>${spring-boot.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-dependencies</artifactId>
-        <version>${spring-cloud.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
-  <profiles>
-    <profile>
-      <id>gpg</id>
-      <activation>
-        <property>
-          <name>releaseType</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
-                <configuration>
-                  <useAgent>true</useAgent>
-                </configuration>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <configuration>
-              <source>${java.version}</source>
-              <detectOfflineLinks>false</detectOfflineLinks>
-            </configuration>
-            <executions>
-              <execution>
-                <id>attach-javadocs</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-                <inherited>true</inherited>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>release</id>
-      <activation>
-        <property>
-          <name>releaseType</name>
-          <value>release</value>
-        </property>
-      </activation>
-      <distributionManagement>
-        <repository>
-          <id>spring-releases</id>
-          <name>Spring Lib Releases</name>
-          <url>https://repo.spring.io/libs-release-local</url>
-        </repository>
-      </distributionManagement>
-    </profile>
-    <profile>
-      <id>milestone</id>
-      <activation>
-        <property>
-          <name>releaseType</name>
-          <value>milestone</value>
-        </property>
-      </activation>
-      <distributionManagement>
-        <repository>
-          <id>spring-milestones</id>
-          <name>Spring Lib Milestones</name>
-          <url>https://repo.spring.io/libs-milestone-local</url>
-        </repository>
-      </distributionManagement>
-    </profile>
-  </profiles>
 
   <repositories>
     <repository>
@@ -340,12 +104,4 @@
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
-
-  <distributionManagement>
-    <snapshotRepository>
-      <id>spring-snapshots</id>
-      <name>Spring Lib Snapshots</name>
-      <url>https://repo.spring.io/libs-snapshot-local</url>
-    </snapshotRepository>
-  </distributionManagement>
 </project>
