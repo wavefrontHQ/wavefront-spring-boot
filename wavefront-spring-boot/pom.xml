@@ -10,7 +10,7 @@
     <relativePath>../wavefront-spring-boot-parent</relativePath>
   </parent>
   <artifactId>wavefront-spring-boot</artifactId>
-  <name>Wavefront Auto-Configuration</name>
+  <name>Wavefront Spring Boot</name>
   <scm>
     <connection>${git.connection}</connection>
     <developerConnection>${git.developerConnection}</developerConnection>

@@ -11,7 +11,7 @@
   </parent>
   <artifactId>wavefront-spring-boot-parent</artifactId>
   <packaging>pom</packaging>
-  <name>Wavefront Parent</name>
+  <name>Wavefront Spring Boot Parent</name>
   <scm>
     <connection>${git.connection}</connection>
     <developerConnection>${git.developerConnection}</developerConnection>

@@ -7,7 +7,7 @@
   <artifactId>wavefront-spring-boot-build</artifactId>
   <version>2.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Wavefront Spring Boot</name>
+  <name>Wavefront Spring Boot Build</name>
   <description>Wavefront by VMware integration for Spring Boot</description>
   <url>https://www.wavefront.com</url>
   <organization>
