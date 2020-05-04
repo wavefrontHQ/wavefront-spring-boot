@@ -21,12 +21,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git@github.com:wavefrontHQ/wavefront-spring-boot.git
-    </connection>
-    <developerConnection>
-      scm:git:git@github.com:wavefrontHQ/wavefront-spring-boot.git
-    </developerConnection>
-    <url>git@github.com:wavefrontHQ/wavefront-spring-boot.git</url>
+    <connection>${git.connection}</connection>
+    <developerConnection>${git.developerConnection}</developerConnection>
+    <url>${git.url}</url>
   </scm>
   <developers>
     <developer>
@@ -38,6 +35,9 @@
   </developers>
 
   <properties>
+    <git.url>https://github.com/wavefrontHQ/wavefront-spring-boot</git.url>
+    <git.connection>scm:git:git://github.com/wavefrontHQ/wavefront-spring-boot.git</git.connection>
+    <git.developerConnection>scm:git:ssh://git@github.com/wavefrontHQ/wavefront-spring-boot.git</git.developerConnection>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
