@@ -4,10 +4,11 @@ This project provides a Spring Boot starter for Wavefront. Add the starter to a 
 
 ## Table of Content
 
-* [Prerequisites](#Prerequisites)
+* [Prerequisites](#prerequisites)
 * [Getting Started](#getting-started)
 * [Custom Configuration](#custom-configuration)
-* [License](#License)
+* [Documentation](#documentation)
+* [License](#license)
 * [How to Contribute](#how-to-contribute)
 
 ## Prerequisites
@@ -186,7 +187,7 @@ guide](https://docs.spring.io/spring-boot/docs/current/reference/html/production
 
 ## Documentation
 
-For details about Wavefront, see the [Wavefront documentation](https://docs.wavefront.com/).
+For details about Wavefront, see the [Wavefront documentation](https://docs.wavefront.com/wavefront_springboot.html).
 
 ## License
 
@@ -196,4 +197,4 @@ For details about Wavefront, see the [Wavefront documentation](https://docs.wave
 
 * Reach out to us on our public [Slack channel](https://www.wavefront.com/join-public-slack).
 * If you run into any issues, let us know by creating a GitHub issue.
-* If you didn't find the information you are looking for in our [Wavefront Documentation](https://docs.wavefront.com/wavefront_springboot.html) create a GitHub issue or PR in our [docs repository](https://github.com/wavefrontHQ/docs).
+* If you didn't find the information you are looking for in our [Wavefront Documentation](https://docs.wavefront.com/) create a GitHub issue or PR in our [docs repository](https://github.com/wavefrontHQ/docs).
