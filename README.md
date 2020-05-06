@@ -13,8 +13,10 @@ This project provides a Spring Boot starter for Wavefront. Add the starter to a 
 
 ## Prerequisites
 
-* Java 8 or above.
 * Spring Boot 2.3 or above
+* Java 8 or above
+* Maven 3.3+ or Gradle 6.3 or later
+  <br/>See [System Requirements](https://docs.spring.io/spring-boot/docs/2.3.0.RC1/reference/html/getting-started.html#getting-started-system-requirements) in the Spring Boot documentation. 
 
 > Note: This starter reuses the [existing Wavefront support](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html#production-ready-metrics-export-wavefront)
 in Spring Boot and provides the Actuator (i.e., `spring-boot-starter-actuator`).
@@ -33,7 +35,7 @@ project first. Invoke the following command in the root directory:
   $ ./mvnw spring-boot:run -pl wavefront-spring-boot-sample
   ```
 
-* If you have an existing Spring Boot application, make sure to use Spring Boot 2.3 or later, and then add the following dependency to your `pom.xml` file:
+* If you already have a Spring Boot application, make sure to use Spring Boot 2.3 or later and add the following dependency to your `pom.xml` file:
 
     ```xml
     <dependency>
@@ -43,7 +45,7 @@ project first. Invoke the following command in the root directory:
     </dependency>
     ```
 
-    Or if you are using Gradle add the following dependency to your `build.gradle` file:
+    If you are using Gradle add the following dependency to your `build.gradle` file:
 
     ```
     dependencies {
@@ -92,7 +94,7 @@ project first. Invoke the following command in the root directory:
     https://wavefront.surf/us/example
   ```
 
-* Send traces to Wavefront using 
+* Add the following dependency to send traces to Wavefront using 
 [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth) or [OpenTracing](https://opentracing.io/).
 
   * **Spring Cloud Sleuth**: 
@@ -107,7 +109,7 @@ project first. Invoke the following command in the root directory:
     </dependency>
     ```
 
-    Or if you are using Gradle add the following dependency to the `build.gradle` file:
+    If you are using Gradle add the following dependency to the `build.gradle` file:
 
     ```
     dependencies {
@@ -126,7 +128,7 @@ project first. Invoke the following command in the root directory:
         <version>0.5.3</version>
       </dependency>
     ```
-    Or if you are using Gradle add the following dependencies to the `build.gradle` file:
+    If you are using Gradle add the following dependencies to the `build.gradle` file:
 
     ```
     dependencies {
@@ -136,58 +138,10 @@ project first. Invoke the following command in the root directory:
     }
     ```
 
-## Custom Configuration
-
-* Wavefront uses a secret token to ingest data. Once an account is auto-negotiated it
-is restored from `~/.wavefront_freemium` as long as the same user runs the application from the same machine. If that file is removed, a new account will be created the next time you start the
-app. To prevent that from happening, create a [login for your account](#how-do-i-make-sure-i-send-data-to-the-same-account-all-the-time-across-multiple-machines-and-deployments) and
-store the settings in your `application.properties`.
-
-  Every time the app starts, it logs the configuration you need to add to
-  `application.properties`. If you copy that, the account management will stop, and the
-  application will simply use that configuration.
-
-* If you have a web app, you can expose the Wavefront Actuator endpoint at 
-`/actuator/wavefront` to access your Wavefront Dashboard:
-
-  ```properties
-  management.endpoints.web.exposure.include=health,info,...,wavefront
-  ```
-
-* If you have more than one application, you can specify the names of the
-application and the service in `application.properties`.<br/>
-Example:
-
-  ```properties 
-  wavefront.application.name=my-application
-  wavefront.application.service=my-service
-  ```
-
-  Or if you are using YAML:
-
-  ```yaml
-  wavefront:
-    application:
-      name: my-application
-      service: my-service
-  ```
-
-    Optionally:
-    * If you have set `spring.application.name` in your application, it is automatically used
-    as the service name.
-    * The cluster and shard can also be specified the same way. That information is used to
-    tag metrics and traces out-of-the-box. 
-    * If you want to take full control over the
-    `ApplicationTags`, you can create a `@Bean`. 
-    * If you want to customize the instance
-    that is auto-configured, consider adding an `ApplicationTagsBuilderCustomizer` bean.
-
-For further customization on how metrics are exported, check [the Spring Boot reference
-guide](https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-features.html#production-ready-metrics-export-wavefront).
-
 ## Documentation
 
-For details about Wavefront, see the [Wavefront documentation](https://docs.wavefront.com/wavefront_springboot.html).
+* For details see the [Wavefront documentation](https://docs.wavefront.com/wavefront_springboot.html).
+* See [Custom Configurations](https://docs.wavefront.com/wavefront_springboot.html#optional-custom-configurations) for details on customizing your Spring Boot application to send data to Wavefront.
 
 ## License
 
