@@ -1,6 +1,6 @@
 # Wavefront for Spring Boot
 
-This project provides a Spring Boot starter for Wavefront. Add the starter to a project to emit metrics, histograms, and traces to a Wavefront cluster. If you do not have a Wavefront account, the starter will auto-negotiate a freemium account for you and save the API token in your home directory at `~/.wavefront_freemium`.
+This project provides a Spring Boot starter for Wavefront. Add the starter to a project to send metrics, histograms, and traces to a Wavefront cluster. If you don't have a Wavefront account, the starter will create a freemium account for you and save the API token in your home directory at `~/.wavefront_freemium`.
 
 ## Table of Content
 
@@ -35,7 +35,7 @@ project first. Invoke the following command in the root directory:
   $ ./mvnw spring-boot:run -pl wavefront-spring-boot-sample
   ```
 
-* If you already have a Spring Boot application, make sure to use Spring Boot 2.3 or later and add the following dependency to your `pom.xml` file:
+* If you already have a Spring Boot application, be sure to use Spring Boot 2.3 or later and add the following dependency to your `pom.xml` file:
 
     ```xml
     <dependency>
@@ -45,7 +45,7 @@ project first. Invoke the following command in the root directory:
     </dependency>
     ```
 
-    If you are using Gradle add the following dependency to your `build.gradle` file:
+    If you are using Gradle, add the following dependency to your `build.gradle` file:
 
     ```
     dependencies {
@@ -55,7 +55,7 @@ project first. Invoke the following command in the root directory:
     }
     ```
 
-    The example given below uses the correct dependency versions.
+    The example below uses the correct dependency versions.
     ```xml
     <dependencies>
       <dependency>
@@ -77,9 +77,7 @@ project first. Invoke the following command in the root directory:
     </dependencyManagement>
     ```
 
-* Every time the application starts, either an account is auto-negotiated, or it is restored
-  from `~/.wavefront_freemium`. At the end of the startup phase, a message is logged with a
-  single-use login URL. Use it to log in to the Wavefront service and access the data that
+* Each time you restart your application, it either creates a new freemium account, or it restores from `~/.wavefront_freemium`. At the end of the startup phase, the console displays a message with a login URL. Use it to log in to the Wavefront service and access the data that
   has been collected so far.
 
   Here is an example message when an existing account is restored from `~/.wavefront_freemium`:
@@ -109,7 +107,7 @@ project first. Invoke the following command in the root directory:
     </dependency>
     ```
 
-    If you are using Gradle add the following dependency to the `build.gradle` file:
+    If you are using Gradle, add the following dependency to the `build.gradle` file:
 
     ```
     dependencies {
@@ -128,7 +126,7 @@ project first. Invoke the following command in the root directory:
         <version>0.5.3</version>
       </dependency>
     ```
-    If you are using Gradle add the following dependencies to the `build.gradle` file:
+    If you are using Gradle, add the following dependencies to the `build.gradle` file:
 
     ```
     dependencies {
@@ -140,8 +138,8 @@ project first. Invoke the following command in the root directory:
 
 ## Documentation
 
-* For details see the [Wavefront documentation](https://docs.wavefront.com/wavefront_springboot.html).
-* See [Custom Configurations](https://docs.wavefront.com/wavefront_springboot.html#optional-custom-configurations) for details on customizing your Spring Boot application to send data to Wavefront.
+* The [Wavefront documentation](https://docs.wavefront.com/wavefront_springboot.html) includes a tutorial and instructions for examining services and traces inside Wavefront. 
+* You can [customize existing Spring Boot applications](https://docs.wavefront.com/wavefront_springboot.html#optional-custom-configurations) to send data to Wavefront. 
 
 ## License
 
