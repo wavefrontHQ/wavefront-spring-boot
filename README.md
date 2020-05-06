@@ -1,4 +1,4 @@
-# Wavefront Spring Boot Starter
+# Wavefront for Spring Boot
 
 This project provides a Spring Boot starter for Wavefront. Add the starter to a project to emit metrics, histograms, and traces to a Wavefront cluster. If you do not have a Wavefront account, the starter will auto-negotiate a freemium account for you and save the API token in your home directory at `~/.wavefront_freemium`.
 
