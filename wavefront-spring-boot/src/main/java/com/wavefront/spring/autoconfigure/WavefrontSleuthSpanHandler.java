@@ -125,7 +125,7 @@ final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Ru
       } catch (IOException e) {
         LOG.warn("Cannot report heartbeat metric to wavefront");
       }
-    }, 1, 1, TimeUnit.MINUTES);
+    }, 1, 60, TimeUnit.SECONDS);
 
     this.traceDerivedCustomTagKeys = new HashSet<>(
         wavefrontProperties.getTracing().getRedMetricsCustomTagKeys());
