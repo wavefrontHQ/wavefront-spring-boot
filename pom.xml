@@ -106,13 +106,24 @@
           <value>final</value>
         </property>
       </activation>
-      <distributionManagement>
-        <repository>
-          <id>spring-releases</id>
-          <name>Spring Lib Releases</name>
-          <url>https://repo.spring.io/libs-release-local</url>
-        </repository>
-      </distributionManagement>
+      <properties>
+        <gpg.useagent>true</gpg.useagent>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.7</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
     <profile>
       <id>milestoneRelease</id>
