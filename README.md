@@ -147,6 +147,6 @@ project first. Invoke the following command in the root directory:
 
 ## How to Contribute
 
-* Reach out to us on [Slack](https://join.slack.com/t/wavefront-public/shared_invite/zt-e0cosp84-LE66b~t22MvUX4bCjz_a5Q) and join the #springboot public channel.
+* Reach out to us on [Slack](https://www.wavefront.com/slack-us) and join the #springboot public channel.
 * If you run into any issues, let us know by creating a GitHub issue.
 * If you didn't find the information you are looking for in our [Wavefront Documentation](https://docs.wavefront.com/) create a GitHub issue or PR in our [docs repository](https://github.com/wavefrontHQ/docs).
