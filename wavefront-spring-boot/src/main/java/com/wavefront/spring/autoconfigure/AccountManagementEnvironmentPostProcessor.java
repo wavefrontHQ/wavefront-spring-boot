@@ -56,8 +56,7 @@ class AccountManagementEnvironmentPostProcessor
 
   @Override
   public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-    if (environment.getPropertySources().contains("bootstrap")) {
-      // Do not run in the bootstrap phase as the user configuration is not available yet
+    if (!shouldRun(environment)) {
       return;
     }
     application.addListeners(this);
@@ -75,6 +74,18 @@ class AccountManagementEnvironmentPostProcessor
     else {
       this.accountConfigurationOutcome = configureNewAccount(environment, clusterUri, localApiTokenResource);
     }
+  }
+
+  private boolean shouldRun(ConfigurableEnvironment environment) {
+    if (environment.getPropertySources().contains("bootstrap")) {
+      // Do not run in the bootstrap phase as the user configuration is not available yet
+      return false;
+    }
+    if (!environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY, Boolean.class, true)) {
+      // freemium account explicit disabled
+      return false;
+    }
+    return true;
   }
 
   @Override
