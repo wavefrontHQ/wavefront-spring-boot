@@ -7,11 +7,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -26,6 +25,7 @@ import brave.handler.MutableSpan.AnnotationConsumer;
 import brave.handler.MutableSpan.TagConsumer;
 import brave.propagation.TraceContext;
 import com.wavefront.internal.reporter.WavefrontInternalReporter;
+import com.wavefront.java_sdk.com.google.common.collect.Sets;
 import com.wavefront.sdk.appagent.jvm.reporter.WavefrontJvmReporter;
 import com.wavefront.sdk.common.NamedThreadFactory;
 import com.wavefront.sdk.common.Pair;
@@ -38,6 +38,9 @@ import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import static com.wavefront.internal.SpanDerivedMetricsUtils.TRACING_DERIVED_PREFIX;
+import static com.wavefront.internal.SpanDerivedMetricsUtils.reportHeartbeats;
+import static com.wavefront.internal.SpanDerivedMetricsUtils.reportWavefrontGeneratedData;
 import static com.wavefront.sdk.common.Constants.APPLICATION_TAG_KEY;
 import static com.wavefront.sdk.common.Constants.CLUSTER_TAG_KEY;
 import static com.wavefront.sdk.common.Constants.COMPONENT_TAG_KEY;
@@ -48,9 +51,6 @@ import static com.wavefront.sdk.common.Constants.SERVICE_TAG_KEY;
 import static com.wavefront.sdk.common.Constants.SHARD_TAG_KEY;
 import static com.wavefront.sdk.common.Constants.SOURCE_KEY;
 import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
-import static com.wavefront.spring.autoconfigure.SpanDerivedMetricsUtils.TRACING_DERIVED_PREFIX;
-import static com.wavefront.spring.autoconfigure.SpanDerivedMetricsUtils.reportHeartbeats;
-import static com.wavefront.spring.autoconfigure.SpanDerivedMetricsUtils.reportWavefrontGeneratedData;
 
 /**
  * This converts a span recorded by Brave and invokes {@link WavefrontSender#sendSpan}.
@@ -93,7 +93,7 @@ final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Ru
   final Thread sendingThread;
 
   private volatile boolean stop = false;
-  private final ConcurrentMap<HeartbeatMetricKey, Boolean> discoveredHeartbeatMetrics;
+  private final Set<Pair<Map<String, String>, String>> discoveredHeartbeatMetrics;
   private final ScheduledExecutorService heartbeatMetricsScheduledExecutorService;
 
   final String source;
@@ -108,7 +108,7 @@ final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Ru
                              String localServiceName) {
     this.wavefrontSender = wavefrontSender;
     this.applicationTags = applicationTags;
-    this.discoveredHeartbeatMetrics = new ConcurrentHashMap<>();
+    this.discoveredHeartbeatMetrics = Sets.newConcurrentHashSet();
 
     this.heartbeatMetricsScheduledExecutorService = Executors.newScheduledThreadPool(1,
         runnable -> {
@@ -121,7 +121,7 @@ final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Ru
     // Emit Heartbeats Metrics every 1 min.
     heartbeatMetricsScheduledExecutorService.scheduleAtFixedRate(() -> {
       try {
-        reportHeartbeats(WAVEFRONT_GENERATED_COMPONENT, wavefrontSender, discoveredHeartbeatMetrics);
+        reportHeartbeats(wavefrontSender, discoveredHeartbeatMetrics, WAVEFRONT_GENERATED_COMPONENT);
       } catch (IOException e) {
         LOG.warn("Cannot report heartbeat metric to wavefront");
       }
@@ -282,12 +282,12 @@ final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Ru
     if (wfInternalReporter != null) {
       // report converted metrics/histograms from the span
       try {
-        discoveredHeartbeatMetrics.putIfAbsent(reportWavefrontGeneratedData(wfInternalReporter,
+        discoveredHeartbeatMetrics.add(reportWavefrontGeneratedData(wfInternalReporter,
             name, applicationTags.getApplication(), applicationTags.getService(),
             applicationTags.getCluster() == null ? NULL_TAG_VAL : applicationTags.getCluster(),
             applicationTags.getShard() == null ? NULL_TAG_VAL : applicationTags.getShard(),
             source, wavefrontConsumer.componentTagValue, wavefrontConsumer.isError, durationMillis,
-            this.traceDerivedCustomTagKeys, tags), true);
+            this.traceDerivedCustomTagKeys, tags));
       } catch (RuntimeException t) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("error sending span RED metrics " + context, t);

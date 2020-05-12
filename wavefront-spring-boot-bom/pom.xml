@@ -32,7 +32,9 @@
       <dependency>
         <groupId>com.wavefront</groupId>
         <artifactId>wavefront-opentracing-sdk-java</artifactId>
-        <version>1.16</version>
+        <!-- TODO: Remove SNAPSHOT after released -->
+        <!-- <version>1.17</version> -->
+        <version>1.17-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.wavefront</groupId>
