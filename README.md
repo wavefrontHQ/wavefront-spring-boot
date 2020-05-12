@@ -50,7 +50,7 @@ project first. Invoke the following command in the root directory:
     ```
     dependencies {
       ...
-      implementation 'com.wavefront:wavefront-spring-boot-starter:2.0.0-SNAPSHOT'
+      implementation 'com.wavefront:wavefront-spring-boot-starter:2.0.0-RC1'
       
     }
     ```
