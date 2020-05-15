@@ -16,9 +16,9 @@ This project provides a Spring Boot starter for Wavefront. Add the starter to a 
 * Spring Boot 2.3 or above
 * Java 8 or above
 * Maven 3.3+ or Gradle 6.3 or later\
-  See [System Requirements](https://docs.spring.io/spring-boot/docs/2.3.0.RC1/reference/html/getting-started.html#getting-started-system-requirements) in the Spring Boot documentation. 
+  See [System Requirements](https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE/reference/html/getting-started.html#getting-started-system-requirements) in the Spring Boot documentation.
 
-> Note: This starter reuses the [existing Wavefront support](https://docs.spring.io/spring-boot/docs/2.3.0.RC1/reference/html/production-ready-features.html#production-ready-metrics-export-wavefront)
+> Note: This starter reuses the [existing Wavefront support](https://docs.spring.io/spring-boot/docs/2.3.0.RELEASE/reference/html/production-ready-features.html#production-ready-metrics-export-wavefront)
 in Spring Boot and provides the Actuator (i.e., `spring-boot-starter-actuator`).
 
 ## Getting Started
