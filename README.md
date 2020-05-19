@@ -112,7 +112,7 @@ project first. Invoke the following command in the root directory:
     ```
     dependencies {
       ...
-      implementation 'org.springframework.cloud:spring-cloud-starter-sleuth:2.2.2.RELEASE'
+      implementation 'org.springframework.cloud:spring-cloud-starter-sleuth:2.2.3.RELEASE'
 
     }
     ```
