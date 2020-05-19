@@ -5,7 +5,6 @@ import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.wavefront.WavefrontConfig;
-import org.aspectj.weaver.tools.PointcutPrimitive;
 
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -26,10 +25,8 @@ import org.springframework.context.annotation.Import;
  * @author Stephane Nicoll
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnClass({ SpanNamer.class, TracingCustomizer.class, PointcutPrimitive.class })
+@ConditionalOnClass({ SpanNamer.class, TracingCustomizer.class })
 @AutoConfigureBefore(TraceAutoConfiguration.class)
-// This import is required and can be removed in a future release of Spring Cloud Sleuth
-@Import(SamplerAutoConfiguration.class)
 class WavefrontTracingSleuthConfiguration {
 
   static final String BEAN_NAME = "wavefrontTracingCustomizer";
@@ -60,7 +57,7 @@ class WavefrontTracingSleuthConfiguration {
         localServiceName
     );
 
-    return t -> t.traceId128Bit(true).supportsJoin(false).addFinishedSpanHandler(spanHandler);
+    return t -> t.traceId128Bit(true).supportsJoin(false).addSpanHandler(spanHandler);
   }
 
 }

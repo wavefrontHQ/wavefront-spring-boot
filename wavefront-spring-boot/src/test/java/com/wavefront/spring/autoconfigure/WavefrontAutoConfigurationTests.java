@@ -1,5 +1,6 @@
 package com.wavefront.spring.autoconfigure;
 
+import brave.handler.SpanHandler;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -162,8 +163,10 @@ class WavefrontAutoConfigurationTests {
   }
 
   private WavefrontSleuthSpanHandler extractSpanHandler(Tracer tracer) {
-    FinishedSpanHandler[] handlers = (FinishedSpanHandler[]) ReflectionTestUtils.getField(
-        ReflectionTestUtils.getField(tracer, "finishedSpanHandler"), "handlers");
+    SpanHandler[] handlers = (SpanHandler[]) ReflectionTestUtils.getField(
+        ReflectionTestUtils.getField(
+            ReflectionTestUtils.getField(tracer, "spanHandler"), "delegate"),
+        "handlers");
     return (WavefrontSleuthSpanHandler) handlers[0];
   }
 
