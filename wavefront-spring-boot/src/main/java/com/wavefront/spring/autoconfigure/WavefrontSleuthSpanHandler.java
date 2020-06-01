@@ -287,7 +287,7 @@ final class WavefrontSleuthSpanHandler extends FinishedSpanHandler implements Ru
             applicationTags.getCluster() == null ? NULL_TAG_VAL : applicationTags.getCluster(),
             applicationTags.getShard() == null ? NULL_TAG_VAL : applicationTags.getShard(),
             source, wavefrontConsumer.componentTagValue, wavefrontConsumer.isError, durationMillis,
-            this.traceDerivedCustomTagKeys, tags));
+            this.traceDerivedCustomTagKeys, tags, false));
       } catch (RuntimeException t) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("error sending span RED metrics " + context, t);
