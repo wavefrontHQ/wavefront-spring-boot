@@ -72,9 +72,6 @@ public class WavefrontTracingIntegrationTests {
   @Autowired
   private BlockingDeque<SpanRecord> spanRecordQueue;
 
-  @Autowired
-  private BlockingDeque<String> metricAndHistogramRecordQueue;
-
   @Test
   void sendsToWavefront() throws InterruptedException {
     this.client.get()
@@ -114,14 +111,6 @@ public class WavefrontTracingIntegrationTests {
         Pair.of("mvc.controller.method", "fn"),
         Pair.of("span.kind", "server")
     );
-
-    // Wait for 60s to let RED metrics being reported.
-    // TODO: Better to make a test fixture than rely on whatever this is that's on a minutely poll
-    // The sleep approach slows tests, which discourages running them.
-    // Also, this doesn't verify anything except that there is some processor somewhere that might
-    // have gotten good or bad data
-    Thread.sleep(60000);
-    assertThat(metricAndHistogramRecordQueue.isEmpty()).isFalse();
   }
 
   @Test
@@ -214,14 +203,8 @@ public class WavefrontTracingIntegrationTests {
     }
 
     @Bean
-    BlockingDeque<String> metricAndHistogramRecordQueue() {
-      return new LinkedBlockingDeque<>();
-    }
-
-    @Bean
     @Primary
-    WavefrontSender wavefrontSender(BlockingDeque<SpanRecord> spanRecordQueue,
-                                    BlockingDeque<String> metricAndHistogramRecordQueue) {
+    WavefrontSender wavefrontSender(BlockingDeque<SpanRecord> spanRecordQueue) {
       return new WavefrontSender() {
         @Override
         public String getClientId() {
@@ -242,13 +225,13 @@ public class WavefrontTracingIntegrationTests {
         public void sendDistribution(String name, List<Pair<Double, Integer>> centroids,
                                      Set<HistogramGranularity> histogramGranularities,
                                      Long timestamp, String source, Map<String, String> tags) {
-          metricAndHistogramRecordQueue.add(name);
+
         }
 
         @Override
         public void sendMetric(String name, double value, Long timestamp, String source,
                                Map<String, String> tags) {
-          metricAndHistogramRecordQueue.add(name);
+
         }
 
         @Override
