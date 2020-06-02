@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class WavefrontProperties {
 
   /**
-   * Whether a freemium account is active, so that a one time login URL is provided.
+   * Whether a freemium account has to be configured.
    */
   private boolean freemiumAccount;
 

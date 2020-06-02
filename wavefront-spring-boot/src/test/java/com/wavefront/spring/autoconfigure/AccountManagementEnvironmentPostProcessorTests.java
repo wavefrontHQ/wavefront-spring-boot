@@ -67,6 +67,15 @@ class AccountManagementEnvironmentPostProcessorTests {
   }
 
   @Test
+  void accountProvisioningIsNotTriggeredWhenFreemiumAccountFlagIsDisabled() {
+    MockEnvironment environment = new MockEnvironment().withProperty(FREEMIUM_ACCOUNT_PROPERTY, "false");
+    new AccountManagementEnvironmentPostProcessor().postProcessEnvironment(environment, this.application);
+    assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isNull();
+    assertThat(environment.getProperty(URI_PROPERTY)).isNull();
+    assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isEqualTo("false");
+  }
+
+  @Test
   void configurationOfRegularAccountDoesNotRetrieveOneTimeLoginUrl(CapturedOutput output) {
     MockEnvironment environment = new MockEnvironment().withProperty(API_TOKEN_PROPERTY, "test");
     TestAccountManagementEnvironmentPostProcessor postProcessor = TestAccountManagementEnvironmentPostProcessor
