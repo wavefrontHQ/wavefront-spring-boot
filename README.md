@@ -9,7 +9,7 @@ This project provides a Spring Boot starter for Wavefront. Add the starter to a 
 * [Custom Configuration](#custom-configuration)
 * [Documentation](#documentation)
 * [License](#license)
-* [How to Contribute](#how-to-contribute)
+* [Getting Support](#getting-support)
 
 ## Prerequisites
 
@@ -144,7 +144,7 @@ project first. Invoke the following command in the root directory:
 
 [Open Source License](open_source_licenses.txt)
 
-## How to Contribute
+## Getting Support
 
 * Reach out to us on [Slack](https://www.wavefront.com/slack-us) and join the #springboot public channel.
 * If you run into any issues, let us know by creating a GitHub issue.
