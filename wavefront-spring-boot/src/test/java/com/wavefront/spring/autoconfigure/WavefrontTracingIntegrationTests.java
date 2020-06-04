@@ -58,7 +58,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = WavefrontTracingIntegrationTests.Config.class,
     properties = {
-        "management.metrics.export.wavefront.api-token=dummy",
         "wavefront.application.name=IntegratedTracingTests",
         "spring.zipkin.service.name=test_service"
     })

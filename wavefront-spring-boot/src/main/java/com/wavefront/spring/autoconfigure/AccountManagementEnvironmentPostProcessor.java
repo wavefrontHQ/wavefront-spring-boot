@@ -87,6 +87,9 @@ class AccountManagementEnvironmentPostProcessor
     if (freemiumAccount != null) {
       return freemiumAccount;
     }
+    if (!shouldEnableAccountManagement(Thread.currentThread())) {
+      return false;
+    }
     return environment.getProperty(ENABLED_PROPERTY, Boolean.class, true);
   }
 
@@ -231,6 +234,10 @@ class AccountManagementEnvironmentPostProcessor
     }
     MapPropertySource wavefrontPropertySource = new MapPropertySource("wavefront", wavefrontSettings);
     environment.getPropertySources().addLast(wavefrontPropertySource);
+  }
+
+  protected boolean shouldEnableAccountManagement(Thread thread) {
+    return AccountManagementEnablementDeducer.shouldEnable(thread);
   }
 
   protected Resource getLocalApiTokenResource() {
