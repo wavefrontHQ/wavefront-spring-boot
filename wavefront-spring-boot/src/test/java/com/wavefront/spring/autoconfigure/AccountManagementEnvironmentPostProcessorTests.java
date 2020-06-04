@@ -40,6 +40,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 @ExtendWith(OutputCaptureExtension.class)
 class AccountManagementEnvironmentPostProcessorTests {
 
+  private static final String ENABLED_PROPERTY = "management.metrics.export.wavefront.enabled";
+
   private static final String API_TOKEN_PROPERTY = "management.metrics.export.wavefront.api-token";
 
   private static final String URI_PROPERTY = "management.metrics.export.wavefront.uri";
@@ -67,12 +69,33 @@ class AccountManagementEnvironmentPostProcessorTests {
   }
 
   @Test
+  void accountProvisioningIsNotTriggeredWhenMetricsExportIsDisabled() {
+    MockEnvironment environment = new MockEnvironment().withProperty(ENABLED_PROPERTY, "false");
+    new AccountManagementEnvironmentPostProcessor().postProcessEnvironment(environment, this.application);
+    assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isNull();
+    assertThat(environment.getProperty(URI_PROPERTY)).isNull();
+    assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isNull();
+  }
+
+  @Test
   void accountProvisioningIsNotTriggeredWhenFreemiumAccountFlagIsDisabled() {
     MockEnvironment environment = new MockEnvironment().withProperty(FREEMIUM_ACCOUNT_PROPERTY, "false");
     new AccountManagementEnvironmentPostProcessor().postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isNull();
     assertThat(environment.getProperty(URI_PROPERTY)).isNull();
     assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isEqualTo("false");
+  }
+
+  @Test
+  void accountProvisioningApplyIfMetricsExportIsDisabledAndFreemiumAccountFlagIsEnabled() throws IOException {
+    Resource apiTokenResource = mockApiTokenResource("abc-def");
+    MockEnvironment environment = new MockEnvironment().withProperty(ENABLED_PROPERTY, "false").withProperty(FREEMIUM_ACCOUNT_PROPERTY, "true");
+    TestAccountManagementEnvironmentPostProcessor postProcessor = TestAccountManagementEnvironmentPostProcessor
+        .forExistingAccount(apiTokenResource, () -> new AccountInfo("abc-def", "https://wavefront.surf/us/test1"));
+    postProcessor.postProcessEnvironment(environment, this.application);
+    assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("abc-def");
+    assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://wavefront.surf");
+    assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isEqualTo("true");
   }
 
   @Test

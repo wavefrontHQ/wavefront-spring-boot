@@ -41,7 +41,7 @@ public class WavefrontEndpointAutoConfiguration {
   WavefrontController wavefrontController(WavefrontProperties properties,
       AccountManagementClient accountManagementClient, WavefrontConfig wavefrontConfig,
       ApplicationTags applicationTags) {
-    if (properties.isFreemiumAccount()) {
+    if (Boolean.TRUE.equals(properties.getFreemiumAccount())) {
       return new WavefrontController(new OneTimeDashboardUrlSupplier(
           accountManagementClient, wavefrontConfig, applicationTags));
     }
