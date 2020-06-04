@@ -42,6 +42,8 @@ import org.springframework.util.StringUtils;
 class AccountManagementEnvironmentPostProcessor
     implements EnvironmentPostProcessor, ApplicationListener<SpringApplicationEvent> {
 
+  private static final String ENABLED_PROPERTY = "management.metrics.export.wavefront.enabled";
+
   private static final String API_TOKEN_PROPERTY = "management.metrics.export.wavefront.api-token";
 
   private static final String URI_PROPERTY = "management.metrics.export.wavefront.uri";
@@ -81,11 +83,11 @@ class AccountManagementEnvironmentPostProcessor
       // Do not run in the bootstrap phase as the user configuration is not available yet
       return false;
     }
-    if (!environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY, Boolean.class, true)) {
-      // freemium account explicit disabled
-      return false;
+    Boolean freemiumAccount = environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY, Boolean.class);
+    if (freemiumAccount != null) {
+      return freemiumAccount;
     }
-    return true;
+    return environment.getProperty(ENABLED_PROPERTY, Boolean.class, true);
   }
 
   @Override

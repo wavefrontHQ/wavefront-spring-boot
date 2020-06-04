@@ -14,19 +14,21 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class WavefrontProperties {
 
   /**
-   * Whether a freemium account has to be configured.
+   * Whether the configured account is a freemium account. Can be enabled explicitly for
+   * user-configured freemium accounts that do not have a user yet. Can be disabled
+   * explicitly to prevent the account negotiation to kick-in.
    */
-  private boolean freemiumAccount;
+  private Boolean freemiumAccount;
 
   private final Application application = new Application();
 
   private final Tracing tracing = new Tracing();
 
-  public boolean isFreemiumAccount() {
+  public Boolean getFreemiumAccount() {
     return this.freemiumAccount;
   }
 
-  public void setFreemiumAccount(boolean freemiumAccount) {
+  public void setFreemiumAccount(Boolean freemiumAccount) {
     this.freemiumAccount = freemiumAccount;
   }
 
