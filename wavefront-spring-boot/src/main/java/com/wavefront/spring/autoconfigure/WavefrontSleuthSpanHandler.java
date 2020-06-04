@@ -232,7 +232,7 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
    * Extracted for test isolation and as parsing otherwise implies multiple-returns or scanning
    * later.
    *
-   * <p>Ex. {@link SpanDerivedMetricsUtils#reportWavefrontGeneratedData} needs tags separately from
+   * <p>Ex. {@code SpanDerivedMetricsUtils#reportWavefrontGeneratedData} needs tags separately from
    * the component tag and error status.
    */
   static final class TagList extends ArrayList<Pair<String, String>> {

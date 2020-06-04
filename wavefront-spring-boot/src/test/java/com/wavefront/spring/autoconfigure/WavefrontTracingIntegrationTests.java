@@ -73,7 +73,7 @@ public class WavefrontTracingIntegrationTests {
   private BlockingDeque<SpanRecord> spanRecordQueue;
 
   @Test
-  void sendsToWavefront() throws InterruptedException {
+  void sendsToWavefront() {
     this.client.get()
         .uri("/api/fn/10")
         .header("b3", "0000000000000001-0000000000000003-1-0000000000000002")

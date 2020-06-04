@@ -7,7 +7,6 @@ import java.util.function.Supplier;
 
 import brave.Tracer;
 import brave.TracingCustomizer;
-import brave.handler.FinishedSpanHandler;
 import com.wavefront.opentracing.WavefrontTracer;
 import com.wavefront.opentracing.reporting.Reporter;
 import com.wavefront.sdk.common.WavefrontSender;

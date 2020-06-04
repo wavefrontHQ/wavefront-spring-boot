@@ -13,10 +13,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.cloud.sleuth.LocalServiceName;
 import org.springframework.cloud.sleuth.SpanNamer;
 import org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration;
-import org.springframework.cloud.sleuth.sampler.SamplerAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 /**
  * Configuration for Wavefront tracing using Spring Cloud Sleuth.
@@ -30,12 +28,6 @@ import org.springframework.context.annotation.Import;
 class WavefrontTracingSleuthConfiguration {
 
   static final String BEAN_NAME = "wavefrontTracingCustomizer";
-
-  /**
-   * Wavefront use a combination of null and non-values in defaults. Some non-values are not defined
-   * by constants. This constant helps reduce drift in non-value comparison.
-   */
-  private static final String DEFAULT_SERVICE = new WavefrontProperties().getApplication().getService();
 
   @Bean(BEAN_NAME)
   @ConditionalOnMissingBean(name = BEAN_NAME)
