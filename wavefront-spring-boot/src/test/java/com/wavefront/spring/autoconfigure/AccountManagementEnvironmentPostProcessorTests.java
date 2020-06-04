@@ -53,7 +53,8 @@ class AccountManagementEnvironmentPostProcessorTests {
   @Test
   void accountProvisioningIsNotNeededWhenApiTokenExists() {
     MockEnvironment environment = new MockEnvironment().withProperty(API_TOKEN_PROPERTY, "test");
-    new AccountManagementEnvironmentPostProcessor().postProcessEnvironment(environment, this.application);
+    TestAccountManagementEnvironmentPostProcessor.forConfiguredAccount()
+        .postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isEqualTo("test");
     assertThat(environment.getProperty(URI_PROPERTY)).isNull();
     assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isNull();
@@ -63,8 +64,18 @@ class AccountManagementEnvironmentPostProcessorTests {
   void accountProvisioningIsNotNeededWhenApiTokenIsNotNecessary() {
     MockEnvironment environment = new MockEnvironment();
     environment.setProperty(URI_PROPERTY, "proxy://example.com:2878");
+    TestAccountManagementEnvironmentPostProcessor.forConfiguredAccount()
+        .postProcessEnvironment(environment, this.application);
+    assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isNull();
+    assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isNull();
+  }
+
+  @Test
+  void accountProvisioningIsNotTriggeredWhenRunningATest() {
+    MockEnvironment environment = new MockEnvironment();
     new AccountManagementEnvironmentPostProcessor().postProcessEnvironment(environment, this.application);
     assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isNull();
+    assertThat(environment.getProperty(URI_PROPERTY)).isNull();
     assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isNull();
   }
 
@@ -102,9 +113,7 @@ class AccountManagementEnvironmentPostProcessorTests {
   void configurationOfRegularAccountDoesNotRetrieveOneTimeLoginUrl(CapturedOutput output) {
     MockEnvironment environment = new MockEnvironment().withProperty(API_TOKEN_PROPERTY, "test");
     TestAccountManagementEnvironmentPostProcessor postProcessor = TestAccountManagementEnvironmentPostProcessor
-        .forExistingAccount(mock(Resource.class), () -> {
-          throw new IllegalStateException("Should not be called");
-        });
+        .forConfiguredAccount();
     postProcessor.postProcessEnvironment(environment, this.application);
     postProcessor.onApplicationEvent(mockApplicationStartedEvent());
     assertThat(output).doesNotContain("Connect to your Wavefront dashboard using this one-time use link");
@@ -323,6 +332,18 @@ class AccountManagementEnvironmentPostProcessorTests {
       this.accountProvisioning = accountProvisioning;
     }
 
+    static TestAccountManagementEnvironmentPostProcessor forConfiguredAccount() {
+      Resource resource = mock(Resource.class);
+      given(resource.isReadable()).willThrow(new IllegalStateException("Should not attempt to read api token"));
+      return new TestAccountManagementEnvironmentPostProcessor(resource,
+          () -> {
+            throw new IllegalStateException("Should not attempt to get existing account");
+          },
+          () -> {
+            throw new IllegalStateException("Should not attempt to provision account");
+          });
+    }
+
     static TestAccountManagementEnvironmentPostProcessor forExistingAccount(Resource localApiToResource,
         Supplier<AccountInfo> existingAccount) {
       return new TestAccountManagementEnvironmentPostProcessor(localApiToResource, existingAccount, () -> {
@@ -335,6 +356,11 @@ class AccountManagementEnvironmentPostProcessorTests {
       return new TestAccountManagementEnvironmentPostProcessor(localApiToResource, () -> {
         throw new IllegalArgumentException("Should not be called");
       }, accountProvisioning);
+    }
+
+    @Override
+    protected boolean shouldEnableAccountManagement(Thread thread) {
+      return true;
     }
 
     @Override
