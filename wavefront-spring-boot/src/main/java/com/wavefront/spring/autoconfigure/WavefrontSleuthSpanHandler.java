@@ -109,12 +109,7 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
     this.discoveredHeartbeatMetrics = Sets.newConcurrentHashSet();
 
     this.heartbeatMetricsScheduledExecutorService = Executors.newScheduledThreadPool(1,
-        runnable -> {
-          Thread thread = new NamedThreadFactory("sleuth-heart-beater").
-              newThread(runnable);
-          thread.setDaemon(true);
-          return thread;
-        });
+        new NamedThreadFactory("sleuth-heart-beater").setDaemon(true));
 
     // Emit Heartbeats Metrics every 1 min.
     heartbeatMetricsScheduledExecutorService.scheduleAtFixedRate(() -> {

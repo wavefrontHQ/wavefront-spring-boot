@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnMissingBean(name = WavefrontTracingSleuthConfiguration.BEAN_NAME)
 class WavefrontTracingOpenTracingConfiguration {
 
-  @Bean
+  @Bean(destroyMethod = "flush")
   @ConditionalOnMissingBean(Tracer.class)
   @ConditionalOnBean(WavefrontSender.class)
   WavefrontTracer wavefrontTracer(WavefrontSender wavefrontSender, ApplicationTags applicationTags,
