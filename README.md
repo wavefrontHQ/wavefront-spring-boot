@@ -125,6 +125,12 @@ project first. Invoke the following command in the root directory:
         <artifactId>opentracing-spring-cloud-starter</artifactId>
         <version>0.5.3</version>
       </dependency>
+
+      <dependency>
+        <groupId>com.wavefront</groupId>
+        <artifactId>wavefront-opentracing-sdk-java</artifactId>
+        <version>$releaseVersion</version>
+      </dependency>
     ```
     If you are using Gradle, add the following dependencies to the `build.gradle` file:
 
@@ -132,7 +138,7 @@ project first. Invoke the following command in the root directory:
     dependencies {
       ...
       implementation 'io.opentracing.contrib:opentracing-spring-cloud-starter:0.5.3'
-
+      implementation 'com.wavefront:wavefront-opentracing-sdk-java:$releaseVersion'
     }
     ```
 
