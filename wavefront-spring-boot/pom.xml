@@ -27,6 +27,10 @@
     </dependency>
     <dependency>
       <groupId>com.wavefront</groupId>
+      <artifactId>wavefront-runtime-sdk-jvm</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.wavefront</groupId>
       <artifactId>wavefront-sdk-java</artifactId>
     </dependency>
     <dependency>

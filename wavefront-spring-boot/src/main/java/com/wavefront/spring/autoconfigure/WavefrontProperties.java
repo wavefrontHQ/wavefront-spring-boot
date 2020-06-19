@@ -22,6 +22,8 @@ public class WavefrontProperties {
 
   private final Application application = new Application();
 
+  private final Metrics metrics = new Metrics();
+
   private final Tracing tracing = new Tracing();
 
   public Boolean getFreemiumAccount() {
@@ -34,6 +36,10 @@ public class WavefrontProperties {
 
   public Application getApplication() {
     return this.application;
+  }
+
+  public Metrics getMetrics() {
+    return this.metrics;
   }
 
   public Tracing getTracing() {
@@ -99,18 +105,12 @@ public class WavefrontProperties {
 
   }
 
-  public static class Tracing {
+  public static class Metrics {
 
     /**
-     * Extract JMV metrics from traces.
+     * Extract JMV metrics.
      */
     private boolean extractJvmMetrics = true;
-
-    /**
-     * Tags that should be associated with RED metrics. If the span has any of the
-     * specified tags, then those get reported to generated RED metrics.
-     */
-    private Set<String> redMetricsCustomTagKeys = new HashSet<>();
 
     public boolean isExtractJvmMetrics() {
       return this.extractJvmMetrics;
@@ -119,6 +119,16 @@ public class WavefrontProperties {
     public void setExtractJvmMetrics(boolean extractJvmMetrics) {
       this.extractJvmMetrics = extractJvmMetrics;
     }
+
+  }
+
+  public static class Tracing {
+
+    /**
+     * Tags that should be associated with RED metrics. If the span has any of the
+     * specified tags, then those get reported to generated RED metrics.
+     */
+    private Set<String> redMetricsCustomTagKeys = new HashSet<>();
 
     public Set<String> getRedMetricsCustomTagKeys() {
       return this.redMetricsCustomTagKeys;

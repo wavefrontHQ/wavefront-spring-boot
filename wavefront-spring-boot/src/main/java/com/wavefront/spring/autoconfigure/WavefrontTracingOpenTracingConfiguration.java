@@ -7,7 +7,6 @@ import com.wavefront.opentracing.reporting.Reporter;
 import com.wavefront.opentracing.reporting.WavefrontSpanReporter;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
-import com.wavefront.spring.autoconfigure.WavefrontProperties.Tracing;
 import io.micrometer.wavefront.WavefrontConfig;
 import io.opentracing.Tracer;
 
@@ -34,12 +33,10 @@ class WavefrontTracingOpenTracingConfiguration {
       WavefrontConfig wavefrontConfig, WavefrontProperties wavefrontProperties) {
     Reporter spanReporter = new WavefrontSpanReporter.Builder().withSource(wavefrontConfig.source())
         .build(wavefrontSender);
-    WavefrontTracer.Builder builder = new WavefrontTracer.Builder(spanReporter, applicationTags);
-    Tracing tracingProperties = wavefrontProperties.getTracing();
-    if (!tracingProperties.isExtractJvmMetrics()) {
-      builder.excludeJvmMetrics();
-    }
-    builder.redMetricsCustomTagKeys(new HashSet<>(tracingProperties.getRedMetricsCustomTagKeys()));
+    WavefrontTracer.Builder builder = new WavefrontTracer.Builder(spanReporter, applicationTags)
+        .excludeJvmMetrics();  // reported separately
+    builder.redMetricsCustomTagKeys(
+        new HashSet<>(wavefrontProperties.getTracing().getRedMetricsCustomTagKeys()));
     return builder.build();
   }
 
