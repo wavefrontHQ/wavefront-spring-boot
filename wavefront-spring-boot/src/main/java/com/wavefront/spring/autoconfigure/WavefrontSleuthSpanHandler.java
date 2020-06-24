@@ -177,6 +177,7 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
 
     // Start and duration become 0L if unset. Any positive duration rounds up to 1 millis.
     long startMillis = span.startTimestamp() / 1000L, finishMillis = span.finishTimestamp() / 1000L;
+    long durationMicros = span.finishTimestamp() - span.startTimestamp();
     long durationMillis = startMillis != 0 && finishMillis != 0L ? Math.max(finishMillis - startMillis, 1L) : 0L;
 
     List<SpanLog> spanLogs = convertAnnotationsToSpanLogs(span);
@@ -199,8 +200,8 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
             name, applicationTags.getApplication(), applicationTags.getService(),
             applicationTags.getCluster() == null ? NULL_TAG_VAL : applicationTags.getCluster(),
             applicationTags.getShard() == null ? NULL_TAG_VAL : applicationTags.getShard(),
-            source, tags.componentTagValue, tags.isError, durationMillis, traceDerivedCustomTagKeys,
-            tags, false));
+            source, tags.componentTagValue, tags.isError, durationMicros,
+            traceDerivedCustomTagKeys, tags));
       } catch (RuntimeException t) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("error sending span RED metrics " + context, t);
