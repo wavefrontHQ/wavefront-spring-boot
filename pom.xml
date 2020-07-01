@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.wavefront</groupId>
   <artifactId>wavefront-spring-boot-build</artifactId>
-  <version>2.0.1-SNAPSHOT</version>
+  <version>2.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Wavefront Spring Boot Build</name>
   <description>Wavefront by VMware integration for Spring Boot</description>
