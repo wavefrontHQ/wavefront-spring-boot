@@ -22,7 +22,7 @@ import org.springframework.core.env.Environment;
  *
  * @author Stephane Nicoll
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(ApplicationTags.class)
 @EnableConfigurationProperties(WavefrontProperties.class)
 @AutoConfigureAfter(WavefrontMetricsExportAutoConfiguration.class)
