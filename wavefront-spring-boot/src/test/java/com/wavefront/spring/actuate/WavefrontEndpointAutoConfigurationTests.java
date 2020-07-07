@@ -93,7 +93,7 @@ class WavefrontEndpointAutoConfigurationTests {
         });
   }
 
-  @Configuration
+  @Configuration(proxyBeanMethods = false)
   @EnableConfigurationProperties(WavefrontProperties.class)
   static class AccountManagementConfiguration {
 
