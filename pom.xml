@@ -45,7 +45,6 @@
     <module>wavefront-spring-boot</module>
     <module>wavefront-spring-boot-bom</module>
     <module>wavefront-spring-boot-parent</module>
-    <module>wavefront-spring-boot-sample</module>
     <module>wavefront-spring-boot-starter</module>
   </modules>
 
@@ -74,6 +73,17 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>sample</id>
+      <activation>
+        <property>
+          <name>!release</name>
+        </property>
+      </activation>
+      <modules>
+        <module>wavefront-spring-boot-sample</module>
+      </modules>
+    </profile>
     <profile>
       <id>release</id>
       <build>
