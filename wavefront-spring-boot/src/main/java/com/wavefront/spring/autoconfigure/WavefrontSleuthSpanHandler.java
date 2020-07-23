@@ -24,7 +24,6 @@ import com.wavefront.internal.reporter.WavefrontInternalReporter;
 import com.wavefront.java_sdk.com.google.common.collect.Sets;
 import com.wavefront.sdk.common.NamedThreadFactory;
 import com.wavefront.sdk.common.Pair;
-import com.wavefront.sdk.common.Utils;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.entities.tracing.SpanLog;
@@ -133,8 +132,6 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
     this.spanBuffer = new LinkedBlockingQueue<>(maxQueueSize);
 
     // init internal metrics
-    double sdkVersion = Utils.getSemVer();
-    meterRegistry.gauge("version", sdkVersion);
     meterRegistry.gauge("reporter.queue.size", spanBuffer, sb -> (double) sb.size());
     meterRegistry.gauge("reporter.queue.remaining_capacity", spanBuffer,
         sb -> (double) sb.remainingCapacity());
