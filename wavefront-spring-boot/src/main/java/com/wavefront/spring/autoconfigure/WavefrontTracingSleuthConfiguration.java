@@ -1,6 +1,7 @@
 package com.wavefront.spring.autoconfigure;
 
 import brave.TracingCustomizer;
+import brave.handler.SpanHandler;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -23,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Stephane Nicoll
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnClass({ SpanNamer.class, TracingCustomizer.class })
+@ConditionalOnClass({ SpanNamer.class, TracingCustomizer.class, SpanHandler.class })
 @AutoConfigureBefore(TraceAutoConfiguration.class)
 class WavefrontTracingSleuthConfiguration {
 
