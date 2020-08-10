@@ -41,7 +41,7 @@ project first. Invoke the following command in the root directory:
     <dependency>
       <groupId>com.wavefront</groupId>
       <artifactId>wavefront-spring-boot-starter</artifactId>
-      <version>2.0.0-RC1</version>
+      <version>2.0.0</version>
     </dependency>
     ```
 
@@ -50,7 +50,7 @@ project first. Invoke the following command in the root directory:
     ```
     dependencies {
       ...
-      implementation 'com.wavefront:wavefront-spring-boot-starter:2.0.0-RC1'
+      implementation 'com.wavefront:wavefront-spring-boot-starter:2.0.0'
       
     }
     ```
@@ -69,7 +69,7 @@ project first. Invoke the following command in the root directory:
         <dependency>
           <groupId>com.wavefront</groupId>
           <artifactId>wavefront-spring-boot</artifactId>
-          <version>2.0.0-RC1</version>
+          <version>2.0.0</version>
           <type>pom</type>
           <scope>import</scope>
         </dependency>
