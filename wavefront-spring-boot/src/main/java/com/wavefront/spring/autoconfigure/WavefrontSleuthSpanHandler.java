@@ -24,6 +24,7 @@ import com.wavefront.internal.reporter.WavefrontInternalReporter;
 import com.wavefront.java_sdk.com.google.common.collect.Sets;
 import com.wavefront.sdk.common.NamedThreadFactory;
 import com.wavefront.sdk.common.Pair;
+import com.wavefront.sdk.common.Utils;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.entities.tracing.SpanLog;
@@ -74,6 +75,7 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
 
   private final static String DEFAULT_SOURCE = "wavefront-spring-boot";
   private final static String WAVEFRONT_GENERATED_COMPONENT = "wavefront-generated";
+  public static final String SDK_METRIC_PREFIX = "~sdk.java.wavefront_spring_boot_starter.";
 
   final LinkedBlockingQueue<Pair<TraceContext, MutableSpan>> spanBuffer;
   final WavefrontSender wavefrontSender;
@@ -130,6 +132,8 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
     this.spanBuffer = new LinkedBlockingQueue<>(maxQueueSize);
 
     // init internal metrics
+    double sdkVersion = Utils.getSemVerGauge("wavefront-spring-boot");
+    meterRegistry.gauge(SDK_METRIC_PREFIX + "version", sdkVersion);
     meterRegistry.gauge("reporter.queue.size", spanBuffer, sb -> (double) sb.size());
     meterRegistry.gauge("reporter.queue.remaining_capacity", spanBuffer,
         sb -> (double) sb.remainingCapacity());
