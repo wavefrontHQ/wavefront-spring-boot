@@ -103,7 +103,7 @@ project first. Invoke the following command in the root directory:
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-sleuth</artifactId>
-      <version>2.2.2.RELEASE</version>
+      <version>2.2.4.RELEASE</version>
     </dependency>
     ```
 
