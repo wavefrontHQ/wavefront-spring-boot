@@ -97,8 +97,7 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
   WavefrontSleuthSpanHandler(int maxQueueSize, WavefrontSender wavefrontSender,
                              MeterRegistry meterRegistry, String source,
                              ApplicationTags applicationTags,
-                             WavefrontProperties wavefrontProperties,
-                             String localServiceName) {
+                             WavefrontProperties wavefrontProperties) {
     this.wavefrontSender = wavefrontSender;
     this.applicationTags = applicationTags;
     this.discoveredHeartbeatMetrics = Sets.newConcurrentHashSet();
@@ -125,7 +124,7 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
     wfInternalReporter.start(1, TimeUnit.MINUTES);
 
     this.source = source;
-    this.defaultTags = createDefaultTags(applicationTags, localServiceName);
+    this.defaultTags = createDefaultTags(applicationTags);
     this.defaultTagKeys = defaultTags.stream().map(p -> p._1).collect(Collectors.toSet());
     this.defaultTagKeys.add(SOURCE_KEY);
 
@@ -317,18 +316,12 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
   }
 
   // https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/f1f08d8daf7b692b9b61dcd5bc24ca6befa8e710/src/main/java/com/wavefront/opentracing/WavefrontTracer.java#L275-L280
-  static List<Pair<String, String>> createDefaultTags(ApplicationTags applicationTags,
-                                                      String serviceName) {
+  static List<Pair<String, String>> createDefaultTags(ApplicationTags applicationTags) {
     List<Pair<String, String>> result = new ArrayList<>();
     result.add(Pair.of(APPLICATION_TAG_KEY, applicationTags.getApplication()));
     // Prefer the user's service name unless they overwrote it with the wavefront property
     // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L263-L266
-    if (!Objects.equals(applicationTags.getService(), Application.DEFAULT_SERVICE_NAME)) {
-      result.add(Pair.of(SERVICE_TAG_KEY, applicationTags.getService()));
-    }
-    else {
-      result.add(Pair.of(SERVICE_TAG_KEY, serviceName));
-    }
+    result.add(Pair.of(SERVICE_TAG_KEY, applicationTags.getService()));
     result.add(Pair.of(CLUSTER_TAG_KEY,
         applicationTags.getCluster() == null ? NULL_TAG_VAL : applicationTags.getCluster()));
     result.add(Pair.of(SHARD_TAG_KEY,

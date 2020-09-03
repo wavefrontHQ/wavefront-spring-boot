@@ -11,7 +11,6 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.cloud.sleuth.LocalServiceName;
 import org.springframework.cloud.sleuth.SpanNamer;
 import org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -37,8 +36,7 @@ class WavefrontTracingSleuthConfiguration {
                                                WavefrontSender wavefrontSender,
                                                ApplicationTags applicationTags,
                                                WavefrontConfig wavefrontConfig,
-                                               WavefrontProperties wavefrontProperties,
-                                               @LocalServiceName String localServiceName) {
+                                               WavefrontProperties wavefrontProperties) {
     WavefrontSleuthSpanHandler spanHandler = new WavefrontSleuthSpanHandler(
         // https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/f1f08d8daf7b692b9b61dcd5bc24ca6befa8e710/src/main/java/com/wavefront/opentracing/reporting/WavefrontSpanReporter.java#L54
         50000, // TODO: maxQueueSize should be a property, ya?
@@ -46,9 +44,7 @@ class WavefrontTracingSleuthConfiguration {
         meterRegistry,
         wavefrontConfig.source(),
         applicationTags,
-        wavefrontProperties,
-        localServiceName
-    );
+        wavefrontProperties);
 
     return t -> t.traceId128Bit(true).supportsJoin(false).addSpanHandler(spanHandler);
   }
