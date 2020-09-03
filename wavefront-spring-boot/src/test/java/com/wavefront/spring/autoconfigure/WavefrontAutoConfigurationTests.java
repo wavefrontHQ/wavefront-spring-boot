@@ -10,6 +10,7 @@ import brave.handler.SpanHandler;
 import com.wavefront.opentracing.WavefrontTracer;
 import com.wavefront.opentracing.reporting.Reporter;
 import com.wavefront.sdk.appagent.jvm.reporter.WavefrontJvmReporter;
+import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -21,8 +22,10 @@ import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.Simp
 import org.springframework.boot.actuate.autoconfigure.metrics.export.wavefront.WavefrontMetricsExportAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
+import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
 import org.springframework.boot.test.context.runner.AbstractApplicationContextRunner;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.boot.test.context.runner.ContextConsumer;
 import org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -175,6 +178,75 @@ class WavefrontAutoConfigurationTests {
           WavefrontSleuthSpanHandler spanHandler = extractSpanHandler(context.getBean(Tracer.class));
           assertThat(spanHandler).hasFieldOrPropertyWithValue("wavefrontSender", sender);
         });
+  }
+
+  @Test
+  void tracingWithSleuthWithEmptyEnvironmentUseDefaultTags() {
+    this.contextRunner
+        .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
+        .with(sleuth())
+        .run(assertSleuthSpanDefaultTags("unnamed_application", "unnamed_service"));
+  }
+
+  @Test
+  void tracingWithSleuthWithWavefrontTagsAndSpringApplicationNameUseWavefrontTags() {
+    this.contextRunner
+        .withPropertyValues("wavefront.application.name=wavefront-application",
+            "wavefront.application.service=wavefront-service", "spring.application.name=spring-service")
+        .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
+        .with(sleuth())
+        .run(assertSleuthSpanDefaultTags("wavefront-application", "wavefront-service"));
+  }
+
+  @Test
+  void tracingWithSleuthWithSpringApplicationNameUseItRatherThanDefault() {
+    this.contextRunner
+        .withPropertyValues("spring.application.name=spring-service")
+        .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
+        .with(sleuth())
+        .run(assertSleuthSpanDefaultTags("unnamed_application", "spring-service"));
+  }
+
+  @Test
+  void tracingWithSleuthWithCustomApplicationTagsUseThat() {
+    this.contextRunner
+        .withPropertyValues("wavefront.application.name=wavefront-application",
+            "wavefront.application.service=wavefront-service")
+        .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
+        .withBean(ApplicationTags.class, () -> new ApplicationTags.Builder(
+            "custom-application", "custom-service").cluster("custom-cluster").shard("custom-shard").build())
+        .with(sleuth())
+        .run(assertSleuthSpanDefaultTags("custom-application", "custom-service", "custom-cluster", "custom-shard"));
+  }
+
+  @Test
+  void tracingWithSleuthWithCustomApplicationTagsAndEmptyValuesFallbackToDefaults() {
+    this.contextRunner
+        .withPropertyValues("wavefront.application.name=wavefront-application",
+            "wavefront.application.service=wavefront-service")
+        .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
+        .withBean(ApplicationTags.class, () -> new ApplicationTags.Builder(
+            "custom-application", "custom-service").build())
+        .with(sleuth())
+        .run(assertSleuthSpanDefaultTags("custom-application", "custom-service", "none", "none"));
+  }
+
+  private ContextConsumer<AssertableApplicationContext> assertSleuthSpanDefaultTags(String applicationName,
+      String serviceName) {
+    return assertSleuthSpanDefaultTags(applicationName, serviceName, "none", "none");
+  }
+
+  private ContextConsumer<AssertableApplicationContext> assertSleuthSpanDefaultTags(String applicationName,
+      String serviceName, String cluster, String shard) {
+    return (context) -> {
+      assertThat(context).hasSingleBean(TracingCustomizer.class);
+      WavefrontSleuthSpanHandler spanHandler = extractSpanHandler(context.getBean(Tracer.class));
+      assertThat(spanHandler.getDefaultTags()).contains(
+          new Pair<>("application", applicationName),
+          new Pair<>("service", serviceName),
+          new Pair<>("cluster", cluster),
+          new Pair<>("shard", shard));
+    };
   }
 
   @SuppressWarnings("unchecked")

@@ -59,7 +59,7 @@ import static org.assertj.core.api.Assertions.assertThat;
     classes = WavefrontTracingIntegrationTests.Config.class,
     properties = {
         "wavefront.application.name=IntegratedTracingTests",
-        "spring.zipkin.service.name=test_service"
+        "spring.application.name=test_service"
     })
 @AutoConfigureWebTestClient
 @DirtiesContext

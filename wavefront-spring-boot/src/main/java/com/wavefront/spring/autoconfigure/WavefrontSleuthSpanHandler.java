@@ -27,7 +27,6 @@ import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.entities.tracing.SpanLog;
-import com.wavefront.spring.autoconfigure.WavefrontProperties.Application;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.commons.logging.Log;
@@ -155,6 +154,10 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
       }
     }
     return true; // regardless of error, other handlers should run
+  }
+
+  List<Pair<String, String>> getDefaultTags() {
+    return Collections.unmodifiableList(this.defaultTags);
   }
 
   private void send(TraceContext context, MutableSpan span) {
@@ -319,8 +322,6 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
   static List<Pair<String, String>> createDefaultTags(ApplicationTags applicationTags) {
     List<Pair<String, String>> result = new ArrayList<>();
     result.add(Pair.of(APPLICATION_TAG_KEY, applicationTags.getApplication()));
-    // Prefer the user's service name unless they overwrote it with the wavefront property
-    // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L263-L266
     result.add(Pair.of(SERVICE_TAG_KEY, applicationTags.getService()));
     result.add(Pair.of(CLUSTER_TAG_KEY,
         applicationTags.getCluster() == null ? NULL_TAG_VAL : applicationTags.getCluster()));
