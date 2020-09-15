@@ -35,52 +35,58 @@ This allows you to see the setup for the Spring Boot generation your project is 
 
 For completeness, here is what you should follow to configure your project.
 
-> **Note**: The `2.0.1` version is the latest version of the starter. [start.spring.io](https://start.spring.io) maintains at all times which version of this starter should be used with the Spring Boot generation you are using.
+> **Note**: The 2.0.1 version is the latest version of the starter. The Wavefront for Spring Boot dependency needs to be compatible with the Spring Boot release version. See [System Requirements](https://docs.wavefront.com/wavefront_springboot.html#versionCompatibility) to get the correct dependency version.
 
-The core setup consists of importing the `wavefront-spring-boot` Bill Of Materials (BOM).
+Configure your project using Maven or Gradle.
 
-```xml
-<dependencyManagement>
-  <dependencies>
-    <dependency>
-      <groupId>com.wavefront</groupId>
-      <artifactId>wavefront-spring-boot</artifactId>
-      <version>2.0.1</version>
-      <type>pom</type>
-      <scope>import</scope>
-    </dependency>
-  </dependencies>
-</dependencyManagement>
-```
+**Maven**
 
-If you are using Gradle, make sure your project uses the `io.spring.dependency-management` plugin and add the following to your `build.gradle` file:
+- The core setup consists of importing the `wavefront-spring-boot` Bill Of Materials (BOM).
 
-```
-dependencyManagement {
-  imports {
-    mavenBom "com.wavefront:wavefront-spring-boot-bom:2.0.1"
+  ```
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.wavefront</groupId>
+        <artifactId>wavefront-spring-boot</artifactId>
+        <version>2.0.1</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  ```
+
+- Add the `wavefront-spring-boot-starter` to your project.
+
+  ```
+  <dependency>
+    <groupId>com.wavefront</groupId>
+    <artifactId>wavefront-spring-boot-starter</artifactId>
+  </dependency>
+  ```
+
+**Gradle**
+
+- If you are using Gradle, make sure your project uses the `io.spring.dependency-management` plugin and add the following to your build.gradle file:
+
+  ```
+  dependencyManagement {
+    imports {
+      mavenBom "com.wavefront:wavefront-spring-boot-bom:2.0.1"
+    }
   }
-}
-```
+  ```
 
-You can then add `wavefront-spring-boot-starter` to your project. With Maven:
+- Add the `wavefront-spring-boot-starter` to your project.
 
-```xml
-<dependency>
-  <groupId>com.wavefront</groupId>
-  <artifactId>wavefront-spring-boot-starter</artifactId>
-</dependency>
-```
+  ```
+  dependencies {
+    ...
+    implementation 'com.wavefront:wavefront-spring-boot-starter'
 
-Or, if you are using Gradle:
-
-```
-dependencies {
-  ...
-  implementation 'com.wavefront:wavefront-spring-boot-starter'
-
-}
-```
+  }
+  ```
 
 Each time you restart your application, it either creates a new freemium account, or it restores from `~/.wavefront_freemium`.
 At the end of the startup phase, the console displays a message with a login URL.
@@ -102,47 +108,54 @@ https://wavefront.surf/us/example
 
 If you'd like to send traces to Wavefront, you can do so using [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth) or [OpenTracing](https://opentracing.io/).
 
-To configure Spring Cloud in your existing project, you can explore a new project on [start.spring.io](https://start.spring.io) and review the build configuration for your favorite build system.
-Each Spring Boot generation has a matching Spring Cloud generation. Check [the project page](https://spring.io/projects/spring-cloud#release-trains) for more details.
+**Spring Cloud Sleuth**
 
-After you've added the `spring-cloud-dependencies` BOM, you can add Spring Cloud Sleuth as follows:
+Each Spring Boot generation has a matching Spring Cloud generation.
+You can run a simple command and find out the Spring Cloud version that is compatible with your Spring Boot version.
+See [Spring Cloud Version Given Spring Boot Version](https://spring-cloud-info.cfapps.io/docs/spring-cloud-info.html#_spring_cloud_version_given_spring_boot_version) for details. 
 
-```xml
-<dependency>
-  <groupId>org.springframework.cloud</groupId>
-  <artifactId>spring-cloud-starter-sleuth</artifactId>
-</dependency>
-```
+After you've added the spring-cloud-dependencies BOM, you can add Spring Cloud Sleuth as follows:
 
-Or, if you are using Gradle, add the following dependency to the `build.gradle` file:
+- Maven: Add the following dependency to the `pom.xml` file
 
-```
-dependencies {
-  ...
-  implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
+  ```
+  <dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-sleuth</artifactId>
+  </dependency>
+  ```
+  
+- Gradle: Add the following dependency to the `build.gradle` file:
 
-}
-```
+  ```
+  dependencies {
+    ...
+    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
+  }
+  ```
 
-If you prefer to use OpenTracing, add the following dependencies to your `pom.xml` file:
+**OpenTracing**
+  
+Configure your `pom.xml` file or the `build.gradle` file.
 
-```xml
+- Maven: Add the following dependencies to your `pom.xml` file:
+
+  ```
   <dependency>
     <groupId>io.opentracing.contrib</groupId>
     <artifactId>opentracing-spring-cloud-starter</artifactId>
     <version>0.5.7</version>
   </dependency>
-```
+  ```
 
-Of, if you are using Gradle, add the following dependencies to the `build.gradle` file:
+- Gradle: Add the following dependencies to the `build.gradle` file:
 
-```
-dependencies {
-  ...
-  implementation 'io.opentracing.contrib:opentracing-spring-cloud-starter:0.5.7'
-
-}
-```
+  ```
+  dependencies {
+    ...
+    implementation 'io.opentracing.contrib:opentracing-spring-cloud-starter:0.5.7'
+  }
+  ```
 
 ## Building
 To build the latest state of this project, invoke the following command from the root directory:
