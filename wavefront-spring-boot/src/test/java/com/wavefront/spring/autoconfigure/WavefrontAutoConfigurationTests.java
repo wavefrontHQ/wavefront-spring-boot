@@ -1,5 +1,7 @@
 package com.wavefront.spring.autoconfigure;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -13,6 +15,7 @@ import com.wavefront.sdk.appagent.jvm.reporter.WavefrontJvmReporter;
 import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
+import com.wavefront.sdk.entities.tracing.sampling.Sampler;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.Test;
 
@@ -287,19 +290,68 @@ class WavefrontAutoConfigurationTests {
     this.contextRunner
         .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth"))
         .withPropertyValues("wavefront.tracing.red-metrics-custom-tag-keys=region,test")
+        .withPropertyValues("wavefront.tracing.opentracing.sampler.probability=0.1")
+        .withPropertyValues("wavefront.tracing.opentracing.sampler.duration=2s")
         .with(wavefrontMetrics(() -> {
           WavefrontSender sender = mock(WavefrontSender.class);
           given(sender.getFailureCount()).willReturn(42);
           return sender;
-        })).run((context) -> {
-      assertThat(context).hasSingleBean(io.opentracing.Tracer.class).hasSingleBean(WavefrontTracer.class);
-      WavefrontTracer wavefrontTracer = context.getBean(WavefrontTracer.class);
-      Reporter reporter = (Reporter) ReflectionTestUtils.getField(wavefrontTracer, "reporter");
-      assertThat(reporter.getFailureCount()).isEqualTo(42);
-      Set<String> redMetricsCustomTagKeys = (Set<String>) ReflectionTestUtils.getField(wavefrontTracer,
-          "redMetricsCustomTagKeys");
-      assertThat(redMetricsCustomTagKeys).containsExactlyInAnyOrder("span.kind", "region", "test");
-    });
+        }))
+        .run((context) -> {
+          assertThat(context).hasSingleBean(io.opentracing.Tracer.class).hasSingleBean(WavefrontTracer.class);
+          WavefrontTracer wavefrontTracer = context.getBean(WavefrontTracer.class);
+          Reporter reporter = (Reporter) ReflectionTestUtils.getField(wavefrontTracer, "reporter");
+          assertThat(reporter.getFailureCount()).isEqualTo(42);
+          Set<String> redMetricsCustomTagKeys = (Set<String>) ReflectionTestUtils.getField(wavefrontTracer,
+              "redMetricsCustomTagKeys");
+          assertThat(redMetricsCustomTagKeys).containsExactlyInAnyOrder("span.kind", "region", "test");
+          List<Sampler> samplers = (List<Sampler>) ReflectionTestUtils.getField(wavefrontTracer,
+              "samplers");
+          assertThat(samplers).hasSize(2);
+        });
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  void tracingWithOpenTracingCanBeCustomized() {
+    this.contextRunner
+        .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth"))
+        .withPropertyValues("wavefront.tracing.red-metrics-custom-tag-keys=region,test")
+        .with(wavefrontMetrics(() -> {
+          WavefrontSender sender = mock(WavefrontSender.class);
+          given(sender.getFailureCount()).willReturn(42);
+          return sender;
+        }))
+        .withBean(WavefrontTracerBuilderCustomizer.class,
+            () -> (builder) -> builder.redMetricsCustomTagKeys(Collections.singleton("customized")))
+        .run((context) -> {
+          assertThat(context).hasSingleBean(io.opentracing.Tracer.class).hasSingleBean(WavefrontTracer.class);
+          WavefrontTracer wavefrontTracer = context.getBean(WavefrontTracer.class);
+          Reporter reporter = (Reporter) ReflectionTestUtils.getField(wavefrontTracer, "reporter");
+          assertThat(reporter.getFailureCount()).isEqualTo(42);
+          Set<String> redMetricsCustomTagKeys = (Set<String>) ReflectionTestUtils.getField(wavefrontTracer,
+              "redMetricsCustomTagKeys");
+          assertThat(redMetricsCustomTagKeys).containsExactlyInAnyOrder("span.kind", "region",
+              "test", "customized");
+        });
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  void tracingWithOpenTracingWithCustomReporter() {
+    this.contextRunner
+        .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth"))
+        .with(wavefrontSpanReporter(() -> {
+          Reporter reporter = mock(Reporter.class);
+          given(reporter.getFailureCount()).willReturn(21);
+          return reporter;
+        }))
+        .run((context) -> {
+          assertThat(context).hasSingleBean(io.opentracing.Tracer.class).hasSingleBean(WavefrontTracer.class);
+          WavefrontTracer wavefrontTracer = context.getBean(WavefrontTracer.class);
+          Reporter reporter = (Reporter) ReflectionTestUtils.getField(wavefrontTracer, "reporter");
+          assertThat(reporter.getFailureCount()).isEqualTo(21);
+        });
   }
 
   @Test
@@ -343,6 +395,12 @@ class WavefrontAutoConfigurationTests {
   private static <T extends AbstractApplicationContextRunner<?, ?, ?>> Function<T, T> sleuth() {
     return (runner) -> (T) runner.withConfiguration(AutoConfigurations.of(
         TraceAutoConfiguration.class, TraceBraveAutoConfiguration.class));
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T extends AbstractApplicationContextRunner<?, ?, ?>> Function<T, T> wavefrontSpanReporter(
+      Supplier<Reporter> reporter) {
+    return (runner) -> (T) runner.withBean(Reporter.class, reporter);
   }
 
 }

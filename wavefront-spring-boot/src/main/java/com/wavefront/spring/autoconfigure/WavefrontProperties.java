@@ -1,6 +1,9 @@
 package com.wavefront.spring.autoconfigure;
 
+import java.time.Duration;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -124,11 +127,17 @@ public class WavefrontProperties {
 
   public static class Tracing {
 
+    private final Opentracing opentracing = new Opentracing();
+
     /**
      * Tags that should be associated with RED metrics. If the span has any of the
      * specified tags, then those get reported to generated RED metrics.
      */
     private Set<String> redMetricsCustomTagKeys = new HashSet<>();
+
+    public Opentracing getOpentracing() {
+      return this.opentracing;
+    }
 
     public Set<String> getRedMetricsCustomTagKeys() {
       return this.redMetricsCustomTagKeys;
@@ -136,6 +145,48 @@ public class WavefrontProperties {
 
     public void setRedMetricsCustomTagKeys(Set<String> redMetricsCustomTagKeys) {
       this.redMetricsCustomTagKeys = redMetricsCustomTagKeys;
+    }
+
+    public static class Opentracing {
+
+      private final Sampler sampler = new Sampler();
+
+      public Sampler getSampler() {
+        return this.sampler;
+      }
+
+      public static class Sampler {
+
+        /**
+         * Probabilistic rate (between 0.0 and 1.0) of requests that should be sampled. If not
+         * specified, probabilistic sampling is not applied.
+         */
+        private Double probability;
+
+        /**
+         * Spans longer than this duration are sampled. If not specified, duration sampling is
+         * not applied.
+         */
+        private Duration duration;
+
+        public Double getProbability() {
+          return this.probability;
+        }
+
+        public void setProbability(Double probability) {
+          this.probability = probability;
+        }
+
+        public Duration getDuration() {
+          return this.duration;
+        }
+
+        public void setDuration(Duration duration) {
+          this.duration = duration;
+        }
+
+      }
+
     }
 
   }
