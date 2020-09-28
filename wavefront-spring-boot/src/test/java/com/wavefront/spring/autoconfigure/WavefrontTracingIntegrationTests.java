@@ -59,7 +59,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     classes = WavefrontTracingIntegrationTests.Config.class,
     properties = {
         "wavefront.application.name=IntegratedTracingTests",
-        "spring.application.name=test_service"
+        "spring.application.name=test_service",
+        "wavefront.tracing.tags.region=us-west"
     })
 @AutoConfigureWebTestClient
 @DirtiesContext
@@ -108,7 +109,8 @@ public class WavefrontTracingIntegrationTests {
         Pair.of("http.path", "/api/fn/10"),
         Pair.of("mvc.controller.class", "WebMvcController"),
         Pair.of("mvc.controller.method", "fn"),
-        Pair.of("span.kind", "server")
+        Pair.of("span.kind", "server"),
+        Pair.of("region", "us-west")
     );
   }
 

@@ -4,11 +4,11 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -79,6 +79,7 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
   final WavefrontSender wavefrontSender;
   final WavefrontInternalReporter wfInternalReporter;
   final Set<String> traceDerivedCustomTagKeys;
+  final Map<String, String> globalSpanTags;
   final Counter spansDropped;
   final Counter spansReceived;
   final Counter reportErrors;
@@ -115,6 +116,7 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
 
     this.traceDerivedCustomTagKeys = new HashSet<>(
         wavefrontProperties.getTracing().getRedMetricsCustomTagKeys());
+    this.globalSpanTags = new HashMap<>(wavefrontProperties.getTracing().getTags());
 
     // Start the reporter
     wfInternalReporter = new WavefrontInternalReporter.Builder().
@@ -183,7 +185,7 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
     long durationMillis = startMillis != 0 && finishMillis != 0L ? Math.max(finishMillis - startMillis, 1L) : 0L;
 
     List<SpanLog> spanLogs = convertAnnotationsToSpanLogs(span);
-    TagList tags = new TagList(defaultTagKeys, defaultTags, context, span);
+    TagList tags = new TagList(defaultTagKeys, defaultTags, globalSpanTags, context, span);
 
     try {
       wavefrontSender.sendSpan(name, startMillis, durationMillis, source, traceId, spanId,
@@ -220,38 +222,30 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
    * the component tag and error status.
    */
   static final class TagList extends ArrayList<Pair<String, String>> {
+    private final Set<String> defaultTagKeys;
+    private boolean debug;
+
     String componentTagValue = NULL_TAG_VAL;
     boolean isError; // See explanation here: https://github.com/openzipkin/brave/pull/1221
 
     TagList(
         Set<String> defaultTagKeys,
         List<Pair<String, String>> defaultTags,
+        Map<String, String> globalSpanTags,
         TraceContext context,
         MutableSpan span
     ){
-      super(defaultTags.size() + span.tagCount());
-      boolean debug = context.debug(), hasAnnotations = span.annotationCount() > 0;
+      super(defaultTags.size() + globalSpanTags.size() + span.tagCount());
+      this.defaultTagKeys = defaultTagKeys;
+      debug = context.debug();
       isError = span.error() != null;
+      boolean hasAnnotations = span.annotationCount() > 0;
 
       int tagCount = span.tagCount();
       addAll(defaultTags);
+      globalSpanTags.forEach(this::addTag);
       for (int i = 0; i < tagCount; i++) {
-        String key = span.tagKeyAt(i), value = span.tagValueAt(i);
-        String lcKey = key.toLowerCase(Locale.ROOT);
-        if (lcKey.equals(ERROR_TAG_KEY)) {
-          isError = true;
-          continue; // We later replace whatever the potentially empty value was with "true"
-        }
-        if (value.isEmpty()) continue;
-        if (defaultTagKeys.contains(lcKey)) continue;
-        if (lcKey.equals(DEBUG_TAG_KEY)) {
-          debug = true; // This tag is set out-of-band
-          continue;
-        }
-        if (lcKey.equals(COMPONENT_TAG_KEY)) {
-          componentTagValue = value;
-        }
-        add(Pair.of(key, value));
+        addTag(span.tagKeyAt(i), span.tagValueAt(i));
       }
 
       // Check for span.error() for uncaught exception in request mapping and add it to Wavefront span tag
@@ -276,6 +270,24 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
       if (span.localIp() != null) {
         add(Pair.of("ipv4", span.localIp())); // NOTE: this could be IPv6!!
       }
+    }
+
+    private void addTag(String key, String value) {
+      String lcKey = key.toLowerCase(Locale.ROOT);
+      if (lcKey.equals(ERROR_TAG_KEY)) {
+        isError = true;
+        return; // We later replace whatever the potentially empty value was with "true"
+      }
+      if (value.isEmpty()) return;
+      if (defaultTagKeys.contains(lcKey)) return;
+      if (lcKey.equals(DEBUG_TAG_KEY)) {
+        debug = true; // This tag is set out-of-band
+        return;
+      }
+      if (lcKey.equals(COMPONENT_TAG_KEY)) {
+        componentTagValue = value;
+      }
+      add(Pair.of(key, value));
     }
   }
 
