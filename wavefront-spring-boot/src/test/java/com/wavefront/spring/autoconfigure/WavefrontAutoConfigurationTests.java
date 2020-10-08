@@ -7,6 +7,8 @@ import java.util.function.Supplier;
 import brave.Tracer;
 import brave.TracingCustomizer;
 import brave.handler.SpanHandler;
+
+import com.wavefront.internal.reporter.WavefrontInternalReporter;
 import com.wavefront.opentracing.WavefrontTracer;
 import com.wavefront.opentracing.reporting.Reporter;
 import com.wavefront.sdk.appagent.jvm.reporter.WavefrontJvmReporter;
@@ -134,6 +136,29 @@ class WavefrontAutoConfigurationTests {
               .tags("service", "test-service").tags("cluster", "test-cluster").tags("shard", "test-shard")
               .counter()).isNull();
         });
+  }
+
+  @Test
+  void internalReporterIsConfiguredWhenNoneExists() {
+    this.contextRunner
+        .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
+        .run((context) -> assertThat(context).hasSingleBean(WavefrontInternalReporter.class));
+  }
+
+  @Test
+  void internalReporterCanBeCustomized() {
+    WavefrontInternalReporter reporter = mock(WavefrontInternalReporter.class);
+    this.contextRunner
+        .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
+        .withBean(WavefrontInternalReporter.class, () -> reporter)
+        .run((context) -> assertThat(context).getBean(WavefrontInternalReporter.class).isEqualTo(reporter));
+  }
+
+  @Test
+  void internalReporterNotConfiguredWithoutWavefrontSender() {
+    this.contextRunner
+        .with(metrics())
+        .run(context -> assertThat(context).doesNotHaveBean(WavefrontInternalReporter.class));
   }
 
   @Test

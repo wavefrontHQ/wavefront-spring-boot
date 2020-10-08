@@ -1,16 +1,11 @@
 package com.wavefront.spring.autoconfigure;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import com.wavefront.internal.reporter.WavefrontInternalReporter;
+import com.wavefront.internal_reporter_java.io.dropwizard.metrics5.MetricName;
 import com.wavefront.sdk.appagent.jvm.reporter.WavefrontJvmReporter;
+import com.wavefront.sdk.common.Utils;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Tags;
-import io.micrometer.wavefront.WavefrontConfig;
-import io.micrometer.wavefront.WavefrontMeterRegistry;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
@@ -22,6 +17,17 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.wavefront.WavefrontConfig;
+import io.micrometer.wavefront.WavefrontMeterRegistry;
+
 /**
  * Configuration for Wavefront metrics.
  *
@@ -31,6 +37,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnBean(WavefrontSender.class)
 class WavefrontMetricsConfiguration {
+  public static final String SDK_INTERNAL_METRIC_PREFIX = "~sdk.java.wavefront_spring_boot_starter";
 
   @Bean
   @ConditionalOnMissingBean
@@ -43,6 +50,18 @@ class WavefrontMetricsConfiguration {
     return reporter;
   }
 
+  @Bean
+  @ConditionalOnMissingBean
+  WavefrontInternalReporter wavefrontInternalReporter(WavefrontSender wavefrontSender,
+                                                      WavefrontConfig wavefrontConfig) {
+    WavefrontInternalReporter reporter = new WavefrontInternalReporter.Builder().
+        prefixedWith(SDK_INTERNAL_METRIC_PREFIX).withSource(wavefrontConfig.source()).
+        build(wavefrontSender);
+    Double sdkVersion = Utils.getSemVerGauge("wavefront-spring-boot");
+    reporter.newGauge(new MetricName("version", Collections.EMPTY_MAP), () -> (() -> sdkVersion));
+    reporter.start(1, TimeUnit.MINUTES);
+    return reporter;
+  }
 
   @Configuration(proxyBeanMethods = false)
   @ConditionalOnClass({ WavefrontMeterRegistry.class, MeterRegistryCustomizer.class })
