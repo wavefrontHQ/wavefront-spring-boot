@@ -1,5 +1,7 @@
 package com.wavefront.spring.autoconfigure;
 
+import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -9,6 +11,8 @@ import brave.TracingCustomizer;
 import brave.handler.SpanHandler;
 
 import com.wavefront.internal.reporter.WavefrontInternalReporter;
+import com.wavefront.internal_reporter_java.io.dropwizard.metrics5.MetricName;
+import com.wavefront.internal_reporter_java.io.dropwizard.metrics5.MetricRegistry;
 import com.wavefront.opentracing.WavefrontTracer;
 import com.wavefront.opentracing.reporting.Reporter;
 import com.wavefront.sdk.appagent.jvm.reporter.WavefrontJvmReporter;
@@ -31,6 +35,7 @@ import org.springframework.boot.test.context.runner.ContextConsumer;
 import org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static com.wavefront.spring.autoconfigure.WavefrontMetricsConfiguration.SDK_INTERNAL_METRIC_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -142,7 +147,20 @@ class WavefrontAutoConfigurationTests {
   void internalReporterIsConfiguredWhenNoneExists() {
     this.contextRunner
         .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
-        .run((context) -> assertThat(context).hasSingleBean(WavefrontInternalReporter.class));
+        .run((context) -> {
+          assertThat(context).hasSingleBean(WavefrontInternalReporter.class);
+          MetricRegistry internalMetricRegistry = (MetricRegistry)extractMetricRegistry(context
+              .getBean(WavefrontInternalReporter.class));
+          assertThat(internalMetricRegistry.getGauges().containsKey(new MetricName
+              (SDK_INTERNAL_METRIC_PREFIX + ".version", Collections.EMPTY_MAP)));
+        });
+  }
+
+  private Object extractMetricRegistry(WavefrontInternalReporter wavefrontInternalReporter) throws
+      NoSuchFieldException, IllegalAccessException {
+    Field field = wavefrontInternalReporter.getClass().getDeclaredField("internalRegistry");
+    field.setAccessible(true);
+    return field.get(wavefrontInternalReporter);
   }
 
   @Test
