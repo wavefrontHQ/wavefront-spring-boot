@@ -25,7 +25,9 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 
 import brave.Tracing;
+import brave.internal.Platform;
 import brave.opentracing.BraveTracer;
+import brave.sampler.Sampler;
 import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.entities.histograms.HistogramGranularity;
@@ -37,6 +39,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.actuate.metrics.AutoConfigureMetrics;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -62,6 +65,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.application.name=test_service"
     })
 @AutoConfigureWebTestClient
+@AutoConfigureMetrics
 @DirtiesContext
 public class WavefrontTracingIntegrationTests {
 
@@ -99,6 +103,7 @@ public class WavefrontTracingIntegrationTests {
     // Less than a millis should round up to 1, but the test could take longer than 1ms
     assertThat(spanRecord.durationMillis).isPositive();
 
+    // http
     assertThat(spanRecord.tags).containsExactlyInAnyOrder(
         Pair.of("application", "IntegratedTracingTests"),
         Pair.of("service", "test_service"),
@@ -108,8 +113,11 @@ public class WavefrontTracingIntegrationTests {
         Pair.of("http.path", "/api/fn/10"),
         Pair.of("mvc.controller.class", "WebMvcController"),
         Pair.of("mvc.controller.method", "fn"),
-        Pair.of("span.kind", "server")
+        Pair.of("span.kind", "server"),
+        Pair.of("ipv4", Platform.get().linkLocalIp())
     );
+    // async
+    assertThat(takeRecord(spanRecordQueue).name).isEqualTo("async");
   }
 
   @Test
@@ -119,10 +127,14 @@ public class WavefrontTracingIntegrationTests {
         .exchange().expectStatus().isBadRequest();
 
     SpanRecord spanRecord = takeRecord(spanRecordQueue);
+
+    // http
     assertThat(spanRecord.tags).contains(
         Pair.of("http.status_code", "400"),
         Pair.of("error", "true")
     );
+    // async
+    assertThat(takeRecord(spanRecordQueue).name).isEqualTo("async");
   }
 
   @Test
@@ -132,10 +144,13 @@ public class WavefrontTracingIntegrationTests {
         .exchange().expectStatus().is5xxServerError();
 
     SpanRecord spanRecord = takeRecord(spanRecordQueue);
+    // http
     assertThat(spanRecord.tags).contains(
         Pair.of("http.status_code", "500"),
         Pair.of("error", "true") // retains the boolean true
     );
+    // async
+    assertThat(takeRecord(spanRecordQueue).name).isEqualTo("async");
   }
 
   @Test
@@ -145,10 +160,13 @@ public class WavefrontTracingIntegrationTests {
         .exchange().expectStatus().is5xxServerError();
 
     SpanRecord spanRecord = takeRecord(spanRecordQueue);
+    //http
     assertThat(spanRecord.tags).contains(
         Pair.of("http.status_code", "500"),
         Pair.of("error", "true") // deletes the user message
     );
+    // async
+    assertThat(takeRecord(spanRecordQueue).name).isEqualTo("async");
   }
 
   @Test
@@ -157,11 +175,13 @@ public class WavefrontTracingIntegrationTests {
         .uri("/error/exception")
         .exchange().expectStatus().is5xxServerError();
 
-    SpanRecord spanRecord = takeRecord(spanRecordQueue);
-    assertThat(spanRecord.tags).contains(
-        Pair.of("http.status_code", "500"),
-        Pair.of("error", "true") // deletes the exception message
+    // http
+    assertThat(takeRecord(spanRecordQueue).tags).contains(
+            Pair.of("http.status_code", "500"),
+            Pair.of("error", "true") // deletes the exception message
     );
+    // async
+    assertThat(takeRecord(spanRecordQueue).name).isEqualTo("async");
   }
 
   @Test
@@ -171,10 +191,13 @@ public class WavefrontTracingIntegrationTests {
             .exchange().expectStatus().is5xxServerError();
 
     SpanRecord spanRecord = takeRecord(spanRecordQueue);
+    // http
     assertThat(spanRecord.tags).contains(
             /* Pair.of("http.status_code", "500"), */ // Able to return error=true span tag but not http.status_code span tag
             Pair.of("error", "true") // deletes the exception message
     );
+    // async
+    assertThat(takeRecord(spanRecordQueue).name).isEqualTo("async");
   }
 
   @Configuration
@@ -188,6 +211,11 @@ public class WavefrontTracingIntegrationTests {
     @Bean
     WebMvcController controller() {
       return new WebMvcController();
+    }
+
+    @Bean
+    Sampler sampler() {
+      return Sampler.ALWAYS_SAMPLE;
     }
 
     /** Sleuth would automatically wire this, except there's another impl in the classpath. */
@@ -329,6 +357,14 @@ public class WavefrontTracingIntegrationTests {
       this.spanLogs = spanLogs;
     }
 
+    @Override
+    public String toString() {
+      return "SpanRecord{" +
+              "name='" + name + '\'' +
+              ", traceId=" + traceId +
+              ", spanId=" + spanId +
+              '}';
+    }
   }
 
   /** Helps ensure test bugs don't result in hung tests! */

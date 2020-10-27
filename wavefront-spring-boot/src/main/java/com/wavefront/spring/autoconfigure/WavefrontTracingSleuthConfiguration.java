@@ -12,7 +12,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.sleuth.SpanNamer;
-import org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration;
+import org.springframework.cloud.sleuth.brave.bridge.TraceBraveBridgeAutoConfiguation;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({ SpanNamer.class, TracingCustomizer.class, SpanHandler.class })
-@AutoConfigureBefore(TraceAutoConfiguration.class)
+@AutoConfigureBefore(TraceBraveBridgeAutoConfiguation.class)
 class WavefrontTracingSleuthConfiguration {
 
   static final String BEAN_NAME = "wavefrontTracingCustomizer";

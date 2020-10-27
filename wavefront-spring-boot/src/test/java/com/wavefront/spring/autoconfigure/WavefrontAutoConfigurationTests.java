@@ -27,6 +27,7 @@ import org.springframework.boot.test.context.runner.AbstractApplicationContextRu
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.ContextConsumer;
 import org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration;
+import org.springframework.cloud.sleuth.brave.autoconfig.TraceBraveAutoConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -271,7 +272,7 @@ class WavefrontAutoConfigurationTests {
         ReflectionTestUtils.getField(
             ReflectionTestUtils.getField(tracer, "spanHandler"), "delegate"),
         "handlers");
-    return (WavefrontSleuthSpanHandler) handlers[0];
+    return (WavefrontSleuthSpanHandler) handlers[1];
   }
 
   @Test
@@ -340,7 +341,8 @@ class WavefrontAutoConfigurationTests {
 
   @SuppressWarnings("unchecked")
   private static <T extends AbstractApplicationContextRunner<?, ?, ?>> Function<T, T> sleuth() {
-    return (runner) -> (T) runner.withConfiguration(AutoConfigurations.of(TraceAutoConfiguration.class));
+    return (runner) -> (T) runner.withConfiguration(AutoConfigurations.of(
+        TraceAutoConfiguration.class, TraceBraveAutoConfiguration.class));
   }
 
 }
