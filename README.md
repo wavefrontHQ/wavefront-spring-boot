@@ -35,7 +35,7 @@ This allows you to see the setup for the Spring Boot generation your project is 
 
 For completeness, here is what you should follow to configure your project.
 
-> **Note**: The 2.0.1 version is the latest version of the starter. The Wavefront for Spring Boot dependency needs to be compatible with the Spring Boot release version. See [System Requirements](https://docs.wavefront.com/wavefront_springboot.html#versionCompatibility) to get the correct dependency version.
+> **Note**: The 2.0.2 version is the latest version of the starter. The Wavefront for Spring Boot dependency needs to be compatible with the Spring Boot release version. See [System Requirements](https://docs.wavefront.com/wavefront_springboot.html#versionCompatibility) to get the correct dependency version.
 
 Configure your project using Maven or Gradle.
 
@@ -49,7 +49,7 @@ Configure your project using Maven or Gradle.
       <dependency>
         <groupId>com.wavefront</groupId>
         <artifactId>wavefront-spring-boot</artifactId>
-        <version>2.0.1</version>
+        <version>2.0.2</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -73,7 +73,7 @@ Configure your project using Maven or Gradle.
   ```
   dependencyManagement {
     imports {
-      mavenBom "com.wavefront:wavefront-spring-boot-bom:2.0.1"
+      mavenBom "com.wavefront:wavefront-spring-boot-bom:2.0.2"
     }
   }
   ```
