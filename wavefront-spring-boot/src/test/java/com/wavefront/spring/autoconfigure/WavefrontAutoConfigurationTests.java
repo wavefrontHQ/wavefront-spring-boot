@@ -32,8 +32,7 @@ import org.springframework.boot.test.context.assertj.AssertableApplicationContex
 import org.springframework.boot.test.context.runner.AbstractApplicationContextRunner;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.ContextConsumer;
-import org.springframework.cloud.sleuth.autoconfig.TraceAutoConfiguration;
-import org.springframework.cloud.sleuth.brave.autoconfig.TraceBraveAutoConfiguration;
+import org.springframework.cloud.sleuth.autoconfig.brave.BraveAutoConfiguration;
 import org.springframework.core.Ordered;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -430,8 +429,7 @@ class WavefrontAutoConfigurationTests {
 
   @SuppressWarnings("unchecked")
   private static <T extends AbstractApplicationContextRunner<?, ?, ?>> Function<T, T> sleuth() {
-    return (runner) -> (T) runner.withConfiguration(AutoConfigurations.of(
-        TraceAutoConfiguration.class, TraceBraveAutoConfiguration.class));
+    return (runner) -> (T) runner.withConfiguration(AutoConfigurations.of(BraveAutoConfiguration.class));
   }
 
   private interface OrderedReporter extends Reporter, Ordered {
