@@ -2,7 +2,6 @@ package com.wavefront.spring.autoconfigure;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -259,7 +258,6 @@ class WavefrontAutoConfigurationTests {
     WavefrontSender sender = mock(WavefrontSender.class);
     this.contextRunner.withPropertyValues()
         .withPropertyValues("wavefront.tracing.red-metrics-custom-tag-keys=region,test")
-        .withPropertyValues("wavefront.tracing.tags.hello=world")
         .with(wavefrontMetrics(() -> sender))
         .with(sleuth())
         .run((context) -> {
@@ -268,10 +266,6 @@ class WavefrontAutoConfigurationTests {
           Set<String> traceDerivedCustomTagKeys = (Set<String>) ReflectionTestUtils.getField(
               spanHandler, "traceDerivedCustomTagKeys");
           assertThat(traceDerivedCustomTagKeys).containsExactlyInAnyOrder("region", "test");
-          Map<String, String> tags = (Map<String, String>) ReflectionTestUtils.getField(
-              spanHandler, "globalSpanTags");
-          assertThat(tags).containsExactlyInAnyOrderEntriesOf(Collections.singletonMap("hello",
-              "world"));
         });
   }
 
@@ -295,7 +289,6 @@ class WavefrontAutoConfigurationTests {
     this.contextRunner
         .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth"))
         .withPropertyValues("wavefront.tracing.red-metrics-custom-tag-keys=region,test")
-        .withPropertyValues("wavefront.tracing.tags.hello=world")
         .withPropertyValues("wavefront.tracing.opentracing.sampler.probability=0.1")
         .withPropertyValues("wavefront.tracing.opentracing.sampler.duration=2s")
         .with(wavefrontMetrics(() -> {
@@ -311,9 +304,6 @@ class WavefrontAutoConfigurationTests {
           Set<String> redMetricsCustomTagKeys = (Set<String>) ReflectionTestUtils.getField(wavefrontTracer,
               "redMetricsCustomTagKeys");
           assertThat(redMetricsCustomTagKeys).containsExactlyInAnyOrder("span.kind", "region", "test");
-          List<Pair<String, String>> tags = (List<Pair<String, String>>) ReflectionTestUtils.getField(
-              wavefrontTracer, "tags");
-          assertThat(tags).contains(Pair.of("hello", "world"));
           List<Sampler> samplers = (List<Sampler>) ReflectionTestUtils.getField(wavefrontTracer,
               "samplers");
           assertThat(samplers).hasSize(2);
