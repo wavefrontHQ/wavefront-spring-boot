@@ -2,7 +2,6 @@ package com.wavefront.spring.autoconfigure;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -60,15 +59,14 @@ class WavefrontTracingOpenTracingConfiguration {
         .excludeJvmMetrics();  // reported separately
     builder.redMetricsCustomTagKeys(
         new HashSet<>(wavefrontProperties.getTracing().getRedMetricsCustomTagKeys()));
-    builder.withGlobalTags(new HashMap<>(wavefrontProperties.getTracing().getTags()));
     List<Sampler> samplers =
-        createSampler(wavefrontProperties.getTracing().getOpenTracing().getSampler());
+        createSamplers(wavefrontProperties.getTracing().getOpentracing().getSampler());
     samplers.forEach(builder::withSampler);
     customizers.orderedStream().forEach((customizer) -> customizer.customize(builder));
     return builder.build();
   }
 
-  private List<Sampler> createSampler(WavefrontProperties.Tracing.OpenTracing.Sampler samplerProperties) {
+  private List<Sampler> createSamplers(WavefrontProperties.Tracing.Opentracing.Sampler samplerProperties) {
     Double probability = samplerProperties.getProbability();
     Duration duration = samplerProperties.getDuration();
     List<Sampler> samplers = new ArrayList<>();

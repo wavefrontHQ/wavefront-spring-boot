@@ -127,7 +127,7 @@ public class WavefrontProperties {
 
   public static class Tracing {
 
-    private final OpenTracing openTracing = new OpenTracing();
+    private final Opentracing opentracing = new Opentracing();
 
     /**
      * Tags that should be associated with RED metrics. If the span has any of the
@@ -135,13 +135,8 @@ public class WavefrontProperties {
      */
     private Set<String> redMetricsCustomTagKeys = new HashSet<>();
 
-    /**
-     * Global tags included with every reported span.
-     */
-    private Map<String, String> tags = new HashMap<>();
-
-    public OpenTracing getOpenTracing() {
-      return this.openTracing;
+    public Opentracing getOpentracing() {
+      return this.opentracing;
     }
 
     public Set<String> getRedMetricsCustomTagKeys() {
@@ -152,15 +147,7 @@ public class WavefrontProperties {
       this.redMetricsCustomTagKeys = redMetricsCustomTagKeys;
     }
 
-    public Map<String, String> getTags() {
-      return this.tags;
-    }
-
-    public void setTags(Map<String, String> tags) {
-      this.tags = tags;
-    }
-
-    public static class OpenTracing {
+    public static class Opentracing {
 
       private final Sampler sampler = new Sampler();
 
