@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.wavefront.opentracing.WavefrontTracer;
 import com.wavefront.opentracing.reporting.CompositeReporter;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,30 +33,16 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({ Reporter.class, Tracer.class })
+@ConditionalOnBean(WavefrontSender.class)
 @ConditionalOnMissingBean(name = WavefrontTracingSleuthConfiguration.BEAN_NAME)
 class WavefrontTracingOpenTracingConfiguration {
 
-  @Bean
-  @ConditionalOnMissingBean(Reporter.class)
-  @ConditionalOnBean(WavefrontSender.class)
-  Reporter wavefrontSpanReporter(WavefrontSender wavefrontSender, WavefrontConfig wavefrontConfig) {
-    return new WavefrontSpanReporter.Builder().withSource(wavefrontConfig.source())
-        .build(wavefrontSender);
-  }
-
   @Bean(destroyMethod = "flush")
   @ConditionalOnMissingBean(Tracer.class)
-  @ConditionalOnBean(Reporter.class)
   WavefrontTracer wavefrontTracer(ApplicationTags applicationTags,
       WavefrontProperties wavefrontProperties, ObjectProvider<Reporter> reporters,
       ObjectProvider<WavefrontTracerBuilderCustomizer> customizers) {
-    Reporter[] reporterArray = reporters.orderedStream().toArray(Reporter[]::new);
-    Reporter compositeReporter;
-    if (reporterArray.length > 1) {
-      compositeReporter = new CompositeReporter(reporterArray);
-    } else {
-      compositeReporter = reporterArray[0];
-    }
+    Reporter compositeReporter = createCompositeReporter(reporters.orderedStream());
     WavefrontTracer.Builder builder = new WavefrontTracer.Builder(compositeReporter, applicationTags)
         .excludeJvmMetrics();  // reported separately
     builder.redMetricsCustomTagKeys(
@@ -66,16 +54,25 @@ class WavefrontTracingOpenTracingConfiguration {
     return builder.build();
   }
 
+  @Bean
+  @ConditionalOnMissingBean(Reporter.class)
+  Reporter wavefrontSpanReporter(WavefrontSender wavefrontSender, WavefrontConfig wavefrontConfig) {
+    return new WavefrontSpanReporter.Builder().withSource(wavefrontConfig.source())
+        .build(wavefrontSender);
+  }
+
+  private Reporter createCompositeReporter(Stream<Reporter> reporters) {
+    Reporter[] reporterArray = reporters.toArray(Reporter[]::new);
+    return (reporterArray.length > 1) ? new CompositeReporter(reporterArray) : reporterArray[0];
+  }
+
   private List<Sampler> createSamplers(WavefrontProperties.Tracing.Opentracing.Sampler samplerProperties) {
-    Double probability = samplerProperties.getProbability();
-    Duration duration = samplerProperties.getDuration();
     List<Sampler> samplers = new ArrayList<>();
-    if (probability != null) {
-      samplers.add(new RateSampler(probability));
-    }
-    if (duration != null) {
-      samplers.add(new DurationSampler(duration.toMillis()));
-    }
+    PropertyMapper map = PropertyMapper.get().alwaysApplyingWhenNonNull();
+    map.from(samplerProperties.getProbability()).to((probability) ->
+        samplers.add(new RateSampler(probability)));
+    map.from(samplerProperties.getDuration()).to((duration) ->
+        samplers.add(new DurationSampler(duration.toMillis())));
     return samplers;
   }
 

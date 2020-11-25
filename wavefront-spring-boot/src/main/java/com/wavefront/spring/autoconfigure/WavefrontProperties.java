@@ -1,9 +1,7 @@
 package com.wavefront.spring.autoconfigure;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -147,6 +145,9 @@ public class WavefrontProperties {
       this.redMetricsCustomTagKeys = redMetricsCustomTagKeys;
     }
 
+    /**
+     * OpenTracing-specific settings.
+     */
     public static class Opentracing {
 
       private final Sampler sampler = new Sampler();
@@ -158,14 +159,14 @@ public class WavefrontProperties {
       public static class Sampler {
 
         /**
-         * Probabilistic rate (between 0.0 and 1.0) of requests that should be sampled. If not
-         * specified, probabilistic sampling is not applied.
+         * Probabilistic rate (between 0.0 and 1.0) of requests that should be sampled.
+         * If not specified, probabilistic sampling is not applied.
          */
         private Double probability;
 
         /**
-         * Spans longer than this duration are sampled. If not specified, duration sampling is
-         * not applied.
+         * Spans longer than this duration are sampled. If not specified, duration
+         * sampling is not applied.
          */
         private Duration duration;
 

@@ -8,6 +8,7 @@ import com.wavefront.opentracing.WavefrontTracer;
  * auto-configuration.
  *
  * @author Han Zhang
+ * @since 2.1.0
  */
 @FunctionalInterface
 public interface WavefrontTracerBuilderCustomizer {
