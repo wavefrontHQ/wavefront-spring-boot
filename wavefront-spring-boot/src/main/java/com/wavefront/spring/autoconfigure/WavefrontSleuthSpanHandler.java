@@ -24,6 +24,7 @@ import com.wavefront.internal.reporter.WavefrontInternalReporter;
 import com.wavefront.java_sdk.com.google.common.collect.Sets;
 import com.wavefront.sdk.common.NamedThreadFactory;
 import com.wavefront.sdk.common.Pair;
+import com.wavefront.sdk.common.Utils;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.entities.tracing.SpanLog;
