@@ -12,6 +12,7 @@ import brave.handler.SpanHandler;
 import com.wavefront.opentracing.WavefrontTracer;
 import com.wavefront.opentracing.reporting.CompositeReporter;
 import com.wavefront.opentracing.reporting.Reporter;
+import com.wavefront.opentracing.reporting.WavefrontSpanReporter;
 import com.wavefront.sdk.appagent.jvm.reporter.WavefrontJvmReporter;
 import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
@@ -363,10 +364,39 @@ class WavefrontAutoConfigurationTests {
         .run((context) -> {
           assertThat(context).hasSingleBean(io.opentracing.Tracer.class).hasSingleBean(WavefrontTracer.class);
           WavefrontTracer wavefrontTracer = context.getBean(WavefrontTracer.class);
-          Reporter reporter = (Reporter) ReflectionTestUtils.getField(wavefrontTracer, "reporter");
+          Reporter reporter = getReporter(wavefrontTracer);
           assertThat(reporter).isInstanceOf(CompositeReporter.class);
           assertThat(((CompositeReporter) reporter).getReporters())
               .containsExactly(secondReporter, firstReporter);
+        });
+  }
+
+  @Test
+  void tracingWithOpenTracingDefaultReporterWithWavefrontSender() {
+    this.contextRunner
+        .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth"))
+        .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
+        .run((context) -> {
+          assertThat(context).hasSingleBean(io.opentracing.Tracer.class).hasSingleBean(WavefrontTracer.class)
+              .hasSingleBean(WavefrontSpanReporter.class);
+          WavefrontTracer wavefrontTracer = context.getBean(WavefrontTracer.class);
+          Reporter reporter = getReporter(wavefrontTracer);
+          assertThat(reporter).isInstanceOf(WavefrontSpanReporter.class);
+        });
+  }
+
+  @Test
+  void tracingWithOpenTracingWithoutWavefrontSender() {
+    this.contextRunner
+        .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth"))
+        .run((context) -> {
+          assertThat(context).hasSingleBean(io.opentracing.Tracer.class).hasSingleBean(WavefrontTracer.class)
+              .doesNotHaveBean(WavefrontSpanReporter.class);
+          WavefrontTracer wavefrontTracer = context.getBean(WavefrontTracer.class);
+          Reporter reporter = getReporter(wavefrontTracer);
+          assertThat(reporter).isInstanceOfSatisfying(CompositeReporter.class, compositeReporter ->
+              assertThat(compositeReporter.getReporters()).isEmpty()
+          );
         });
   }
 
@@ -411,6 +441,10 @@ class WavefrontAutoConfigurationTests {
   private List<Sampler> getSamplers(WavefrontTracer wavefrontTracer) {
     return (List<Sampler>) ReflectionTestUtils.getField(wavefrontTracer,
         "samplers");
+  }
+
+  private Reporter getReporter(WavefrontTracer wavefrontTracer) {
+    return (Reporter) ReflectionTestUtils.getField(wavefrontTracer, "reporter");
   }
 
   @SuppressWarnings("unchecked")

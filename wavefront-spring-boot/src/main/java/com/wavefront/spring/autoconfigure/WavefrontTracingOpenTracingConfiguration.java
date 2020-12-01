@@ -1,6 +1,5 @@
 package com.wavefront.spring.autoconfigure;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -30,10 +29,10 @@ import org.springframework.context.annotation.Configuration;
  * A fallback configuration for OpenTracing if Spring Cloud Sleuth is not available.
  *
  * @author Stephane Nicoll
+ * @author Tadaya Tsuyukubo
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({ Reporter.class, Tracer.class })
-@ConditionalOnBean(WavefrontSender.class)
 @ConditionalOnMissingBean(name = WavefrontTracingSleuthConfiguration.BEAN_NAME)
 class WavefrontTracingOpenTracingConfiguration {
 
@@ -56,6 +55,7 @@ class WavefrontTracingOpenTracingConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(Reporter.class)
+  @ConditionalOnBean(WavefrontSender.class)
   Reporter wavefrontSpanReporter(WavefrontSender wavefrontSender, WavefrontConfig wavefrontConfig) {
     return new WavefrontSpanReporter.Builder().withSource(wavefrontConfig.source())
         .build(wavefrontSender);
@@ -63,7 +63,10 @@ class WavefrontTracingOpenTracingConfiguration {
 
   private Reporter createCompositeReporter(Stream<Reporter> reporters) {
     Reporter[] reporterArray = reporters.toArray(Reporter[]::new);
-    return (reporterArray.length > 1) ? new CompositeReporter(reporterArray) : reporterArray[0];
+    if (reporterArray.length == 1) {
+      return reporterArray[0];
+    }
+    return new CompositeReporter(reporterArray);
   }
 
   private List<Sampler> createSamplers(WavefrontProperties.Tracing.Opentracing.Sampler samplerProperties) {
