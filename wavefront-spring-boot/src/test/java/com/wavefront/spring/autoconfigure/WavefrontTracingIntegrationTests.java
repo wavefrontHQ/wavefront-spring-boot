@@ -116,8 +116,6 @@ public class WavefrontTracingIntegrationTests {
         Pair.of("span.kind", "server"),
         Pair.of("ipv4", Platform.get().linkLocalIp())
     );
-    // async
-    assertThat(takeRecord(spanRecordQueue).name).isEqualTo("async");
   }
 
   @Test
@@ -133,8 +131,6 @@ public class WavefrontTracingIntegrationTests {
         Pair.of("http.status_code", "400"),
         Pair.of("error", "true")
     );
-    // async
-    assertThat(takeRecord(spanRecordQueue).name).isEqualTo("async");
   }
 
   @Test
@@ -149,8 +145,6 @@ public class WavefrontTracingIntegrationTests {
         Pair.of("http.status_code", "500"),
         Pair.of("error", "true") // retains the boolean true
     );
-    // async
-    assertThat(takeRecord(spanRecordQueue).name).isEqualTo("async");
   }
 
   @Test
@@ -165,8 +159,6 @@ public class WavefrontTracingIntegrationTests {
         Pair.of("http.status_code", "500"),
         Pair.of("error", "true") // deletes the user message
     );
-    // async
-    assertThat(takeRecord(spanRecordQueue).name).isEqualTo("async");
   }
 
   @Test
@@ -180,8 +172,6 @@ public class WavefrontTracingIntegrationTests {
             Pair.of("http.status_code", "500"),
             Pair.of("error", "true") // deletes the exception message
     );
-    // async
-    assertThat(takeRecord(spanRecordQueue).name).isEqualTo("async");
   }
 
   @Test
@@ -196,8 +186,6 @@ public class WavefrontTracingIntegrationTests {
             /* Pair.of("http.status_code", "500"), */ // Able to return error=true span tag but not http.status_code span tag
             Pair.of("error", "true") // deletes the exception message
     );
-    // async
-    assertThat(takeRecord(spanRecordQueue).name).isEqualTo("async");
   }
 
   @Configuration
