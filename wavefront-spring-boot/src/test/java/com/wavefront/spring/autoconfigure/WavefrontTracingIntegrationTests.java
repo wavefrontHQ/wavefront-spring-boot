@@ -192,7 +192,6 @@ public class WavefrontTracingIntegrationTests {
   @EnableAutoConfiguration
   static class Config {
     /**
-
      * This uses a {@linkplain Controller WebMVC controller} as it is the most popular way to write
      * Spring services and has no instrumentation gotchas or scope bugs like reactive tracing.
      * This allows us to focus on api and data mapping issues, which is the heart of this test.
