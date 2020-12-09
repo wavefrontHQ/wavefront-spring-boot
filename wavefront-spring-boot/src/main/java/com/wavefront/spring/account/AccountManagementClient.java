@@ -25,9 +25,19 @@ public class AccountManagementClient {
 
   private final RestTemplate restTemplate;
 
-  public AccountManagementClient(RestTemplateBuilder restTemplateBuilder) {
+  private final String version;
+
+  /**
+   * Create an instance using the specified {@link RestTemplateBuilder} and starter
+   * {@code version}.
+   * @param restTemplateBuilder the builder to use to configure the {@link RestTemplate}.
+   * @param version the version of the starter or {@code null} if the version could not
+   * be determined.
+   */
+  public AccountManagementClient(RestTemplateBuilder restTemplateBuilder, String version) {
     this.restTemplate = restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10))
         .setReadTimeout(Duration.ofSeconds(10)).build();
+    this.version = version;
   }
 
   /**
@@ -85,6 +95,9 @@ public class AccountManagementClient {
     }
     if (applicationTags.getShard() != null) {
       uriComponentsBuilder.queryParam("shard", applicationTags.getShard());
+    }
+    if (this.version != null) {
+      uriComponentsBuilder.queryParam("starterVersion", this.version);
     }
     return uriComponentsBuilder.build().toUri();
   }

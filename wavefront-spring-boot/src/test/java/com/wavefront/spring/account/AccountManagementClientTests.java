@@ -34,7 +34,7 @@ class AccountManagementClientTests {
   AccountManagementClientTests() {
     MockServerRestTemplateCustomizer restTemplateCustomizer = new MockServerRestTemplateCustomizer();
     RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder().customizers(restTemplateCustomizer);
-    this.client = new AccountManagementClient(restTemplateBuilder);
+    this.client = new AccountManagementClient(restTemplateBuilder, "1.0.0");
     this.mockServer = restTemplateCustomizer.getServer();
   }
 
@@ -42,8 +42,8 @@ class AccountManagementClientTests {
   void provisionAccountOnSupportedCluster() {
     this.mockServer
         .expect(requestToUriTemplate(
-            "https://example.com/api/v2/trial/spring-boot-autoconfigure?application={0}&service={1}",
-            "unnamed_application", "unnamed_service"))
+            "https://example.com/api/v2/trial/spring-boot-autoconfigure?application={0}&service={1}&starterVersion={2}",
+            "unnamed_application", "unnamed_service", "1.0.0"))
         .andExpect(method(HttpMethod.POST))
         .andRespond(withStatus(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON)
             .body("{\"url\":\"/us/test123\",\"token\":\"ee479a71-abcd-abcd-abcd-62b0e8416989\"}\n"));
@@ -60,8 +60,8 @@ class AccountManagementClientTests {
         .withProperty("wavefront.application.cluster", "test-cluster")
         .withProperty("wavefront.application.shard", "test-shard");
     this.mockServer.expect(requestToUriTemplate(
-        "https://example.com/api/v2/trial/spring-boot-autoconfigure?application={0}&service={1}&cluster={2}&shard={3}",
-        "test-application", "test-service", "test-cluster", "test-shard")).andExpect(method(HttpMethod.POST))
+        "https://example.com/api/v2/trial/spring-boot-autoconfigure?application={0}&service={1}&cluster={2}&shard={3}&starterVersion={4}",
+        "test-application", "test-service", "test-cluster", "test-shard", "1.0.0")).andExpect(method(HttpMethod.POST))
         .andRespond(withStatus(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON)
             .body("{\"url\":\"/us/test123\",\"token\":\"ee479a71-abcd-abcd-abcd-62b0e8416989\"}\n"));
     AccountInfo accountInfo = this.client.provisionAccount("https://example.com",
@@ -74,8 +74,8 @@ class AccountManagementClientTests {
   void provisionAccountOnUnsupportedCluster() {
     this.mockServer
         .expect(requestToUriTemplate(
-            "https://example.com/api/v2/trial/spring-boot-autoconfigure?application={0}&service={1}",
-            "unnamed_application", "unnamed_service"))
+            "https://example.com/api/v2/trial/spring-boot-autoconfigure?application={0}&service={1}&starterVersion={2}",
+            "unnamed_application", "unnamed_service", "1.0.0"))
         .andExpect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.NOT_ACCEPTABLE)
         .contentType(MediaType.APPLICATION_JSON).body("test failure".getBytes()));
     assertThatThrownBy(() -> this.client.provisionAccount("https://example.com", createDefaultApplicationTags()))
@@ -86,8 +86,8 @@ class AccountManagementClientTests {
   void retrieveAccountOnSupportedCluster() {
     this.mockServer
         .expect(requestToUriTemplate(
-            "https://example.com/api/v2/trial/spring-boot-autoconfigure?application={0}&service={1}",
-            "unnamed_application", "unnamed_service"))
+            "https://example.com/api/v2/trial/spring-boot-autoconfigure?application={0}&service={1}&starterVersion={2}",
+            "unnamed_application", "unnamed_service", "1.0.0"))
         .andExpect(method(HttpMethod.GET))
         .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ee479a71-abcd-abcd-abcd-62b0e8416989"))
         .andRespond(withStatus(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON)
@@ -102,14 +102,33 @@ class AccountManagementClientTests {
   void retrieveAccountWithWrongApiToken() {
     this.mockServer
         .expect(requestToUriTemplate(
-            "https://example.com/api/v2/trial/spring-boot-autoconfigure?application={0}&service={1}",
-            "unnamed_application", "unnamed_service"))
+            "https://example.com/api/v2/trial/spring-boot-autoconfigure?application={0}&service={1}&starterVersion={2}",
+            "unnamed_application", "unnamed_service", "1.0.0"))
         .andExpect(method(HttpMethod.GET)).andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer wrong-token"))
         .andRespond(withStatus(HttpStatus.UNAUTHORIZED).contentType(MediaType.APPLICATION_JSON)
             .body("test failure".getBytes()));
     assertThatThrownBy(() -> this.client.getExistingAccount("https://example.com", createDefaultApplicationTags(),
         "wrong-token")).hasMessageContaining("test failure")
         .isInstanceOf(AccountManagementFailedException.class);
+  }
+
+  @Test
+  void retrieveAccountWithNoVersion() {
+    MockServerRestTemplateCustomizer restTemplateCustomizer = new MockServerRestTemplateCustomizer();
+    RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder().customizers(restTemplateCustomizer);
+    AccountManagementClient customClient = new AccountManagementClient(restTemplateBuilder, null);
+    restTemplateCustomizer.getServer()
+        .expect(requestToUriTemplate(
+            "https://example.com/api/v2/trial/spring-boot-autoconfigure?application={0}&service={1}",
+            "unnamed_application", "unnamed_service"))
+        .andExpect(method(HttpMethod.GET))
+        .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer ee479a71-abcd-abcd-abcd-62b0e8416989"))
+        .andRespond(withStatus(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON)
+            .body("{\"url\":\"/us/test123\"}\n"));
+    AccountInfo accountInfo = customClient.getExistingAccount("https://example.com", createDefaultApplicationTags(),
+        "ee479a71-abcd-abcd-abcd-62b0e8416989");
+    assertThat(accountInfo.getApiToken()).isEqualTo("ee479a71-abcd-abcd-abcd-62b0e8416989");
+    assertThat(accountInfo.getLoginUrl()).isEqualTo("https://example.com/us/test123");
   }
 
   private ApplicationTags createDefaultApplicationTags() {
