@@ -41,14 +41,14 @@ Configure your project using Maven or Gradle.
 
 **Maven**
 
-- The core setup consists of importing the `wavefront-spring-boot` Bill Of Materials (BOM).
+- The core setup consists of importing the `wavefront-spring-boot-bom` Bill Of Materials (BOM).
 
   ```
   <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>com.wavefront</groupId>
-        <artifactId>wavefront-spring-boot</artifactId>
+        <artifactId>wavefront-spring-boot-bom</artifactId>
         <version>2.0.2</version>
         <type>pom</type>
         <scope>import</scope>
