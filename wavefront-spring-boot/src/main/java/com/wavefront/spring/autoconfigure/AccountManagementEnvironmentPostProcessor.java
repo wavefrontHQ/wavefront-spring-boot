@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import com.wavefront.sdk.common.Utils;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.spring.account.AccountInfo;
 import com.wavefront.spring.account.AccountManagementClient;
@@ -219,7 +220,8 @@ class AccountManagementEnvironmentPostProcessor
   private AccountInfo invokeAccountManagementClient(ConfigurableEnvironment environment,
       BiFunction<AccountManagementClient, ApplicationTags, AccountInfo> accountProvider) {
     RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
-    AccountManagementClient client = new AccountManagementClient(restTemplateBuilder);
+    AccountManagementClient client = new AccountManagementClient(restTemplateBuilder,
+        Utils.getVersion("wavefront-spring-boot").orElse(null));
     ApplicationTags applicationTags = new ApplicationTagsFactory().createFromEnvironment(environment);
     return accountProvider.apply(client, applicationTags);
   }

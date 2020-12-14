@@ -2,6 +2,7 @@ package com.wavefront.spring.actuate;
 
 import java.net.URI;
 
+import com.wavefront.sdk.common.Utils;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.spring.account.AccountManagementClient;
 import com.wavefront.spring.autoconfigure.WavefrontAutoConfiguration;
@@ -35,7 +36,8 @@ public class WavefrontEndpointAutoConfiguration {
   @Bean
   @ConditionalOnMissingBean
   public AccountManagementClient accountManagementClient(RestTemplateBuilder restTemplateBuilder) {
-    return new AccountManagementClient(restTemplateBuilder);
+    return new AccountManagementClient(restTemplateBuilder,
+        Utils.getVersion("wavefront-spring-boot").orElse(null));
   }
 
   @Bean
