@@ -2,9 +2,7 @@ package com.wavefront.spring.autoconfigure;
 
 import brave.Tracer;
 import brave.TracingCustomizer;
-import brave.handler.MutableSpan;
 import brave.handler.SpanHandler;
-import brave.propagation.TraceContext;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -16,8 +14,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.sleuth.SpanNamer;
 import org.springframework.cloud.sleuth.autoconfig.brave.BraveAutoConfiguration;
-import org.springframework.cloud.sleuth.brave.bridge.BraveFinishedSpan;
-import org.springframework.cloud.sleuth.brave.bridge.BraveTraceContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Stephane Nicoll
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnClass(SpanNamer.class)
+@ConditionalOnClass({ SpanNamer.class, MeterRegistry.class, WavefrontConfig.class, WavefrontSender.class })
 @AutoConfigureBefore(BraveAutoConfiguration.class)
 class WavefrontTracingSleuthConfiguration {
 

@@ -68,7 +68,7 @@ import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
  * {@link UUID#timestamp()} on UUIDs converted here, or in other Wavefront code, as it might
  * throw.
  */
-final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
+public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
   private static final Log LOG = LogFactory.getLog(WavefrontSleuthSpanHandler.class);
 
   // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L114-L114
