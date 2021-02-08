@@ -27,14 +27,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * A fallback configuration for OpenTracing if Spring Cloud Sleuth is not available.
+ * A configuration for OpenTracing.
  *
  * @author Stephane Nicoll
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({ Reporter.class, Tracer.class })
 @ConditionalOnBean(WavefrontSender.class)
-@ConditionalOnMissingBean(name = WavefrontTracingSleuthConfiguration.BEAN_NAME)
+// TODO: Meh
+@ConditionalOnMissingBean(WavefrontTracerBla.class)
 class WavefrontTracingOpenTracingConfiguration {
 
   @Bean(destroyMethod = "flush")
