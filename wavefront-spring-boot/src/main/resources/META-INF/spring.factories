@@ -3,4 +3,5 @@ com.wavefront.spring.autoconfigure.AccountManagementEnvironmentPostProcessor
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 com.wavefront.spring.actuate.WavefrontEndpointAutoConfiguration,\
-com.wavefront.spring.autoconfigure.WavefrontAutoConfiguration
+com.wavefront.spring.autoconfigure.WavefrontAutoConfiguration,\
+com.wavefront.spring.autoconfigure.WavefrontTracingAutoConfiguration

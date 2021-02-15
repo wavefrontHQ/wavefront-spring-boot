@@ -6,6 +6,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import brave.Tracer;
+import brave.TracingCustomizer;
 import com.wavefront.opentracing.WavefrontTracer;
 import com.wavefront.opentracing.reporting.CompositeReporter;
 import com.wavefront.opentracing.reporting.Reporter;
@@ -20,15 +22,14 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
-import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.export.wavefront.WavefrontMetricsExportAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
-import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
 import org.springframework.boot.test.context.runner.AbstractApplicationContextRunner;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.boot.test.context.runner.ContextConsumer;
 import org.springframework.cloud.sleuth.autoconfig.brave.BraveAutoConfiguration;
+import org.springframework.cloud.sleuth.autoconfig.wavefront.WavefrontSleuthAutoConfiguration;
+import org.springframework.cloud.sleuth.autoconfig.wavefront.WavefrontTracingCustomizer;
 import org.springframework.core.Ordered;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -45,22 +46,7 @@ import static org.mockito.Mockito.mock;
 class WavefrontAutoConfigurationTests {
 
   private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-      .withConfiguration(AutoConfigurations.of(WavefrontAutoConfiguration.class));
-
-  @Test
-  void applicationTagsIsConfiguredFromPropertiesWhenNoneExists() {
-    this.contextRunner
-        .withPropertyValues("wavefront.application.name=test-app", "wavefront.application.service=test-service")
-        .run((context) -> {
-          assertThat(context).hasSingleBean(ApplicationTags.class);
-          ApplicationTags tags = context.getBean(ApplicationTags.class);
-          assertThat(tags.getApplication()).isEqualTo("test-app");
-          assertThat(tags.getService()).isEqualTo("test-service");
-          assertThat(tags.getCluster()).isNull();
-          assertThat(tags.getShard()).isNull();
-          assertThat(tags.getCustomTags()).isEmpty();
-        });
-  }
+      .withConfiguration(AutoConfigurations.of(WavefrontAutoConfiguration.class, WavefrontTracingAutoConfiguration.class));
 
   @Test
   void applicationTagsCanBeCustomized() {
@@ -125,21 +111,6 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
-  void applicationTagsAreNotExportedToNonWavefrontRegistry() {
-    this.contextRunner
-        .withPropertyValues("wavefront.application.name=test-app", "wavefront.application.service=test-service")
-        .with(metrics()).withConfiguration(AutoConfigurations.of(SimpleMetricsExportAutoConfiguration.class))
-        .run((context) -> {
-          MeterRegistry registry = context.getBean(MeterRegistry.class);
-          registry.counter("my.counter", "env", "qa");
-          assertThat(registry.find("my.counter").tags("env", "qa")).isNotNull();
-          assertThat(registry.find("my.counter").tags("env", "qa").tags("application", "test-app")
-              .tags("service", "test-service").tags("cluster", "test-cluster").tags("shard", "test-shard")
-              .counter()).isNull();
-        });
-  }
-
-  @Test
   void jvmReporterIsConfiguredWhenNoneExists() {
     this.contextRunner
         .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
@@ -168,6 +139,13 @@ class WavefrontAutoConfigurationTests {
     this.contextRunner
         .with(metrics())
         .run(context -> assertThat(context).doesNotHaveBean(WavefrontJvmReporter.class));
+  }
+
+  @Test
+  void tracingWithOpenTracingBacksOffWhenSpringCloudSleuthIsAvailable() {
+    this.contextRunner.with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
+        .withConfiguration(AutoConfigurations.of(WavefrontSleuthAutoConfiguration.class, BraveAutoConfiguration.class))
+        .run((context) -> assertThat(context).hasSingleBean(WavefrontTracingCustomizer.class).doesNotHaveBean(io.opentracing.Tracer.class));
   }
 
   @Test
@@ -258,6 +236,28 @@ class WavefrontAutoConfigurationTests {
           assertThat(((CompositeReporter) reporter).getReporters())
               .containsExactly(secondReporter, firstReporter);
         });
+  }
+
+  @Test
+  void tracingIsDisabledWhenOpenTracingAndSleuthAreNotAvailable() {
+    this.contextRunner
+        .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth", "io.opentracing"))
+        .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
+        .run((context) -> assertThat(context).doesNotHaveBean(TracingCustomizer.class)
+            .doesNotHaveBean(io.opentracing.Tracer.class));
+  }
+
+  @Test
+  void tracingCanBeDisabled() {
+    this.contextRunner.withPropertyValues("wavefront.tracing.enabled=false")
+        .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
+        .run((context) -> assertThat(context).doesNotHaveBean(TracingCustomizer.class)
+            .doesNotHaveBean(io.opentracing.Tracer.class));
+  }
+
+  @Test
+  void tracingIsNotConfiguredWithNonWavefrontRegistry() {
+    this.contextRunner.with(metrics()).run((context) -> assertThat(context).doesNotHaveBean(Tracer.class));
   }
 
   @SuppressWarnings("unchecked")
