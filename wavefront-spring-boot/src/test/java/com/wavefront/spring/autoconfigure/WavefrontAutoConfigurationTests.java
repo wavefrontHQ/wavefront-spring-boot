@@ -1,14 +1,11 @@
 package com.wavefront.spring.autoconfigure;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import brave.Tracer;
-import brave.TracingCustomizer;
-import brave.handler.SpanHandler;
 import com.wavefront.opentracing.WavefrontTracer;
 import com.wavefront.opentracing.reporting.CompositeReporter;
 import com.wavefront.opentracing.reporting.Reporter;
@@ -27,7 +24,6 @@ import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfigu
 import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.export.wavefront.WavefrontMetricsExportAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.env.EnvironmentPostProcessorApplicationListener;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
 import org.springframework.boot.test.context.runner.AbstractApplicationContextRunner;
@@ -37,8 +33,6 @@ import org.springframework.cloud.sleuth.autoconfig.brave.BraveAutoConfiguration;
 import org.springframework.cloud.sleuth.autoconfig.wavefront.WavefrontSleuthAutoConfiguration;
 import org.springframework.cloud.sleuth.autoconfig.wavefront.WavefrontSleuthSpanHandler;
 import org.springframework.cloud.sleuth.autoconfig.wavefront.WavefrontTracingCustomizer;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.test.util.ReflectionTestUtils;
 
