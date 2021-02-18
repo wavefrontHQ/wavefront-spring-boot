@@ -264,50 +264,12 @@ class WavefrontAutoConfigurationTests {
     };
   }
 
-  @SuppressWarnings("unchecked")
-  @Test
-  void tracingWithSleuthCanBeConfigured() {
-    WavefrontSender sender = mock(WavefrontSender.class);
-    this.contextRunner.withPropertyValues()
-        .withPropertyValues("spring.sleuth.wavefront.red-metrics-custom-tag-keys=region,test")
-        .with(wavefrontMetrics(() -> sender))
-        .with(sleuth())
-        .run((context) -> {
-          assertThat(context).hasSingleBean(WavefrontTracingCustomizer.class);
-          WavefrontSleuthSpanHandler spanHandler = context.getBean(WavefrontSleuthSpanHandler.class);
-          Set<String> traceDerivedCustomTagKeys = (Set<String>) ReflectionTestUtils.getField(
-              spanHandler, "traceDerivedCustomTagKeys");
-          assertThat(traceDerivedCustomTagKeys).containsExactlyInAnyOrder("region", "test");
-        });
-  }
-
   @Test
   void tracingWithOpenTracingBacksOffWhenSpringCloudSleuthIsAvailable() {
     this.contextRunner
         .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
         .with(sleuth())
         .run((context) -> assertThat(context).hasSingleBean(WavefrontTracingCustomizer.class).doesNotHaveBean(io.opentracing.Tracer.class));
-  }
-
-  @Test
-  void tracingWithOpenTracingCanBeConfiguredWhenSleuthIsNotAvailable() {
-    this.contextRunner
-        .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth"))
-        .withPropertyValues("wavefront.tracing.red-metrics-custom-tag-keys=region,test")
-        .with(wavefrontMetrics(() -> {
-          WavefrontSender sender = mock(WavefrontSender.class);
-          given(sender.getFailureCount()).willReturn(42);
-          return sender;
-        }))
-        .run((context) -> {
-          assertThat(context).hasSingleBean(io.opentracing.Tracer.class).hasSingleBean(WavefrontTracer.class);
-          WavefrontTracer wavefrontTracer = context.getBean(WavefrontTracer.class);
-          Reporter reporter = (Reporter) ReflectionTestUtils.getField(wavefrontTracer, "reporter");
-          assertThat(reporter.getFailureCount()).isEqualTo(42);
-          assertThat(getRedMetricsCustomTagKeys(wavefrontTracer))
-              .containsExactlyInAnyOrder("span.kind", "region", "test");
-          assertThat(getSamplers(wavefrontTracer)).isEmpty();
-        });
   }
 
   @Test
@@ -343,22 +305,6 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
-  void tracingWithOpenTracingInvokeWavefrontTracerBuilderCustomizer() {
-    this.contextRunner
-        .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth"))
-        .withPropertyValues("wavefront.tracing.red-metrics-custom-tag-keys=region,test")
-        .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
-        .withBean(WavefrontTracerBuilderCustomizer.class, () -> (builder) ->
-            builder.redMetricsCustomTagKeys(Collections.singleton("customized")))
-        .run((context) -> {
-          assertThat(context).hasSingleBean(io.opentracing.Tracer.class).hasSingleBean(WavefrontTracer.class);
-          WavefrontTracer wavefrontTracer = context.getBean(WavefrontTracer.class);
-          assertThat(getRedMetricsCustomTagKeys(wavefrontTracer))
-              .containsExactlyInAnyOrder("span.kind", "region", "test", "customized");
-        });
-  }
-
-  @Test
   void tracingWithOpenTracingWithCustomReporters() {
     OrderedReporter firstReporter = mock(OrderedReporter.class);
     given(firstReporter.getOrder()).willReturn(5);
@@ -383,14 +329,6 @@ class WavefrontAutoConfigurationTests {
   void tracingIsDisabledWhenOpenTracingAndSleuthAreNotAvailable() {
     this.contextRunner
         .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth", "io.opentracing"))
-        .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
-        .run((context) -> assertThat(context).doesNotHaveBean(WavefrontTracingCustomizer.class)
-            .doesNotHaveBean(io.opentracing.Tracer.class));
-  }
-
-  @Test
-  void tracingCanBeDisabled() {
-    this.contextRunner.withPropertyValues("wavefront.tracing.enabled=false")
         .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
         .run((context) -> assertThat(context).doesNotHaveBean(WavefrontTracingCustomizer.class)
             .doesNotHaveBean(io.opentracing.Tracer.class));
