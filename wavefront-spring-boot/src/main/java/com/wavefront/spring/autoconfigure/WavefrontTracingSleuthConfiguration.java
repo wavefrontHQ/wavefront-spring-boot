@@ -57,7 +57,4 @@ class WavefrontTracingSleuthConfiguration {
       return t -> t.traceId128Bit(true).supportsJoin(false).addSpanHandler(new WavefrontSleuthBraveSpanHandler(spanHandler));
     }
   }
-
-
-
 }

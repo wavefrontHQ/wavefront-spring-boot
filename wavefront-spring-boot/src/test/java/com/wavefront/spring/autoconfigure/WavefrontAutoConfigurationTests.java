@@ -267,8 +267,8 @@ class WavefrontAutoConfigurationTests {
         .run((context) -> {
           assertThat(context).hasSingleBean(TracingCustomizer.class);
           WavefrontSleuthBraveSpanHandler braveSpanHandler = extractSpanHandler(context.getBean(Tracer.class));
-            WavefrontSleuthSpanHandler spanHandler = braveSpanHandler.spanHandler;
-            Set<String> traceDerivedCustomTagKeys = (Set<String>) ReflectionTestUtils.getField(
+          WavefrontSleuthSpanHandler spanHandler = braveSpanHandler.spanHandler;
+          Set<String> traceDerivedCustomTagKeys = (Set<String>) ReflectionTestUtils.getField(
               spanHandler, "traceDerivedCustomTagKeys");
           assertThat(traceDerivedCustomTagKeys).containsExactlyInAnyOrder("region", "test");
         });
