@@ -179,8 +179,9 @@ final class WavefrontSleuthSpanHandler extends SpanHandler implements Runnable, 
 
     // Start and duration become 0L if unset. Any positive duration rounds up to 1 millis.
     long startMillis = span.startTimestamp() / 1000L, finishMillis = span.finishTimestamp() / 1000L;
-    long durationMicros = span.finishTimestamp() - span.startTimestamp();
     long durationMillis = startMillis != 0 && finishMillis != 0L ? Math.max(finishMillis - startMillis, 1L) : 0L;
+    long durationMicros = span.startTimestamp() != 0L && span.finishTimestamp() != 0L ?
+        span.finishTimestamp() - span.startTimestamp() : 0;
 
     List<SpanLog> spanLogs = convertAnnotationsToSpanLogs(span);
     TagList tags = new TagList(defaultTagKeys, defaultTags, context, span);
