@@ -14,7 +14,7 @@ import org.springframework.core.env.MapPropertySource;
  * and moved to Sleuth.
  *
  * @author Marcin Grzejszczak
- * @since 2.1.1
+ * @since 2.2.0
  */
 class WavefrontTracingEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
