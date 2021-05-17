@@ -37,14 +37,15 @@ This allows you to see the setup for the Spring Boot generation your project is 
 
 For completeness, here is what you should follow to configure your project.
 
-> **Note**: Version 2.1.1  is the latest version of the starter. The Wavefront for Spring Boot dependency needs to be compatible with the Spring Boot release version. See [System Requirements](https://docs.wavefront.com/wavefront_springboot.html#versionCompatibility) to get the correct dependency version.
+> **Note**: The Wavefront for Spring Boot dependency needs to be compatible with the Spring Boot release version. See [System Requirements](https://docs.wavefront.com/wavefront_springboot.html#versionCompatibility) to get the correct dependency version.
 
 Configure your project using Maven or Gradle.
 
 **Maven**
 
 - The core setup consists of importing the `wavefront-spring-boot-bom` Bill Of Materials (BOM).
-
+  
+  Example:
   ```
   <dependencyManagement>
     <dependencies>
@@ -60,7 +61,8 @@ Configure your project using Maven or Gradle.
   ```
 
 - Add the `wavefront-spring-boot-starter` to your project.
-
+  
+  Example:
   ```
   <dependency>
     <groupId>com.wavefront</groupId>
@@ -71,7 +73,8 @@ Configure your project using Maven or Gradle.
 **Gradle**
 
 - If you are using Gradle, make sure your project uses the `io.spring.dependency-management` plugin and add the following to your build.gradle file:
-
+  
+  Example:
   ```
   dependencyManagement {
     imports {
@@ -81,7 +84,8 @@ Configure your project using Maven or Gradle.
   ```
 
 - Add the `wavefront-spring-boot-starter` to your project.
-
+  
+  Example:
   ```
   dependencies {
     ...
@@ -118,7 +122,7 @@ See [Getting Started on the Spring Cloud documentation](https://spring.io/projec
 After you've added the spring-cloud-dependencies BOM, you can add Spring Cloud Sleuth as follows:
 
 - Maven: Add the following dependency to the `pom.xml` file
-
+  
   ```
   <dependency>
     <groupId>org.springframework.cloud</groupId>
