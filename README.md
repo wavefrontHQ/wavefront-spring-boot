@@ -180,7 +180,7 @@ $ ./mvnw spring-boot:run -pl wavefront-spring-boot-sample
 ## Documentation
 
 * The [Wavefront documentation](https://docs.wavefront.com/wavefront_springboot.html) includes a tutorial and instructions for examining services and traces inside Wavefront. 
-* You can [customize existing Spring Boot applications](https://docs.wavefront.com/wavefront_springboot.html#optional-custom-configurations) to send data to Wavefront. 
+* You can [customize existing Spring Boot applications](https://docs.wavefront.com/wavefront_springboot.html#custom-configurations) to send data to Wavefront. 
 
 ## License
 
