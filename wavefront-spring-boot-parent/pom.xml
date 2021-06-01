@@ -20,7 +20,7 @@
   <properties>
     <java.version>1.8</java.version>
     <spring-boot.version>2.5.0-RC1</spring-boot.version>
-    <spring-cloud.version>2020.0.2</spring-cloud.version>
+    <spring-cloud.version>2020.0.3</spring-cloud.version>
   </properties>
 
   <dependencyManagement>
