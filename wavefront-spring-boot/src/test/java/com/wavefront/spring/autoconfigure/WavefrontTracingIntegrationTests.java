@@ -263,6 +263,17 @@ public class WavefrontTracingIntegrationTests {
         }
 
         @Override
+        public void sendEvent(String s, long l, long l1, String s1, Map<String, String> map,
+                              Map<String, String> map1) {
+
+        }
+
+        @Override
+        public void sendLog(String s, double v, Long aLong, String s1, Map<String, String> map) {
+
+        }
+
+        @Override
         public void close() {
 
         }
