@@ -31,10 +31,6 @@
     </dependency>
     <dependency>
       <groupId>com.wavefront</groupId>
-      <artifactId>wavefront-internal-reporter-java</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.wavefront</groupId>
       <artifactId>wavefront-sdk-java</artifactId>
     </dependency>
     <dependency>
