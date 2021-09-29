@@ -6,11 +6,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -18,8 +21,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.wavefront.internal.reporter.WavefrontInternalReporter;
-import com.wavefront.java_sdk.com.google.common.collect.Iterators;
-import com.wavefront.java_sdk.com.google.common.collect.Sets;
 import com.wavefront.sdk.common.NamedThreadFactory;
 import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
@@ -115,7 +116,7 @@ public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
                              WavefrontProperties wavefrontProperties) {
     this.wavefrontSender = wavefrontSender;
     this.applicationTags = applicationTags;
-    this.discoveredHeartbeatMetrics = Sets.newConcurrentHashSet();
+    this.discoveredHeartbeatMetrics = ConcurrentHashMap.newKeySet();
 
     this.heartbeatMetricsScheduledExecutorService = Executors.newScheduledThreadPool(1,
         new NamedThreadFactory("sleuth-heart-beater").setDaemon(true));
@@ -304,8 +305,8 @@ public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
       int tagCount = span.getTags().size();
       addAll(defaultTags);
       for (int i = 0; i < tagCount; i++) {
-        String tagKey = Iterators.get(span.getTags().keySet().iterator(), i);
-        String tagValue = Iterators.get(span.getTags().values().iterator(), i);
+        String tagKey = getAt(span.getTags().keySet().iterator(), i);
+        String tagValue = getAt(span.getTags().values().iterator(), i);
         String key = tagKey, value = tagValue;
         String lcKey = key.toLowerCase(Locale.ROOT);
         if (lcKey.equals(ERROR_TAG_KEY)) {
@@ -355,7 +356,7 @@ public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
     if (annotationCount == 0) return Collections.emptyList();
     List<SpanLog> spanLogs = new ArrayList<>(annotationCount);
     for (int i = 0; i < annotationCount; i++) {
-      Map.Entry<Long, String> entry = Iterators.get(span.getEvents().iterator(), i);
+      Map.Entry<Long, String> entry = getAt(span.getEvents().iterator(), i);
       long epochMicros = entry.getKey();
       String value = entry.getValue();
       spanLogs.add(new SpanLog(epochMicros, Collections.singletonMap("annotation", value)));
@@ -402,5 +403,31 @@ public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
       applicationTags.getCustomTags().forEach((k, v) -> result.add(Pair.of(k, v)));
     }
     return result;
+  }
+
+  // Mostly from Guava
+  private static <T> T getAt(Iterator<T> iterator, int position) {
+    Objects.requireNonNull(iterator);
+    if (position < 0) {
+      throw new IndexOutOfBoundsException("position (" + position + ") must not be negative");
+    }
+
+    int skipped = advance(iterator, position);
+    if (!iterator.hasNext()) {
+      throw new IndexOutOfBoundsException("position (" + position + ") must be less than the number of elements that remained (" + skipped + ")");
+    }
+    else {
+      return iterator.next();
+    }
+  }
+
+  // From Guava
+  private static int advance(Iterator<?> iterator, int numberToAdvance) {
+    int i;
+    for (i = 0; i < numberToAdvance && iterator.hasNext(); ++i) {
+      iterator.next();
+    }
+
+    return i;
   }
 }
