@@ -11,6 +11,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -18,8 +19,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.wavefront.internal.reporter.WavefrontInternalReporter;
-import com.wavefront.java_sdk.com.google.common.collect.Iterators;
-import com.wavefront.java_sdk.com.google.common.collect.Sets;
 import com.wavefront.sdk.common.NamedThreadFactory;
 import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
@@ -64,7 +63,7 @@ import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
  * <p><em>Note:</em>UUID conversions follow the same conventions used in practice in Wavefront.
  * Ex. https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/6babf2ff95daa37452e1e8c35ae54b58b6abb50f/src/main/java/com/wavefront/opentracing/propagation/JaegerWavefrontPropagator.java#L191-L204
  * While in practice this is not a problem, it is worth mentioning that this convention will only
- * only result in RFC 4122 timestamp (version 1) format by accident. In other words, don't call
+ * result in RFC 4122 timestamp (version 1) format by accident. In other words, don't call
  * {@link UUID#timestamp()} on UUIDs converted here, or in other Wavefront code, as it might
  * throw.
  */
@@ -115,7 +114,7 @@ public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
                              WavefrontProperties wavefrontProperties) {
     this.wavefrontSender = wavefrontSender;
     this.applicationTags = applicationTags;
-    this.discoveredHeartbeatMetrics = Sets.newConcurrentHashSet();
+    this.discoveredHeartbeatMetrics = ConcurrentHashMap.newKeySet();
 
     this.heartbeatMetricsScheduledExecutorService = Executors.newScheduledThreadPool(1,
         new NamedThreadFactory("sleuth-heart-beater").setDaemon(true));
@@ -301,27 +300,23 @@ public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
       boolean hasAnnotations = span.getEvents().size() > 0;
       isError = span.getError() != null;
 
-      int tagCount = span.getTags().size();
       addAll(defaultTags);
-      for (int i = 0; i < tagCount; i++) {
-        String tagKey = Iterators.get(span.getTags().keySet().iterator(), i);
-        String tagValue = Iterators.get(span.getTags().values().iterator(), i);
-        String key = tagKey, value = tagValue;
-        String lcKey = key.toLowerCase(Locale.ROOT);
-        if (lcKey.equals(ERROR_TAG_KEY)) {
+      for (Map.Entry<String, String> tag : span.getTags().entrySet()) {
+        String lowerCaseKey = tag.getKey().toLowerCase(Locale.ROOT);
+        if (lowerCaseKey.equals(ERROR_TAG_KEY)) {
           isError = true;
           continue; // We later replace whatever the potentially empty value was with "true"
         }
-        if (value.isEmpty()) continue;
-        if (defaultTagKeys.contains(lcKey)) continue;
-        if (lcKey.equals(DEBUG_TAG_KEY)) {
+        if (tag.getValue().isEmpty()) continue;
+        if (defaultTagKeys.contains(lowerCaseKey)) continue;
+        if (lowerCaseKey.equals(DEBUG_TAG_KEY)) {
           debug = true; // This tag is set out-of-band
           continue;
         }
-        if (lcKey.equals(COMPONENT_TAG_KEY)) {
-          componentTagValue = value;
+        if (lowerCaseKey.equals(COMPONENT_TAG_KEY)) {
+          componentTagValue = tag.getValue();
         }
-        add(Pair.of(key, value));
+        add(Pair.of(tag.getKey(), tag.getValue()));
       }
 
       // Check for span.error() for uncaught exception in request mapping and add it to Wavefront span tag
@@ -351,16 +346,9 @@ public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
 
   // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L397-L402
   static List<SpanLog> convertAnnotationsToSpanLogs(FinishedSpan span) {
-    int annotationCount = span.getEvents().size();
-    if (annotationCount == 0) return Collections.emptyList();
-    List<SpanLog> spanLogs = new ArrayList<>(annotationCount);
-    for (int i = 0; i < annotationCount; i++) {
-      Map.Entry<Long, String> entry = Iterators.get(span.getEvents().iterator(), i);
-      long epochMicros = entry.getKey();
-      String value = entry.getValue();
-      spanLogs.add(new SpanLog(epochMicros, Collections.singletonMap("annotation", value)));
-    }
-    return spanLogs;
+    return span.getEvents().stream()
+            .map(entry -> new SpanLog(entry.getKey(), Collections.singletonMap("annotation", entry.getValue())))
+            .collect(Collectors.toList());
   }
 
   @Override public void run() {
