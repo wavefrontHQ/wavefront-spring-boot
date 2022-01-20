@@ -19,7 +19,7 @@
 
   <properties>
     <java.version>1.8</java.version>
-    <spring-boot.version>2.5.8</spring-boot.version>
+    <spring-boot.version>2.5.9</spring-boot.version>
     <spring-cloud.version>2020.0.5</spring-cloud.version>
   </properties>
 
