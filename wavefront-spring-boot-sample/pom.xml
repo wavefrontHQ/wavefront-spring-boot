@@ -29,7 +29,6 @@
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-sleuth</artifactId>
-      <scope>runtime</scope>
     </dependency>
 
     <dependency>

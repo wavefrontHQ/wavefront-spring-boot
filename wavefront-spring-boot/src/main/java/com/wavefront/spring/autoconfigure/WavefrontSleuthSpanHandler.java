@@ -329,9 +329,6 @@ public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
       if (span.getKind() != null) {
         String kind = span.getKind().toString().toLowerCase();
         add(Pair.of("span.kind", kind));
-        if (hasAnnotations) {
-          add(Pair.of("_spanSecondaryId", kind));
-        }
       }
 
       // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L329-L332
