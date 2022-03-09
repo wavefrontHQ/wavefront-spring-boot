@@ -35,8 +35,8 @@ public class AccountManagementClient {
    * be determined.
    */
   public AccountManagementClient(RestTemplateBuilder restTemplateBuilder, String version) {
-    this.restTemplate = restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(10))
-        .setReadTimeout(Duration.ofSeconds(10)).build();
+    this.restTemplate = restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(20))
+        .setReadTimeout(Duration.ofSeconds(20)).build();
     this.version = version;
   }
 
