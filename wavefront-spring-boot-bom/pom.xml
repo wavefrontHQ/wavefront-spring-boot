@@ -47,7 +47,7 @@
       <dependency>
         <groupId>com.wavefront</groupId>
         <artifactId>wavefront-sdk-java</artifactId>
-        <version>2.6.4</version>
+        <version>3.0.1</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
