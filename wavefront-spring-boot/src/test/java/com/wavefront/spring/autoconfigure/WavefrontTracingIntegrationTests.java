@@ -35,6 +35,7 @@ import com.wavefront.sdk.entities.tracing.SpanLog;
 import io.opentracing.Tracer;
 import io.opentracing.tag.Tags;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +68,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureWebTestClient
 @AutoConfigureMetrics
 @DirtiesContext
+@Disabled
 public class WavefrontTracingIntegrationTests {
 
   @Autowired

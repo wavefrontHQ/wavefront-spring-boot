@@ -4,7 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import com.wavefront.sdk.common.application.ApplicationTags;
@@ -314,7 +316,7 @@ class AccountManagementEnvironmentPostProcessorTests {
   }
 
   private ApplicationStartedEvent mockApplicationStartedEvent() {
-    return new ApplicationStartedEvent(this.application, new String[0], mock(ConfigurableApplicationContext.class));
+    return new ApplicationStartedEvent(this.application, new String[0], mock(ConfigurableApplicationContext.class), Duration.ZERO);
   }
 
   static class TestAccountManagementEnvironmentPostProcessor extends AccountManagementEnvironmentPostProcessor {

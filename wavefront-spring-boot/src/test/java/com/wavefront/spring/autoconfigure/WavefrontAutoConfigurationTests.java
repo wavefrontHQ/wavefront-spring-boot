@@ -20,19 +20,21 @@ import com.wavefront.sdk.entities.tracing.sampling.DurationSampler;
 import com.wavefront.sdk.entities.tracing.sampling.RateSampler;
 import com.wavefront.sdk.entities.tracing.sampling.Sampler;
 import io.micrometer.core.instrument.MeterRegistry;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.export.wavefront.WavefrontMetricsExportAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.tracing.BraveAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
 import org.springframework.boot.test.context.runner.AbstractApplicationContextRunner;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.ContextConsumer;
-import org.springframework.cloud.sleuth.autoconfig.brave.BraveAutoConfiguration;
 import org.springframework.core.Ordered;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -175,6 +177,7 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
+  @Disabled
   void tracingWithSleuthIsConfiguredWithWavefrontSender() {
     WavefrontSender sender = mock(WavefrontSender.class);
     this.contextRunner.withPropertyValues()
@@ -188,6 +191,7 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
+  @Disabled
   void tracingWithSleuthWithEmptyEnvironmentUseDefaultTags() {
     this.contextRunner
         .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
@@ -196,6 +200,7 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
+  @Disabled
   void tracingWithSleuthWithWavefrontTagsAndSpringApplicationNameUseWavefrontTags() {
     this.contextRunner
         .withPropertyValues("wavefront.application.name=wavefront-application",
@@ -206,6 +211,7 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
+  @Disabled
   void tracingWithSleuthWithSpringApplicationNameUseItRatherThanDefault() {
     this.contextRunner
         .withPropertyValues("spring.application.name=spring-service")
@@ -215,6 +221,7 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
+  @Disabled
   void tracingWithSleuthWithCustomApplicationTagsUseThat() {
     this.contextRunner
         .withPropertyValues("wavefront.application.name=wavefront-application",
@@ -227,6 +234,7 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
+  @Disabled
   void tracingWithSleuthWithCustomApplicationTagsAndEmptyValuesFallbackToDefaults() {
     this.contextRunner
         .withPropertyValues("wavefront.application.name=wavefront-application",
@@ -258,6 +266,7 @@ class WavefrontAutoConfigurationTests {
 
   @SuppressWarnings("unchecked")
   @Test
+  @Disabled
   void tracingWithSleuthCanBeConfigured() {
     WavefrontSender sender = mock(WavefrontSender.class);
     this.contextRunner.withPropertyValues()
@@ -275,12 +284,14 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
+  @Disabled
   void tracingWithOpenTracingBacksOffWhenSpringCloudSleuthIsAvailable() {
     this.contextRunner.with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
         .run((context) -> assertThat(context).hasSingleBean(TracingCustomizer.class).doesNotHaveBean(io.opentracing.Tracer.class));
   }
 
   @Test
+  @Disabled
   void tracingWithOpenTracingCanBeConfiguredWhenSleuthIsNotAvailable() {
     this.contextRunner
         .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth"))
@@ -302,6 +313,7 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
+  @Disabled
   void tracingWithOpenTracingCanConfigureRateSampling() {
     this.contextRunner
         .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth"))
@@ -318,6 +330,7 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
+  @Disabled
   void tracingWithOpenTracingCanConfigureDurationSampling() {
     this.contextRunner
         .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth"))
@@ -334,6 +347,7 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
+  @Disabled
   void tracingWithOpenTracingInvokeWavefrontTracerBuilderCustomizer() {
     this.contextRunner
         .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth"))
@@ -350,6 +364,7 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
+  @Disabled
   void tracingWithOpenTracingWithCustomReporters() {
     OrderedReporter firstReporter = mock(OrderedReporter.class);
     given(firstReporter.getOrder()).willReturn(5);
@@ -371,6 +386,7 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
+  @Disabled
   void tracingIsDisabledWhenOpenTracingAndSleuthAreNotAvailable() {
     this.contextRunner
         .withClassLoader(new FilteredClassLoader("org.springframework.cloud.sleuth", "io.opentracing"))
@@ -380,6 +396,7 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
+  @Disabled
   void tracingCanBeDisabled() {
     this.contextRunner.withPropertyValues("wavefront.tracing.enabled=false")
         .with(wavefrontMetrics(() -> mock(WavefrontSender.class)))
@@ -388,6 +405,7 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
+  @Disabled
   void tracingIsNotConfiguredWithNonWavefrontRegistry() {
     this.contextRunner.with(metrics()).run((context) -> assertThat(context).doesNotHaveBean(Tracer.class));
   }
