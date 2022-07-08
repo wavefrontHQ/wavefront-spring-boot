@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 class WavefrontControllerTests {
 
   @Test
+  @SuppressWarnings("unchecked")
   void dashboardInvokeSupplier() {
     URI location = URI.create("https://example.com");
     Supplier<URI> dashboardUrlSupplier = mock(Supplier.class);

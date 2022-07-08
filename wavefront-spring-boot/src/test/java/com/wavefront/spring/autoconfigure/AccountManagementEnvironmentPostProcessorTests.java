@@ -135,8 +135,10 @@ class AccountManagementEnvironmentPostProcessorTests {
         .forExistingAccount(mock(Resource.class), () -> new AccountInfo("abc-def", "https://wavefront.surf/us/test1"));
     postProcessor.postProcessEnvironment(environment, this.application);
     postProcessor.onApplicationEvent(mockApplicationStartedEvent());
-    assertThat(output).contains("Connect to your Wavefront dashboard using this one-time use link:\n"
-        + "https://wavefront.surf/us/test1\n");
+    assertThat(output).contains("""
+        Connect to your Wavefront dashboard using this one-time use link:
+        https://wavefront.surf/us/test1
+        """);
   }
 
   @Test
@@ -150,12 +152,17 @@ class AccountManagementEnvironmentPostProcessorTests {
     assertThat(environment.getProperty(URI_PROPERTY)).isEqualTo("https://wavefront.surf");
     assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isEqualTo("true");
     postProcessor.onApplicationEvent(mockApplicationStartedEvent());
-    assertThat(output).contains("Your existing Wavefront account information has been restored from disk.\n" + "\n"
-        + "To share this account, make sure the following is added to your configuration:\n\n"
-        + "\tmanagement.wavefront.api-token=abc-def\n"
-        + "\tmanagement.wavefront.uri=https://wavefront.surf\n\n"
-        + "Connect to your Wavefront dashboard using this one-time use link:\n"
-        + "https://wavefront.surf/us/test1\n");
+    assertThat(output).contains("""
+        Your existing Wavefront account information has been restored from disk.
+
+        To share this account, make sure the following is added to your configuration:
+
+        \tmanagement.wavefront.api-token=abc-def
+        \tmanagement.wavefront.uri=https://wavefront.surf
+
+        Connect to your Wavefront dashboard using this one-time use link:
+        https://wavefront.surf/us/test1
+        """);
   }
 
   @Test
@@ -183,8 +190,11 @@ class AccountManagementEnvironmentPostProcessorTests {
     postProcessor.postProcessEnvironment(environment, this.application);
     postProcessor.onApplicationEvent(mockApplicationStartedEvent());
     assertThat(output)
-        .contains("Failed to retrieve existing account information from https://example.com. The error was:\n"
-            + "\n" + "test message\n");
+        .contains("""
+            Failed to retrieve existing account information from https://example.com. The error was:
+
+            test message
+            """);
   }
 
   @Test
@@ -202,12 +212,17 @@ class AccountManagementEnvironmentPostProcessorTests {
     assertThat(apiTokenFile).hasContent("abc-def");
     postProcessor.onApplicationEvent(mockApplicationStartedEvent());
     assertThat(output).contains(
-        "A Wavefront account has been provisioned successfully and the API token has been saved to disk.\n\n"
-            + "To share this account, make sure the following is added to your configuration:\n\n"
-            + "\tmanagement.wavefront.api-token=abc-def\n"
-            + "\tmanagement.wavefront.uri=https://wavefront.surf\n\n"
-            + "Connect to your Wavefront dashboard using this one-time use link:\n"
-            + "https://wavefront.surf/us/test\n");
+        """
+            A Wavefront account has been provisioned successfully and the API token has been saved to disk.
+
+            To share this account, make sure the following is added to your configuration:
+
+            \tmanagement.wavefront.api-token=abc-def
+            \tmanagement.wavefront.uri=https://wavefront.surf
+
+            Connect to your Wavefront dashboard using this one-time use link:
+            https://wavefront.surf/us/test
+            """);
   }
 
   @Test
@@ -224,8 +239,11 @@ class AccountManagementEnvironmentPostProcessorTests {
     verifyNoMoreInteractions(apiTokenResource);
     postProcessor.onApplicationEvent(mockApplicationStartedEvent());
     assertThat(output)
-        .contains("Failed to auto-negotiate a Wavefront api token from https://wavefront.surf. The error was:\n"
-            + "\n" + "test message\n");
+        .contains("""
+            Failed to auto-negotiate a Wavefront api token from https://wavefront.surf. The error was:
+
+            test message
+            """);
   }
 
   @Test
@@ -258,6 +276,7 @@ class AccountManagementEnvironmentPostProcessorTests {
     assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isEqualTo("true");
   }
 
+  @SuppressWarnings("ConstantConditions")
   @Test
   void uriIsNotSetIfACustomUriIsSet() throws IOException {
     Resource apiTokenResource = mockApiTokenResource("abc-def");

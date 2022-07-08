@@ -48,6 +48,7 @@ import static org.mockito.Mockito.mock;
  * @author Stephane Nicoll
  * @author Tommy Ludwig
  */
+@SuppressWarnings("resource")
 class WavefrontAutoConfigurationTests {
 
   private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
@@ -290,6 +291,7 @@ class WavefrontAutoConfigurationTests {
         .run((context) -> assertThat(context).hasSingleBean(TracingCustomizer.class).doesNotHaveBean(io.opentracing.Tracer.class));
   }
 
+  @SuppressWarnings("ConstantConditions")
   @Test
   @Disabled
   void tracingWithOpenTracingCanBeConfiguredWhenSleuthIsNotAvailable() {
@@ -363,6 +365,7 @@ class WavefrontAutoConfigurationTests {
         });
   }
 
+  @SuppressWarnings("ConstantConditions")
   @Test
   @Disabled
   void tracingWithOpenTracingWithCustomReporters() {

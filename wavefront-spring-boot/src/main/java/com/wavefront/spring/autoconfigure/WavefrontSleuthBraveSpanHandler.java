@@ -1,7 +1,6 @@
 package com.wavefront.spring.autoconfigure;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 import brave.handler.MutableSpan;
 import brave.handler.SpanHandler;
@@ -24,7 +23,7 @@ class WavefrontSleuthBraveSpanHandler extends SpanHandler implements Runnable, C
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     this.spanHandler.close();
   }
 

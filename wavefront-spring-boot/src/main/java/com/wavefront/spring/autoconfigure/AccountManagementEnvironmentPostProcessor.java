@@ -30,6 +30,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.io.PathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.lang.NonNull;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
@@ -95,7 +96,7 @@ class AccountManagementEnvironmentPostProcessor
   }
 
   @Override
-  public void onApplicationEvent(SpringApplicationEvent event) {
+  public void onApplicationEvent(@NonNull SpringApplicationEvent event) {
     if (event instanceof ApplicationPreparedEvent) {
       this.logger.switchTo(AccountManagementEnvironmentPostProcessor.class);
     }
@@ -131,7 +132,7 @@ class AccountManagementEnvironmentPostProcessor
           (client, applicationTags) -> getExistingAccount(client, clusterUri, applicationTags, apiToken));
       StringBuilder sb = new StringBuilder();
       sb.append(String.format("%nConnect to your Wavefront dashboard using this one-time use link:%n%s%n",
-          accountInfo.getLoginUrl()));
+          accountInfo.loginUrl()));
       return sb::toString;
     } catch (Exception ex) {
       return accountManagementFailure(
@@ -163,8 +164,8 @@ class AccountManagementEnvironmentPostProcessor
     try {
       AccountInfo accountInfo = invokeAccountManagementClient(environment,
           (client, applicationInfo) -> provisionAccount(client, clusterUri, applicationInfo));
-      registerApiToken(environment, accountInfo.getApiToken());
-      writeApiTokenToDisk(localApiTokenResource, accountInfo.getApiToken());
+      registerApiToken(environment, accountInfo.apiToken());
+      writeApiTokenToDisk(localApiTokenResource, accountInfo.apiToken());
       return accountManagementSuccess(
           "A Wavefront account has been provisioned successfully and the API token has been saved to disk.",
           clusterUri, accountInfo);
@@ -179,10 +180,10 @@ class AccountManagementEnvironmentPostProcessor
   private Supplier<String> accountManagementSuccess(String message, String clusterUri, AccountInfo accountInfo) {
     StringBuilder sb = new StringBuilder(String.format("%n%s%n%n", message));
     sb.append(String.format("To share this account, make sure the following is added to your configuration:%n%n"));
-    sb.append(String.format("\t%s=%s%n", API_TOKEN_PROPERTY, accountInfo.getApiToken()));
+    sb.append(String.format("\t%s=%s%n", API_TOKEN_PROPERTY, accountInfo.apiToken()));
     sb.append(String.format("\t%s=%s%n%n", URI_PROPERTY, clusterUri));
     sb.append(String.format("Connect to your Wavefront dashboard using this one-time use link:%n%s%n",
-        accountInfo.getLoginUrl()));
+        accountInfo.loginUrl()));
     return sb::toString;
   }
 

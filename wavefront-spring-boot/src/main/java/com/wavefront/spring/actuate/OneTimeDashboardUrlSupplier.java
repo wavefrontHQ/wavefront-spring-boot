@@ -32,7 +32,7 @@ class OneTimeDashboardUrlSupplier implements Supplier<URI> {
   public URI get() {
     AccountInfo account = this.accountManagementClient.getExistingAccount(
         this.wavefrontConfig.uri(), this.applicationTags, this.wavefrontConfig.apiToken());
-    return URI.create(account.getLoginUrl());
+    return URI.create(account.loginUrl());
   }
 
 }

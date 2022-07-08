@@ -52,8 +52,8 @@ import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
  *
  * <p>This uses a combination of conversion approaches from Wavefront projects:
  * <ul>
- *   <li>https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java</li>
- *   <li>https://github.com/wavefrontHQ/wavefront-proxy</li>
+ *   <li><a href="https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java">...</a></li>
+ *   <li><a href="https://github.com/wavefrontHQ/wavefront-proxy">...</a></li>
  * </ul>
  *
  * <p>On conflict, we make a comment and prefer wavefront-opentracing-sdk-java. The rationale is
@@ -61,7 +61,7 @@ import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
  * so it is easier to reason with. This policy can be revisited by future maintainers.
  *
  * <p><em>Note:</em>UUID conversions follow the same conventions used in practice in Wavefront.
- * Ex. https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/6babf2ff95daa37452e1e8c35ae54b58b6abb50f/src/main/java/com/wavefront/opentracing/propagation/JaegerWavefrontPropagator.java#L191-L204
+ * Ex. <a href="https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/6babf2ff95daa37452e1e8c35ae54b58b6abb50f/src/main/java/com/wavefront/opentracing/propagation/JaegerWavefrontPropagator.java#L191-L204">...</a>
  * While in practice this is not a problem, it is worth mentioning that this convention will only
  * result in RFC 4122 timestamp (version 1) format by accident. In other words, don't call
  * {@link UUID#timestamp()} on UUIDs converted here, or in other Wavefront code, as it might
@@ -175,22 +175,17 @@ public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
     return Collections.unmodifiableList(this.defaultTags);
   }
 
-  private String padLeftWithZeros(String string, int length) {
-    if (string.length() >= length) {
+  private String padToTraceIdHexSize(String string) {
+    if (string.length() >= TRACE_ID_HEX_SIZE) {
       return string;
     }
     else {
-      StringBuilder sb = new StringBuilder(length);
-      for (int i = string.length(); i < length; i++) {
-        sb.append('0');
-      }
-
-      return sb.append(string).toString();
+      return "0".repeat(TRACE_ID_HEX_SIZE - string.length()).concat(string);
     }
   }
 
   private void send(TraceContext context, FinishedSpan span) {
-    String traceIdString = padLeftWithZeros(context.traceId(), TRACE_ID_HEX_SIZE);
+    String traceIdString = padToTraceIdHexSize(context.traceId());
     String traceIdHigh = traceIdString.substring(0, traceIdString.length() / 2);
     String traceIdLow = traceIdString.substring(traceIdString.length() / 2);
     UUID traceId = new UUID(longFromBase16String(traceIdHigh), longFromBase16String(traceIdLow));
@@ -204,7 +199,6 @@ public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
     if (StringUtils.hasText(parentId) && longFromBase16String(parentId) != 0L) {
       parents = Collections.singletonList(new UUID(0L, longFromBase16String(parentId)));
     }
-    List<UUID> followsFrom = null;
 
     // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L344-L345
     String name = span.getName();
@@ -220,6 +214,8 @@ public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
     TagList tags = new TagList(defaultTagKeys, defaultTags, span);
 
     try {
+      List<UUID> followsFrom = null;
+      //noinspection ConstantConditions
       wavefrontSender.sendSpan(name, startMillis, durationMillis, source, traceId, spanId,
           parents, followsFrom, tags, spanLogs);
     } catch (IOException | RuntimeException t) {

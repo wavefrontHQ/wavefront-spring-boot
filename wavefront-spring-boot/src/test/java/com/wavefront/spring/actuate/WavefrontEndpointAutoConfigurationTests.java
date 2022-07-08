@@ -16,6 +16,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -121,11 +123,12 @@ class WavefrontEndpointAutoConfigurationTests {
   private static WavefrontConfig testWavefrontConfig(String uri, String apiToken) {
     return new WavefrontConfig() {
       @Override
-      public String get(String key) {
+      public String get(@Nullable String key) {
         return null;
       }
 
       @Override
+      @NonNull
       public String uri() {
         return uri;
       }

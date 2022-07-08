@@ -10,6 +10,8 @@ import io.micrometer.wavefront.WavefrontConfig;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -75,11 +77,12 @@ class OneTimeDashboardUrlSupplierTests {
   private WavefrontConfig testWavefrontConfig(String uri, String apiToken) {
     return new WavefrontConfig() {
       @Override
-      public String get(String key) {
+      public String get(@Nullable String key) {
         return null;
       }
 
       @Override
+      @NonNull
       public String uri() {
         return uri;
       }

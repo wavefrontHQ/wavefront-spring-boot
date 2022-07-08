@@ -48,8 +48,8 @@ class AccountManagementClientTests {
         .andRespond(withStatus(HttpStatus.OK).contentType(MediaType.APPLICATION_JSON)
             .body("{\"url\":\"/us/test123\",\"token\":\"ee479a71-abcd-abcd-abcd-62b0e8416989\"}\n"));
     AccountInfo accountInfo = this.client.provisionAccount("https://example.com", createDefaultApplicationTags());
-    assertThat(accountInfo.getApiToken()).isEqualTo("ee479a71-abcd-abcd-abcd-62b0e8416989");
-    assertThat(accountInfo.getLoginUrl()).isEqualTo("https://example.com/us/test123");
+    assertThat(accountInfo.apiToken()).isEqualTo("ee479a71-abcd-abcd-abcd-62b0e8416989");
+    assertThat(accountInfo.loginUrl()).isEqualTo("https://example.com/us/test123");
   }
 
   @Test
@@ -66,8 +66,8 @@ class AccountManagementClientTests {
             .body("{\"url\":\"/us/test123\",\"token\":\"ee479a71-abcd-abcd-abcd-62b0e8416989\"}\n"));
     AccountInfo accountInfo = this.client.provisionAccount("https://example.com",
         new ApplicationTagsFactory().createFromEnvironment(environment));
-    assertThat(accountInfo.getApiToken()).isEqualTo("ee479a71-abcd-abcd-abcd-62b0e8416989");
-    assertThat(accountInfo.getLoginUrl()).isEqualTo("https://example.com/us/test123");
+    assertThat(accountInfo.apiToken()).isEqualTo("ee479a71-abcd-abcd-abcd-62b0e8416989");
+    assertThat(accountInfo.loginUrl()).isEqualTo("https://example.com/us/test123");
   }
 
   @Test
@@ -94,8 +94,8 @@ class AccountManagementClientTests {
             .body("{\"url\":\"/us/test123\"}\n"));
     AccountInfo accountInfo = this.client.getExistingAccount("https://example.com", createDefaultApplicationTags(),
         "ee479a71-abcd-abcd-abcd-62b0e8416989");
-    assertThat(accountInfo.getApiToken()).isEqualTo("ee479a71-abcd-abcd-abcd-62b0e8416989");
-    assertThat(accountInfo.getLoginUrl()).isEqualTo("https://example.com/us/test123");
+    assertThat(accountInfo.apiToken()).isEqualTo("ee479a71-abcd-abcd-abcd-62b0e8416989");
+    assertThat(accountInfo.loginUrl()).isEqualTo("https://example.com/us/test123");
   }
 
   @Test
@@ -127,8 +127,8 @@ class AccountManagementClientTests {
             .body("{\"url\":\"/us/test123\"}\n"));
     AccountInfo accountInfo = customClient.getExistingAccount("https://example.com", createDefaultApplicationTags(),
         "ee479a71-abcd-abcd-abcd-62b0e8416989");
-    assertThat(accountInfo.getApiToken()).isEqualTo("ee479a71-abcd-abcd-abcd-62b0e8416989");
-    assertThat(accountInfo.getLoginUrl()).isEqualTo("https://example.com/us/test123");
+    assertThat(accountInfo.apiToken()).isEqualTo("ee479a71-abcd-abcd-abcd-62b0e8416989");
+    assertThat(accountInfo.loginUrl()).isEqualTo("https://example.com/us/test123");
   }
 
   private ApplicationTags createDefaultApplicationTags() {
