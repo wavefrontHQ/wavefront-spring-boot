@@ -103,8 +103,8 @@ Here is an example message when an existing account is restored from `~/.wavefro
 ```text
 Your existing Wavefront account information has been restored from disk.
 
-management.metrics.export.wavefront.api-token=2c96d63a-abcd-efgh-ijhk-841611451e07
-management.metrics.export.wavefront.uri=https://wavefront.surf
+management.wavefront.api-token=2c96d63a-abcd-efgh-ijhk-841611451e07
+management.wavefront.uri=https://wavefront.surf
 
 Connect to your Wavefront dashboard using this one-time use link:
 https://wavefront.surf/us/example

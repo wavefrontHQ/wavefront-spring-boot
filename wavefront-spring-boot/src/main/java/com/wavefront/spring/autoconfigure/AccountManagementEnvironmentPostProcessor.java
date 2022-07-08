@@ -43,11 +43,11 @@ import org.springframework.util.StringUtils;
 class AccountManagementEnvironmentPostProcessor
     implements EnvironmentPostProcessor, ApplicationListener<SpringApplicationEvent> {
 
-  private static final String ENABLED_PROPERTY = "management.metrics.export.wavefront.enabled";
+  private static final String ENABLED_PROPERTY = "management.wavefront.metrics.export.enabled";
 
-  private static final String API_TOKEN_PROPERTY = "management.metrics.export.wavefront.api-token";
+  private static final String API_TOKEN_PROPERTY = "management.wavefront.api-token";
 
-  private static final String URI_PROPERTY = "management.metrics.export.wavefront.uri";
+  private static final String URI_PROPERTY = "management.wavefront.uri";
 
   private static final String FREEMIUM_ACCOUNT_PROPERTY = "wavefront.freemium-account";
 

@@ -53,7 +53,6 @@ class WavefrontEndpointAutoConfigurationTests {
         .run((context) -> assertThat(context).doesNotHaveBean(WavefrontController.class));
   }
 
-
   @Test
   void runWhenNotExposedShouldNotHaveEndpointBean() {
     this.contextRunner.withBean(WavefrontConfig.class, () -> mock(WavefrontConfig.class))

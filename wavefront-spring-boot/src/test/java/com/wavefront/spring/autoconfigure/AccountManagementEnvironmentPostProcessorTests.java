@@ -6,7 +6,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import com.wavefront.sdk.common.application.ApplicationTags;
@@ -42,11 +41,11 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 @ExtendWith(OutputCaptureExtension.class)
 class AccountManagementEnvironmentPostProcessorTests {
 
-  private static final String ENABLED_PROPERTY = "management.metrics.export.wavefront.enabled";
+  private static final String ENABLED_PROPERTY = "management.wavefront.metrics.export.enabled";
 
-  private static final String API_TOKEN_PROPERTY = "management.metrics.export.wavefront.api-token";
+  private static final String API_TOKEN_PROPERTY = "management.wavefront.api-token";
 
-  private static final String URI_PROPERTY = "management.metrics.export.wavefront.uri";
+  private static final String URI_PROPERTY = "management.wavefront.uri";
 
   private static final String FREEMIUM_ACCOUNT_PROPERTY = "wavefront.freemium-account";
 
@@ -82,12 +81,19 @@ class AccountManagementEnvironmentPostProcessorTests {
   }
 
   @Test
-  void accountProvisioningIsNotTriggeredWhenMetricsExportIsDisabled() {
+  void postProcessorDoesNotRunWhenMetricsExportIsDisabled() {
     MockEnvironment environment = new MockEnvironment().withProperty(ENABLED_PROPERTY, "false");
     new AccountManagementEnvironmentPostProcessor().postProcessEnvironment(environment, this.application);
-    assertThat(environment.getProperty(API_TOKEN_PROPERTY)).isNull();
-    assertThat(environment.getProperty(URI_PROPERTY)).isNull();
-    assertThat(environment.getProperty(FREEMIUM_ACCOUNT_PROPERTY)).isNull();
+    verifyNoInteractions(this.application);
+  }
+
+  @Test
+  void postProcessorDoesRunWhenWhenMetricsExportIsEnabled() {
+    MockEnvironment environment = new MockEnvironment().withProperty(ENABLED_PROPERTY, "true");
+    AccountManagementEnvironmentPostProcessor postProcessor =
+        TestAccountManagementEnvironmentPostProcessor.withUnreadableLocalApiToken();
+    postProcessor.postProcessEnvironment(environment, this.application);
+    verify(this.application).addListeners(postProcessor);
   }
 
   @Test
@@ -146,8 +152,8 @@ class AccountManagementEnvironmentPostProcessorTests {
     postProcessor.onApplicationEvent(mockApplicationStartedEvent());
     assertThat(output).contains("Your existing Wavefront account information has been restored from disk.\n" + "\n"
         + "To share this account, make sure the following is added to your configuration:\n\n"
-        + "\tmanagement.metrics.export.wavefront.api-token=abc-def\n"
-        + "\tmanagement.metrics.export.wavefront.uri=https://wavefront.surf\n\n"
+        + "\tmanagement.wavefront.api-token=abc-def\n"
+        + "\tmanagement.wavefront.uri=https://wavefront.surf\n\n"
         + "Connect to your Wavefront dashboard using this one-time use link:\n"
         + "https://wavefront.surf/us/test1\n");
   }
@@ -198,8 +204,8 @@ class AccountManagementEnvironmentPostProcessorTests {
     assertThat(output).contains(
         "A Wavefront account has been provisioned successfully and the API token has been saved to disk.\n\n"
             + "To share this account, make sure the following is added to your configuration:\n\n"
-            + "\tmanagement.metrics.export.wavefront.api-token=abc-def\n"
-            + "\tmanagement.metrics.export.wavefront.uri=https://wavefront.surf\n\n"
+            + "\tmanagement.wavefront.api-token=abc-def\n"
+            + "\tmanagement.wavefront.uri=https://wavefront.surf\n\n"
             + "Connect to your Wavefront dashboard using this one-time use link:\n"
             + "https://wavefront.surf/us/test\n");
   }
@@ -358,6 +364,12 @@ class AccountManagementEnvironmentPostProcessorTests {
       return new TestAccountManagementEnvironmentPostProcessor(localApiToResource, () -> {
         throw new IllegalArgumentException("Should not be called");
       }, accountProvisioning);
+    }
+
+    static TestAccountManagementEnvironmentPostProcessor withUnreadableLocalApiToken() {
+      Resource unreadableLocalApiToken = mock(Resource.class);
+      given(unreadableLocalApiToken.isReadable()).willReturn(false);
+      return new TestAccountManagementEnvironmentPostProcessor(unreadableLocalApiToken, null, null);
     }
 
     @Override
