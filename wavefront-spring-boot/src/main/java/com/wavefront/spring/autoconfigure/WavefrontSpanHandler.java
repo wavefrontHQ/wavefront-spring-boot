@@ -26,11 +26,12 @@ import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.entities.tracing.SpanLog;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.exporter.FinishedSpan;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.sleuth.TraceContext;
-import org.springframework.cloud.sleuth.exporter.FinishedSpan;
 import org.springframework.util.StringUtils;
 
 import static com.wavefront.internal.SpanDerivedMetricsUtils.TRACING_DERIVED_PREFIX;
@@ -67,8 +68,8 @@ import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
  * {@link UUID#timestamp()} on UUIDs converted here, or in other Wavefront code, as it might
  * throw.
  */
-public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
-  private static final Log LOG = LogFactory.getLog(WavefrontSleuthSpanHandler.class);
+public final class WavefrontSpanHandler implements Runnable, Closeable {
+  private static final Log LOG = LogFactory.getLog(WavefrontSpanHandler.class);
 
   // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L114-L114
   private static final String DEFAULT_SPAN_NAME = "defaultOperation";
@@ -108,10 +109,10 @@ public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
   final Set<String> defaultTagKeys;
   final ApplicationTags applicationTags;
 
-  WavefrontSleuthSpanHandler(int maxQueueSize, WavefrontSender wavefrontSender,
-                             MeterRegistry meterRegistry, String source,
-                             ApplicationTags applicationTags,
-                             WavefrontProperties wavefrontProperties) {
+  WavefrontSpanHandler(int maxQueueSize, WavefrontSender wavefrontSender,
+                       MeterRegistry meterRegistry, String source,
+                       ApplicationTags applicationTags,
+                       WavefrontProperties wavefrontProperties) {
     this.wavefrontSender = wavefrontSender;
     this.applicationTags = applicationTags;
     this.discoveredHeartbeatMetrics = ConcurrentHashMap.newKeySet();

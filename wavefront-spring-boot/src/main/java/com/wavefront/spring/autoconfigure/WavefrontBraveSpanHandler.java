@@ -5,15 +5,15 @@ import java.io.Closeable;
 import brave.handler.MutableSpan;
 import brave.handler.SpanHandler;
 import brave.propagation.TraceContext;
+import io.micrometer.tracing.brave.bridge.BraveFinishedSpan;
+import io.micrometer.tracing.brave.bridge.BraveTraceContext;
 
-import org.springframework.cloud.sleuth.brave.bridge.BraveFinishedSpan;
-import org.springframework.cloud.sleuth.brave.bridge.BraveTraceContext;
 
-class WavefrontSleuthBraveSpanHandler extends SpanHandler implements Runnable, Closeable {
+class WavefrontBraveSpanHandler extends SpanHandler implements Runnable, Closeable {
 
-  final WavefrontSleuthSpanHandler spanHandler;
+  final WavefrontSpanHandler spanHandler;
 
-  WavefrontSleuthBraveSpanHandler(WavefrontSleuthSpanHandler spanHandler) {
+  WavefrontBraveSpanHandler(WavefrontSpanHandler spanHandler) {
     this.spanHandler = spanHandler;
   }
 

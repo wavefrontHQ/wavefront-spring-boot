@@ -20,7 +20,7 @@
   <properties>
     <java.version>17</java.version>
     <spring-boot.version>3.0.0-M3</spring-boot.version>
-    <spring-cloud.version>2021.0.3</spring-cloud.version>
+    <micrometer-tracing.version>1.0.0-M6</micrometer-tracing.version>
   </properties>
 
   <dependencyManagement>
@@ -44,9 +44,9 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-dependencies</artifactId>
-        <version>${spring-cloud.version}</version>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-tracing-bom</artifactId>
+        <version>${micrometer-tracing.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>

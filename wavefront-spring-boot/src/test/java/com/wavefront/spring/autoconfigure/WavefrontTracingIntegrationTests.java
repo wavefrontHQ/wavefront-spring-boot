@@ -26,14 +26,12 @@ import java.util.concurrent.TimeUnit;
 
 import brave.Tracing;
 import brave.internal.Platform;
-import brave.opentracing.BraveTracer;
+import brave.Tracer;
 import brave.sampler.Sampler;
 import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.entities.histograms.HistogramGranularity;
 import com.wavefront.sdk.entities.tracing.SpanLog;
-import io.opentracing.Tracer;
-import io.opentracing.tag.Tags;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -68,7 +66,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureWebTestClient
 @AutoConfigureMetrics
 @DirtiesContext
-@Disabled
+@Disabled("Blocked on Spring Boot 3 instrumentation")
 public class WavefrontTracingIntegrationTests {
 
   @Autowired
@@ -136,13 +134,15 @@ public class WavefrontTracingIntegrationTests {
   }
 
   @Test
-  void setsStatusCodeAndErrorTrueTags_opentracing() {
+  void setsStatusCodeAndErrorTrueTags_opentelemetry() {
     this.client.get()
-        .uri("/error/opentracing")
+        .uri("/error/opentelemetry")
         .exchange().expectStatus().is5xxServerError();
 
     SpanRecord spanRecord = takeRecord(spanRecordQueue);
     // http
+    // TODO: what special handling do we need (if any) for handling errors from
+    //   an OTel Tracer?
     assertThat(spanRecord.tags).contains(
         Pair.of("http.status_code", "500"),
         Pair.of("error", "true") // retains the boolean true
@@ -211,7 +211,7 @@ public class WavefrontTracingIntegrationTests {
     /** Sleuth would automatically wire this, except there's another impl in the classpath. */
     @Bean
     Tracer opentracing(Tracing tracing) {
-      return BraveTracer.create(tracing);
+      return tracing.tracer();
     }
 
     @Bean
@@ -285,7 +285,6 @@ public class WavefrontTracingIntegrationTests {
 
   @Controller
   static class WebMvcController {
-    @Autowired Tracer opentracing;
     @Autowired brave.Tracer tracer;
 
     @RequestMapping(value = "/api/fn/{id}")
@@ -299,9 +298,8 @@ public class WavefrontTracingIntegrationTests {
         case "brave":
           tracer.currentSpanCustomizer().tag("error", "user message");
           break;
-        case "opentracing":
-          opentracing.activeSpan().setTag(Tags.ERROR, true);
-          break;
+        case "opentelemetry":
+          throw new IllegalArgumentException("TODO: opentelemetry tracer not yet implemented");
         case "exception":
           tracer.currentSpan().error(new RuntimeException("uncaught!"));
           break;

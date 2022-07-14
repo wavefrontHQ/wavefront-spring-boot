@@ -186,7 +186,7 @@ class WavefrontAutoConfigurationTests {
         .with(sleuth())
         .run((context) -> {
           assertThat(context).hasSingleBean(TracingCustomizer.class);
-          WavefrontSleuthBraveSpanHandler braveSpanHandler = extractSpanHandler(context.getBean(Tracer.class));
+          WavefrontBraveSpanHandler braveSpanHandler = extractSpanHandler(context.getBean(Tracer.class));
           assertThat(braveSpanHandler.spanHandler).hasFieldOrPropertyWithValue("wavefrontSender", sender);
         });
   }
@@ -256,7 +256,7 @@ class WavefrontAutoConfigurationTests {
       String serviceName, String cluster, String shard) {
     return (context) -> {
       assertThat(context).hasSingleBean(TracingCustomizer.class);
-      WavefrontSleuthBraveSpanHandler braveSpanHandler = extractSpanHandler(context.getBean(Tracer.class));
+      WavefrontBraveSpanHandler braveSpanHandler = extractSpanHandler(context.getBean(Tracer.class));
       assertThat(braveSpanHandler.spanHandler.getDefaultTags()).contains(
           new Pair<>("application", applicationName),
           new Pair<>("service", serviceName),
@@ -276,8 +276,8 @@ class WavefrontAutoConfigurationTests {
         .with(sleuth())
         .run((context) -> {
           assertThat(context).hasSingleBean(TracingCustomizer.class);
-          WavefrontSleuthBraveSpanHandler braveSpanHandler = extractSpanHandler(context.getBean(Tracer.class));
-          WavefrontSleuthSpanHandler spanHandler = braveSpanHandler.spanHandler;
+          WavefrontBraveSpanHandler braveSpanHandler = extractSpanHandler(context.getBean(Tracer.class));
+          WavefrontSpanHandler spanHandler = braveSpanHandler.spanHandler;
           Set<String> traceDerivedCustomTagKeys = (Set<String>) ReflectionTestUtils.getField(
               spanHandler, "traceDerivedCustomTagKeys");
           assertThat(traceDerivedCustomTagKeys).containsExactlyInAnyOrder("region", "test");
@@ -414,12 +414,12 @@ class WavefrontAutoConfigurationTests {
   }
 
   @SuppressWarnings("ConstantConditions")
-  private WavefrontSleuthBraveSpanHandler extractSpanHandler(Tracer tracer) {
+  private WavefrontBraveSpanHandler extractSpanHandler(Tracer tracer) {
     SpanHandler[] handlers = (SpanHandler[]) ReflectionTestUtils.getField(
         ReflectionTestUtils.getField(
             ReflectionTestUtils.getField(tracer, "spanHandler"), "delegate"),
         "handlers");
-    return (WavefrontSleuthBraveSpanHandler) handlers[1];
+    return (WavefrontBraveSpanHandler) handlers[1];
   }
 
   @SuppressWarnings("unchecked")
