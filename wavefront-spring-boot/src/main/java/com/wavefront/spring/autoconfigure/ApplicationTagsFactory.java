@@ -53,6 +53,7 @@ public class ApplicationTagsFactory {
     PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
     mapper.from(application::getCluster).to(builder::cluster);
     mapper.from(application::getShard).to(builder::shard);
+    mapper.from(application::getCustomTags).to(builder::customTags);
     return customize(builder).build();
   }
 

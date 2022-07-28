@@ -118,13 +118,13 @@ class WavefrontAutoConfigurationTests {
     this.contextRunner
         .withPropertyValues("wavefront.application.name=test-app",
             "wavefront.application.service=test-service", "wavefront.application.cluster=test-cluster",
-            "wavefront.application.shard=test-shard")
+            "wavefront.application.shard=test-shard", "wavefront.application.custom-tags.foo=bar")
         .with(wavefrontMetrics(() -> mock(WavefrontSender.class))).run((context) -> {
       MeterRegistry registry = context.getBean(MeterRegistry.class);
       registry.counter("my.counter", "env", "qa");
       assertThat(registry.find("my.counter").tags("env", "qa").tags("application", "test-app")
           .tags("service", "test-service").tags("cluster", "test-cluster").tags("shard", "test-shard")
-          .counter()).isNotNull();
+          .tags("foo", "bar").counter()).isNotNull();
     });
   }
 

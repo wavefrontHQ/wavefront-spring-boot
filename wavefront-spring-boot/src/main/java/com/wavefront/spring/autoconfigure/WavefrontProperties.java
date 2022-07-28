@@ -2,6 +2,7 @@ package com.wavefront.spring.autoconfigure;
 
 import java.time.Duration;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -72,6 +73,8 @@ public class WavefrontProperties {
      */
     private String shard;
 
+    private Map<String, String> customTags;
+
     public String getName() {
       return this.name;
     }
@@ -104,6 +107,13 @@ public class WavefrontProperties {
       this.shard = shard;
     }
 
+    public Map<String, String> getCustomTags() {
+      return customTags;
+    }
+
+    public void setCustomTags(Map<String, String> customTags) {
+      this.customTags = customTags;
+    }
   }
 
   public static class Metrics {
