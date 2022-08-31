@@ -19,8 +19,8 @@
 
   <properties>
     <java.version>17</java.version>
-    <spring-boot.version>3.0.0-M3</spring-boot.version>
-    <micrometer-tracing.version>1.0.0-M6</micrometer-tracing.version>
+    <spring-boot.version>3.0.0-M4</spring-boot.version>
+    <micrometer-tracing.version>1.0.0-M7</micrometer-tracing.version>
   </properties>
 
   <dependencyManagement>
