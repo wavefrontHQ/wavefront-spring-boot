@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({ Reporter.class, Tracer.class })
 @ConditionalOnBean(WavefrontSender.class)
-@ConditionalOnMissingBean(name = WavefrontTracingSleuthConfiguration.BEAN_NAME)
+@ConditionalOnMissingBean(name = WavefrontTracingMicrometerConfiguration.BEAN_NAME)
 class WavefrontTracingOpenTracingConfiguration {
 
   @Bean(destroyMethod = "flush")

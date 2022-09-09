@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuration for Wavefront tracing using Spring Cloud Sleuth.
+ * Configuration for Wavefront tracing using Micrometer Tracing.
  *
  * @author Adrian Cole
  * @author Stephane Nicoll
@@ -26,17 +26,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({ SpanNamer.class, MeterRegistry.class, WavefrontConfig.class, WavefrontSender.class })
 @AutoConfigureBefore(BraveAutoConfiguration.class)
-class WavefrontTracingSleuthConfiguration {
+class WavefrontTracingMicrometerConfiguration {
 
   static final String BEAN_NAME = "wavefrontTracingCustomizer";
 
   @Bean
   @ConditionalOnBean({ MeterRegistry.class, WavefrontConfig.class, WavefrontSender.class })
-  WavefrontSpanHandler wavefrontSleuthSpanHandler(MeterRegistry meterRegistry,
-                                                  WavefrontSender wavefrontSender,
-                                                  ApplicationTags applicationTags,
-                                                  WavefrontConfig wavefrontConfig,
-                                                  WavefrontProperties wavefrontProperties) {
+  WavefrontSpanHandler wavefrontMicrometerSpanHandler(MeterRegistry meterRegistry,
+                                                      WavefrontSender wavefrontSender,
+                                                      ApplicationTags applicationTags,
+                                                      WavefrontConfig wavefrontConfig,
+                                                      WavefrontProperties wavefrontProperties) {
     return new WavefrontSpanHandler(
             // https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/f1f08d8daf7b692b9b61dcd5bc24ca6befa8e710/src/main/java/com/wavefront/opentracing/reporting/WavefrontSpanReporter.java#L54
             50000, // TODO: maxQueueSize should be a property, ya?
