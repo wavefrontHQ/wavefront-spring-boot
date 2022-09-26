@@ -112,9 +112,8 @@ https://wavefront.surf/us/example
 
 ## Tracing Support
 
-If you'd like to send traces to Wavefront, you can do so using [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth) or [OpenTracing](https://opentracing.io/).
-
-**Spring Cloud Sleuth**
+If you'd like to send traces to Wavefront, you can do so using [Micrometer Tracing]
+(https://micrometer.io/docs/tracing).
 
 Each Spring Boot generation has a matching Spring Cloud generation.
 See [Getting Started on the Spring Cloud documentation](https://spring.io/projects/spring-cloud#getting-started) for details.
@@ -136,29 +135,6 @@ After you've added the spring-cloud-dependencies BOM, you can add Spring Cloud S
   dependencies {
     ...
     implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
-  }
-  ```
-
-**OpenTracing**
-
-Configure your `pom.xml` file or the `build.gradle` file.
-
-- Maven: Add the following dependencies to your `pom.xml` file:
-
-  ```
-  <dependency>
-    <groupId>io.opentracing.contrib</groupId>
-    <artifactId>opentracing-spring-cloud-starter</artifactId>
-    <version>0.5.7</version>
-  </dependency>
-  ```
-
-- Gradle: Add the following dependencies to the `build.gradle` file:
-
-  ```
-  dependencies {
-    ...
-    implementation 'io.opentracing.contrib:opentracing-spring-cloud-starter:0.5.7'
   }
   ```
 

@@ -210,7 +210,7 @@ public class WavefrontTracingIntegrationTests {
 
     /** Sleuth would automatically wire this, except there's another impl in the classpath. */
     @Bean
-    Tracer opentracing(Tracing tracing) {
+    Tracer braveTracer(Tracing tracing) {
       return tracing.tracer();
     }
 

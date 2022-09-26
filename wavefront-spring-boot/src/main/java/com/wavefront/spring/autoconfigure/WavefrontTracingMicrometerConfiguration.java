@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureBefore(BraveAutoConfiguration.class)
 class WavefrontTracingMicrometerConfiguration {
 
-  static final String BEAN_NAME = "wavefrontTracingCustomizer";
+  static final String BEAN_NAME = "wavefrontTracingBraveCustomizer";
 
   @Bean
   @ConditionalOnBean({ MeterRegistry.class, WavefrontConfig.class, WavefrontSender.class })
@@ -53,7 +53,7 @@ class WavefrontTracingMicrometerConfiguration {
     @Bean(BEAN_NAME)
     @ConditionalOnMissingBean(name = BEAN_NAME)
     @ConditionalOnBean({ MeterRegistry.class, WavefrontConfig.class, WavefrontSender.class })
-    TracingCustomizer wavefrontTracingCustomizer(WavefrontSpanHandler spanHandler) {
+    TracingCustomizer wavefrontTracingBraveCustomizer(WavefrontSpanHandler spanHandler) {
       return t -> t.traceId128Bit(true).supportsJoin(false).addSpanHandler(new WavefrontBraveSpanHandler(spanHandler));
     }
   }

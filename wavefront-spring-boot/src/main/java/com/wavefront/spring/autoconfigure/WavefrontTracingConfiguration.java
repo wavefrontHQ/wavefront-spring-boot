@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Import;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(value = "wavefront.tracing.enabled", matchIfMissing = true)
-@Import({ WavefrontTracingMicrometerConfiguration.class, WavefrontTracingOpenTracingConfiguration.class })
+@Import({ WavefrontTracingMicrometerConfiguration.class })
 class WavefrontTracingConfiguration {
 
 }
