@@ -48,6 +48,7 @@ import static org.mockito.Mockito.mock;
  *
  * @author Stephane Nicoll
  * @author Tommy Ludwig
+ * @author Glenn Oppegard
  */
 @SuppressWarnings("resource")
 class WavefrontAutoConfigurationTests {
@@ -218,7 +219,6 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
-  @Disabled
   void tracingWithBraveWithWavefrontTagsAndSpringApplicationNameUseWavefrontTags() {
     this.contextRunner
         .withPropertyValues("wavefront.application.name=wavefront-application",
@@ -229,7 +229,6 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
-  @Disabled
   void tracingWithBraveWithSpringApplicationNameUseItRatherThanDefault() {
     this.contextRunner
         .withPropertyValues("spring.application.name=spring-service")
@@ -239,7 +238,6 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
-  @Disabled
   void tracingWithBraveWithCustomApplicationTagsUseThat() {
     this.contextRunner
         .withPropertyValues("wavefront.application.name=wavefront-application",
@@ -252,7 +250,6 @@ class WavefrontAutoConfigurationTests {
   }
 
   @Test
-  @Disabled
   void tracingWithBraveWithCustomApplicationTagsAndEmptyValuesFallbackToDefaults() {
     this.contextRunner
         .withPropertyValues("wavefront.application.name=wavefront-application",
