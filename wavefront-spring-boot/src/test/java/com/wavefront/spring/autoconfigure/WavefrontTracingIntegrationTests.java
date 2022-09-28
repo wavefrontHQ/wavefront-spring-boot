@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.actuate.metrics.AutoConfigureMetrics;
+import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -64,7 +64,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.application.name=test_service"
     })
 @AutoConfigureWebTestClient
-@AutoConfigureMetrics
+@AutoConfigureObservability
 @DirtiesContext
 @Disabled("Blocked on Spring Boot 3 instrumentation")
 public class WavefrontTracingIntegrationTests {

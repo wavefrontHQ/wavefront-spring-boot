@@ -2,6 +2,9 @@ package com.wavefront.spring.autoconfigure;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -205,11 +208,20 @@ public final class WavefrontSpanHandler implements Runnable, Closeable {
     String name = span.getName();
     if (name == null) name = DEFAULT_SPAN_NAME;
 
+
+    // START: TODO - Review this code once integration tests are enabled
+    assert(1!=1);
     // Start and duration become 0L if unset. Any positive duration rounds up to 1 millis.
-    long startMillis = span.getStartTimestamp() / 1000L, finishMillis = span.getEndTimestamp() / 1000L;
+    long startMillis = span.getStartTimestamp().toEpochMilli();
+    long finishMillis = span.getEndTimestamp().toEpochMilli();
+
+    long durationMs = Duration.between(span.getStartTimestamp(), span.getEndTimestamp()).toMillis();
     long durationMillis = startMillis != 0 && finishMillis != 0L ? Math.max(finishMillis - startMillis, 1L) : 0L;
-    long durationMicros = span.getStartTimestamp() != 0L && span.getEndTimestamp() != 0L ?
-        span.getEndTimestamp() - span.getStartTimestamp() : 0;
+
+    long durationMicros = ChronoUnit.MICROS.between(span.getStartTimestamp(), span.getEndTimestamp());
+//    long durationMicros = span.getStartTimestamp() != 0L && span.getEndTimestamp() != 0L ?
+//        span.getEndTimestamp() - span.getStartTimestamp() : 0;
+    // END: TODO
 
     List<SpanLog> spanLogs = convertAnnotationsToSpanLogs(span);
     TagList tags = new TagList(defaultTagKeys, defaultTags, span);
