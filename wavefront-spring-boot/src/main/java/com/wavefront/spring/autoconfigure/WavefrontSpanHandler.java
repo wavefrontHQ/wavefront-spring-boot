@@ -3,7 +3,6 @@ package com.wavefront.spring.autoconfigure;
 import java.io.Closeable;
 import java.io.IOException;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
