@@ -18,6 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import com.wavefront.internal.reporter.WavefrontInternalReporter;
@@ -26,8 +27,6 @@ import com.wavefront.sdk.common.Pair;
 import com.wavefront.sdk.common.WavefrontSender;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.entities.tracing.SpanLog;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.exporter.FinishedSpan;
 
@@ -69,6 +68,12 @@ import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
  * result in RFC 4122 timestamp (version 1) format by accident. In other words, don't call
  * {@link UUID#timestamp()} on UUIDs converted here, or in other Wavefront code, as it might
  * throw.
+ *
+ * @author Adrian Cole
+ * @author Stephane Nicoll
+ * @author Moritz Halbritter
+ * @author Glenn Oppegard
+ *
  */
 public final class WavefrontSpanHandler implements Runnable, Closeable {
   private static final Log LOG = LogFactory.getLog(WavefrontSpanHandler.class);
@@ -76,8 +81,9 @@ public final class WavefrontSpanHandler implements Runnable, Closeable {
   // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L114-L114
   private static final String DEFAULT_SPAN_NAME = "defaultOperation";
 
-  private final static String DEFAULT_SOURCE = "wavefront-spring-boot";
-  private final static String WAVEFRONT_GENERATED_COMPONENT = "wavefront-generated";
+  private static final String DEFAULT_SOURCE = "wavefront-spring-boot";
+
+  private static final String WAVEFRONT_GENERATED_COMPONENT = "wavefront-generated";
 
   private static final int LONG_BYTES = Long.SIZE / Byte.SIZE;
 
@@ -93,34 +99,43 @@ public final class WavefrontSpanHandler implements Runnable, Closeable {
 
   private static final byte[] DECODING = buildDecodingArray();
 
-  final LinkedBlockingQueue<Pair<TraceContext, FinishedSpan>> spanBuffer;
-  final WavefrontSender wavefrontSender;
-  final WavefrontInternalReporter wfInternalReporter;
-  final Set<String> traceDerivedCustomTagKeys;
-  final Counter spansDropped;
-  final Counter spansReceived;
-  final Counter reportErrors;
-  final Thread sendingThread;
+  private final LinkedBlockingQueue<SpanToSend> spanBuffer;
 
-  private volatile boolean stop = false;
+  private final WavefrontSender wavefrontSender;
+
+  private final WavefrontInternalReporter wfInternalReporter;
+
+  private final Set<String> traceDerivedCustomTagKeys;
+
+  private final Thread sendingThread;
+
   private final Set<Pair<Map<String, String>, String>> discoveredHeartbeatMetrics;
+
   private final ScheduledExecutorService heartbeatMetricsScheduledExecutorService;
 
-  final String source;
-  final List<Pair<String, String>> defaultTags;
-  final Set<String> defaultTagKeys;
-  final ApplicationTags applicationTags;
+  private final String source;
 
-  WavefrontSpanHandler(int maxQueueSize, WavefrontSender wavefrontSender,
-                       MeterRegistry meterRegistry, String source,
-                       ApplicationTags applicationTags,
-                       WavefrontProperties wavefrontProperties) {
+  private final List<Pair<String, String>> defaultTags;
+
+  private final Set<String> defaultTagKeys;
+
+  private final ApplicationTags applicationTags;
+
+  private final SpanMetrics spanMetrics;
+
+  private final AtomicBoolean stop = new AtomicBoolean();
+
+
+  WavefrontSpanHandler(int maxQueueSize, WavefrontSender wavefrontSender, SpanMetrics spanMetrics,
+                       String source, ApplicationTags applicationTags,
+                       Set<String> redMetricsCustomTagKeys) {
     this.wavefrontSender = wavefrontSender;
+    this.spanMetrics = spanMetrics;
     this.applicationTags = applicationTags;
     this.discoveredHeartbeatMetrics = ConcurrentHashMap.newKeySet();
 
     this.heartbeatMetricsScheduledExecutorService = Executors.newScheduledThreadPool(1,
-        new NamedThreadFactory("sleuth-heart-beater").setDaemon(true));
+        new NamedThreadFactory("wavefront-boot-heart-beater").setDaemon(true));
 
     // Emit Heartbeats Metrics every 1 min.
     heartbeatMetricsScheduledExecutorService.scheduleAtFixedRate(() -> {
@@ -131,8 +146,7 @@ public final class WavefrontSpanHandler implements Runnable, Closeable {
       }
     }, 1, 60, TimeUnit.SECONDS);
 
-    this.traceDerivedCustomTagKeys = new HashSet<>(
-        wavefrontProperties.getTracing().getRedMetricsCustomTagKeys());
+    this.traceDerivedCustomTagKeys = new HashSet<>(redMetricsCustomTagKeys);
 
     // Start the reporter
     wfInternalReporter = new WavefrontInternalReporter.Builder().
@@ -147,13 +161,8 @@ public final class WavefrontSpanHandler implements Runnable, Closeable {
 
     this.spanBuffer = new LinkedBlockingQueue<>(maxQueueSize);
 
-    // init internal metrics
-    meterRegistry.gauge("reporter.queue.size", spanBuffer, sb -> (double) sb.size());
-    meterRegistry.gauge("reporter.queue.remaining_capacity", spanBuffer,
-        sb -> (double) sb.remainingCapacity());
-    this.spansReceived = meterRegistry.counter("reporter.spans.received");
-    this.spansDropped = meterRegistry.counter("reporter.spans.dropped");
-    this.reportErrors = meterRegistry.counter("reporter.errors");
+    spanMetrics.registerQueueSize(spanBuffer);
+    spanMetrics.registerQueueRemainingCapacity(spanBuffer);
 
     this.sendingThread = new Thread(this, "wavefrontSpanReporter");
     this.sendingThread.setDaemon(true);
@@ -163,12 +172,12 @@ public final class WavefrontSpanHandler implements Runnable, Closeable {
   // Exact same behavior as WavefrontSpanReporter
   // https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/f1f08d8daf7b692b9b61dcd5bc24ca6befa8e710/src/main/java/com/wavefront/opentracing/reporting/WavefrontSpanReporter.java#L163-L179
   public boolean end(TraceContext context, FinishedSpan span) {
-    spansReceived.increment();
-    if (!spanBuffer.offer(Pair.of(context, span))) {
-      spansDropped.increment();
+    this.spanMetrics.reportReceived();
+    if (!spanBuffer.offer(new SpanToSend(context, span))) {
+      this.spanMetrics.reportDropped();
       if (LOG.isWarnEnabled()) {
         LOG.warn("Buffer full, dropping span: " + span);
-        LOG.warn("Total spans dropped: " + spansDropped.count());
+        LOG.warn("Total spans dropped: " + this.spanMetrics.getDropped());
       }
     }
     return true; // regardless of error, other handlers should run
@@ -208,19 +217,11 @@ public final class WavefrontSpanHandler implements Runnable, Closeable {
     if (name == null) name = DEFAULT_SPAN_NAME;
 
 
-    // START: TODO - Review this code once integration tests are enabled
-    assert(1!=1);
     // Start and duration become 0L if unset. Any positive duration rounds up to 1 millis.
     long startMillis = span.getStartTimestamp().toEpochMilli();
     long finishMillis = span.getEndTimestamp().toEpochMilli();
-
-    long durationMs = Duration.between(span.getStartTimestamp(), span.getEndTimestamp()).toMillis();
-    long durationMillis = startMillis != 0 && finishMillis != 0L ? Math.max(finishMillis - startMillis, 1L) : 0L;
-
     long durationMicros = ChronoUnit.MICROS.between(span.getStartTimestamp(), span.getEndTimestamp());
-//    long durationMicros = span.getStartTimestamp() != 0L && span.getEndTimestamp() != 0L ?
-//        span.getEndTimestamp() - span.getStartTimestamp() : 0;
-    // END: TODO
+    long durationMillis = startMillis != 0 && finishMillis != 0L ? Math.max(finishMillis - startMillis, 1L) : 0L;
 
     List<SpanLog> spanLogs = convertAnnotationsToSpanLogs(span);
     TagList tags = new TagList(defaultTagKeys, defaultTags, span);
@@ -234,22 +235,25 @@ public final class WavefrontSpanHandler implements Runnable, Closeable {
       if (LOG.isDebugEnabled()) {
         LOG.debug("error sending span " + context, t);
       }
+      this.spanMetrics.reportErrors();
     }
 
     // report stats irrespective of span sampling.
     if (wfInternalReporter != null) {
       // report converted metrics/histograms from the span
       try {
-        discoveredHeartbeatMetrics.add(reportWavefrontGeneratedData(wfInternalReporter,
-            name, applicationTags.getApplication(), applicationTags.getService(),
+        discoveredHeartbeatMetrics.add(reportWavefrontGeneratedData(wfInternalReporter, name,
+            applicationTags.getApplication(), applicationTags.getService(),
             applicationTags.getCluster() == null ? NULL_TAG_VAL : applicationTags.getCluster(),
             applicationTags.getShard() == null ? NULL_TAG_VAL : applicationTags.getShard(),
-            source, tags.componentTagValue, tags.isError, durationMicros,
-            traceDerivedCustomTagKeys, tags));
-      } catch (RuntimeException t) {
+            source, tags.componentTagValue, tags.isError, durationMicros, traceDerivedCustomTagKeys,
+            tags));
+      }
+      catch (RuntimeException t) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("error sending span RED metrics " + context, t);
         }
+        this.spanMetrics.reportErrors();
       }
     }
   }
@@ -284,6 +288,116 @@ public final class WavefrontSpanHandler implements Runnable, Closeable {
   private static byte decodeByte(char hi, char lo) {
     int decoded = DECODING[hi] << 4 | DECODING[lo];
     return (byte) decoded;
+  }
+
+  // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L397-L402
+
+  static List<SpanLog> convertAnnotationsToSpanLogs(FinishedSpan span) {
+    return span.getEvents().stream()
+            .map(entry -> new SpanLog(entry.getKey(), Collections.singletonMap("annotation", entry.getValue())))
+            .collect(Collectors.toList());
+  }
+
+  @Override
+  public void run() {
+    while (!stop.get()) {
+      try {
+        SpanToSend spanToSend = spanBuffer.take();
+        if (spanToSend == DeathPill.INSTANCE) {
+          LOG.info("reporting thread stopping");
+          return;
+        }
+        send(spanToSend.getTraceContext(), spanToSend.getFinishedSpan());
+      } catch (InterruptedException ex) {
+        if (LOG.isInfoEnabled()) {
+          LOG.info("reporting thread interrupted");
+        }
+      } catch (Throwable ex) {
+        LOG.warn("Error processing buffer", ex);
+        spanMetrics.reportErrors();
+      }
+    }
+  }
+
+  @Override
+  public void close() {
+    if (!stop.compareAndSet(false, true)) {
+      // Ignore multiple stop calls
+      return;
+    }
+
+    try {
+      // This will release the thread if it's waiting in BlockingQueue#take()
+      spanBuffer.offer(DeathPill.INSTANCE);
+      // wait for 5 secs max to send remaining spans
+      sendingThread.join(5000);
+      sendingThread.interrupt();
+      heartbeatMetricsScheduledExecutorService.shutdownNow();
+    }
+    catch (InterruptedException ex) {
+      // no-op
+    }
+
+    try {
+      // It seems WavefrontClient does not support graceful shutdown, so we need to
+      // flush manually, and
+      // send should not be called after flush
+      wavefrontSender.flush();
+      wavefrontSender.close();
+    }
+    catch (IOException e) {
+      LOG.warn("Unable to close Wavefront Client", e);
+    }
+  }
+
+  // https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/f1f08d8daf7b692b9b61dcd5bc24ca6befa8e710/src/main/java/com/wavefront/opentracing/WavefrontTracer.java#L275-L280
+
+  static List<Pair<String, String>> createDefaultTags(ApplicationTags applicationTags) {
+    List<Pair<String, String>> result = new ArrayList<>();
+    result.add(Pair.of(APPLICATION_TAG_KEY, applicationTags.getApplication()));
+    result.add(Pair.of(SERVICE_TAG_KEY, applicationTags.getService()));
+    result.add(Pair.of(CLUSTER_TAG_KEY,
+        applicationTags.getCluster() == null ? NULL_TAG_VAL : applicationTags.getCluster()));
+    result.add(
+        Pair.of(SHARD_TAG_KEY, applicationTags.getShard() == null ? NULL_TAG_VAL : applicationTags.getShard()));
+    if (applicationTags.getCustomTags() != null) {
+      applicationTags.getCustomTags().forEach((k, v) -> result.add(Pair.of(k, v)));
+    }
+    return result;
+  }
+  private static class SpanToSend {
+
+    private final TraceContext traceContext;
+
+    private final FinishedSpan finishedSpan;
+
+    SpanToSend(TraceContext traceContext, FinishedSpan finishedSpan) {
+      this.traceContext = traceContext;
+      this.finishedSpan = finishedSpan;
+    }
+
+    TraceContext getTraceContext() {
+      return traceContext;
+    }
+
+    FinishedSpan getFinishedSpan() {
+      return finishedSpan;
+    }
+
+  }
+
+  /**
+   * Gets queued into {@link #spanBuffer} if {@link #close()} is called and will lead
+   * the sender thread to stop.
+   */
+  private static class DeathPill extends SpanToSend {
+
+    static final DeathPill INSTANCE = new DeathPill();
+
+    private DeathPill() {
+      super(null, null);
+    }
+
   }
 
   /**
@@ -347,56 +461,10 @@ public final class WavefrontSpanHandler implements Runnable, Closeable {
 
       // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L324-L327
       if (span.getLocalIp() != null) {
-        add(Pair.of("ipv4", span.getLocalIp())); // NOTE: this could be IPv6!!
+        String localIp = span.getLocalIp();
+        String version = localIp.contains(":") ? "ipv6" : "ipv4";
+        add(Pair.of(version, localIp));
       }
     }
-  }
-
-  // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L397-L402
-  static List<SpanLog> convertAnnotationsToSpanLogs(FinishedSpan span) {
-    return span.getEvents().stream()
-            .map(entry -> new SpanLog(entry.getKey(), Collections.singletonMap("annotation", entry.getValue())))
-            .collect(Collectors.toList());
-  }
-
-  @Override public void run() {
-    while (!stop) {
-      try {
-        Pair<TraceContext, FinishedSpan> contextAndSpan = spanBuffer.take();
-        send(contextAndSpan._1, contextAndSpan._2);
-      } catch (InterruptedException ex) {
-        if (LOG.isInfoEnabled()) {
-          LOG.info("reporting thread interrupted");
-        }
-      } catch (Throwable ex) {
-        LOG.warn("Error processing buffer", ex);
-      }
-    }
-  }
-
-  @Override public void close() {
-    stop = true;
-    try {
-      // wait for 5 secs max
-      sendingThread.join(5000);
-      heartbeatMetricsScheduledExecutorService.shutdownNow();
-    } catch (InterruptedException ex) {
-      // no-op
-    }
-  }
-
-  // https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/f1f08d8daf7b692b9b61dcd5bc24ca6befa8e710/src/main/java/com/wavefront/opentracing/WavefrontTracer.java#L275-L280
-  static List<Pair<String, String>> createDefaultTags(ApplicationTags applicationTags) {
-    List<Pair<String, String>> result = new ArrayList<>();
-    result.add(Pair.of(APPLICATION_TAG_KEY, applicationTags.getApplication()));
-    result.add(Pair.of(SERVICE_TAG_KEY, applicationTags.getService()));
-    result.add(Pair.of(CLUSTER_TAG_KEY,
-        applicationTags.getCluster() == null ? NULL_TAG_VAL : applicationTags.getCluster()));
-    result.add(Pair.of(SHARD_TAG_KEY,
-        applicationTags.getShard() == null ? NULL_TAG_VAL : applicationTags.getShard()));
-    if (applicationTags.getCustomTags() != null) {
-      applicationTags.getCustomTags().forEach((k, v) -> result.add(Pair.of(k, v)));
-    }
-    return result;
   }
 }

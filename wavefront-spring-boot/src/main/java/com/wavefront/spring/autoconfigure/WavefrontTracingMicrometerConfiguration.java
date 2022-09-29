@@ -41,10 +41,10 @@ class WavefrontTracingMicrometerConfiguration {
             // https://github.com/wavefrontHQ/wavefront-opentracing-sdk-java/blob/f1f08d8daf7b692b9b61dcd5bc24ca6befa8e710/src/main/java/com/wavefront/opentracing/reporting/WavefrontSpanReporter.java#L54
             50000, // TODO: maxQueueSize should be a property, ya?
             wavefrontSender,
-            meterRegistry,
+            new MeterRegistrySpanMetrics(meterRegistry),
             wavefrontConfig.source(),
             applicationTags,
-            wavefrontProperties);
+            wavefrontProperties.getTracing().getRedMetricsCustomTagKeys());
   }
 
   @Configuration(proxyBeanMethods = false)
