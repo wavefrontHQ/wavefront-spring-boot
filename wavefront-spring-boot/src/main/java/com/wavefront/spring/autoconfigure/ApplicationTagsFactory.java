@@ -6,9 +6,7 @@ import java.util.function.Supplier;
 
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.sdk.common.application.ApplicationTags.Builder;
-import com.wavefront.spring.autoconfigure.WavefrontProperties.Application;
 
-import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
@@ -19,7 +17,9 @@ import org.springframework.util.StringUtils;
  */
 public class ApplicationTagsFactory {
 
-  private static final String PREFIX = "wavefront.application.";
+  private static final String DEFAULT_APPLICATION_NAME = "unnamed_application";
+  private static final String DEFAULT_SERVICE_NAME = "unnamed_service";
+  private static final String PREFIX = "management.wavefront.application.";
 
   private final List<ApplicationTagsBuilderCustomizer> customizers;
 
@@ -40,37 +40,20 @@ public class ApplicationTagsFactory {
   }
 
   /**
-   * Create an {@link ApplicationTags} from properties.
-   * @param environment the environment to use for fallback values
-   * @param properties the wavefront properties
-   * @return a matching {@link ApplicationTags}
-   */
-  public ApplicationTags createFromProperties(Environment environment, WavefrontProperties properties) {
-    Application application = properties.getApplication();
-    String service = (StringUtils.hasText(application.getService()))
-        ? application.getService() : defaultServiceName(environment);
-    Builder builder = new Builder(application.getName(), service);
-    PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
-    mapper.from(application::getCluster).to(builder::cluster);
-    mapper.from(application::getShard).to(builder::shard);
-    return customize(builder).build();
-  }
-
-  /**
    * Create an {@link ApplicationTags} from the {@link Environment}.
    * @param environment the environment
    * @return a matching {@link ApplicationTags}
    */
   public ApplicationTags createFromEnvironment(Environment environment) {
-    String name = getValue(environment, "name", () -> "unnamed_application");
-    String service = getValue(environment, "service", () -> defaultServiceName(environment));
-    return customize(new Builder(name, service).cluster(getValue(environment, "cluster", () -> null))
-        .shard(getValue(environment, "shard", () -> null))).build();
+    String name = getValue(environment, "name", () -> DEFAULT_APPLICATION_NAME);
+    String service = getValue(environment, "service-name", () -> defaultServiceName(environment));
+    return customize(new Builder(name, service).cluster(getValue(environment, "cluster-name", () -> null))
+        .shard(getValue(environment, "shard-name", () -> null))).build();
   }
 
   private String defaultServiceName(Environment environment) {
     String applicationName = environment.getProperty("spring.application.name");
-    return (StringUtils.hasText(applicationName)) ? applicationName : Application.DEFAULT_SERVICE_NAME;
+    return (StringUtils.hasText(applicationName)) ? applicationName : DEFAULT_SERVICE_NAME;
   }
 
   private Builder customize(Builder builder) {

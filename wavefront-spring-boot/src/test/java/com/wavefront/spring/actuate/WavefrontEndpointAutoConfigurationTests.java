@@ -5,10 +5,11 @@ import java.net.URI;
 import com.wavefront.sdk.common.application.ApplicationTags;
 import com.wavefront.spring.account.AccountInfo;
 import com.wavefront.spring.account.AccountManagementClient;
-import com.wavefront.spring.autoconfigure.WavefrontProperties;
+
 import io.micrometer.wavefront.WavefrontConfig;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.boot.actuate.autoconfigure.wavefront.WavefrontProperties;
 import org.springframework.boot.actuate.cache.CachesEndpoint;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;

@@ -55,10 +55,10 @@ class AccountManagementClientTests {
   @Test
   void provisionAccountOnSupportedClusterWithCustomInfo() {
     MockEnvironment environment = new MockEnvironment()
-        .withProperty("wavefront.application.name", "test-application")
-        .withProperty("wavefront.application.service", "test-service")
-        .withProperty("wavefront.application.cluster", "test-cluster")
-        .withProperty("wavefront.application.shard", "test-shard");
+        .withProperty("management.wavefront.application.name", "test-application")
+        .withProperty("management.wavefront.application.service-name", "test-service")
+        .withProperty("management.wavefront.application.cluster-name", "test-cluster")
+        .withProperty("management.wavefront.application.shard-name", "test-shard");
     this.mockServer.expect(requestToUriTemplate(
         "https://example.com/api/v2/trial/spring-boot-autoconfigure?application={0}&service={1}&cluster={2}&shard={3}&starterVersion={4}",
         "test-application", "test-service", "test-cluster", "test-shard", "1.0.0")).andExpect(method(HttpMethod.POST))

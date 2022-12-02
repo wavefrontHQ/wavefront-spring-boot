@@ -41,7 +41,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Stephane Nicoll
  */
-class AccountManagementEnvironmentPostProcessor
+public class AccountManagementEnvironmentPostProcessor
     implements EnvironmentPostProcessor, ApplicationListener<SpringApplicationEvent> {
 
   private static final String ENABLED_PROPERTY = "management.wavefront.metrics.export.enabled";
@@ -50,7 +50,7 @@ class AccountManagementEnvironmentPostProcessor
 
   private static final String URI_PROPERTY = "management.wavefront.uri";
 
-  private static final String FREEMIUM_ACCOUNT_PROPERTY = "wavefront.freemium-account";
+  public static final String FREEMIUM_ACCOUNT_PROPERTY = "wavefront.freemium-account";
 
   private static final String DEFAULT_CLUSTER_URI = "https://wavefront.surf";
 
