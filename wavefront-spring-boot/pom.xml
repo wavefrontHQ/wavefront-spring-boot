@@ -27,10 +27,6 @@
     </dependency>
     <dependency>
       <groupId>com.wavefront</groupId>
-      <artifactId>wavefront-runtime-sdk-jvm</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.wavefront</groupId>
       <artifactId>wavefront-sdk-java</artifactId>
     </dependency>
     <dependency>
@@ -45,6 +41,11 @@
     </dependency>
     <dependency>
       <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-tracing-reporter-wavefront</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.micrometer</groupId>
       <artifactId>micrometer-tracing</artifactId>
       <optional>true</optional>
     </dependency>
@@ -53,6 +54,12 @@
       <artifactId>micrometer-tracing-bridge-brave</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-tracing-bridge-otel</artifactId>
+      <optional>true</optional>
+    </dependency>
+
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
