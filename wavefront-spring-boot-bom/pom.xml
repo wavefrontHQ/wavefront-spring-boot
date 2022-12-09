@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.wavefront</groupId>
     <artifactId>wavefront-spring-boot-build</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0-M1</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>wavefront-spring-boot-bom</artifactId>
@@ -14,7 +14,7 @@
     <connection>${git.connection}</connection>
     <developerConnection>${git.developerConnection}</developerConnection>
     <url>${git.url}</url>
-    <tag>HEAD</tag>
+    <tag>v3.0.0-M1</tag>
   </scm>
 
   <dependencyManagement>
