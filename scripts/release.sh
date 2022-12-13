@@ -65,7 +65,7 @@ docker run -t --rm --name wf-boot-3 -u 1000:1000 \
     -Darguments="-DskipTests -DreleaseType=${RELEASE_TYPE} -Drelease" \
     -DautoVersionSubmodules=true \
     -DreleaseVersion="${RELEASE_VERSION}" \
-    -Dtag=v3.0.0-M1 \
+    -Dtag=v"${RELEASE_VERSION}" \
     -DdevelopmentVersion="${NEXT_VERSION}" \
     -P release
 
