@@ -13,6 +13,8 @@ REPO_DIR=$(git rev-parse --show-toplevel)
 cd "$REPO_DIR"
 
 sudo chmod 666 /var/run/docker.sock
+rm -rf "$WORKSPACE_TMP/.m2"
+mkdir -p "$WORKSPACE_TMP/.m2"
 
 DOCKER_NAME="${JOB_NAME}-${BUILD_NUMBER}"
 docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
@@ -23,4 +25,4 @@ docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
   	--no-transfer-progress \
     clean \
     javadoc:javadoc \
-    install
+    package
