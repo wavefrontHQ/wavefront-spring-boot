@@ -4,13 +4,15 @@ set -x
 set -e
 set -u
 
+if [[ $CI != "true" ]]; then
+  echo "Error: This script is intended to be run in Jenkins/Linux environment."
+  exit 1
+fi
+
 SCRIPT_DIR=$( dirname -- "$0"; )
 cd "$SCRIPT_DIR/../"
 
 sudo chmod 666 /var/run/docker.sock
-if docker ps -a | grep -q wf-boot-3; then
-  docker rm -f wf-boot-3
-fi
 
 # Write content for settings.xml
 if [ "${RELEASE_TYPE}" = "milestone" ]; then
@@ -19,9 +21,9 @@ else
 	cat "${M2_SETTINGS_XML_GPG}" > "$WORKSPACE"/settings.xml
 fi
 
-
+DOCKER_NAME="${JOB_NAME}-${BUILD_NUMBER}"
 CURRENT_PROJECT_VERSION=$(
-  docker run -t --rm --name wf-boot-3 -u 1000:1000 \
+  docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
   -v "$WORKSPACE:/usr/src/workspace" -w /usr/src/workspace \
   -v /etc/passwd:/etc/passwd:ro \
   -v "$GH_SSH_KEY_PATH:$HOME/.ssh/id_rsa:ro" \
@@ -50,7 +52,7 @@ fi
 
 
 # mvn release:prepare
-docker run -t --rm --name wf-boot-3 -u 1000:1000 \
+docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
   -v "$WORKSPACE:/usr/src/workspace" -w /usr/src/workspace \
   -v /etc/passwd:/etc/passwd:ro \
   -v "$GH_SSH_KEY_PATH:$HOME/.ssh/id_rsa:ro" \
@@ -70,7 +72,7 @@ docker run -t --rm --name wf-boot-3 -u 1000:1000 \
     -P release
 
 # mvn release:perform
-docker run -t --rm --name wf-boot-3 -u 1000:1000 \
+docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
   -v "$WORKSPACE:/usr/src/workspace" -w /usr/src/workspace \
   -v /etc/passwd:/etc/passwd:ro \
   -v "$GH_SSH_KEY_PATH:$HOME/.ssh/id_rsa:ro" \
