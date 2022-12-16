@@ -9,17 +9,17 @@ if [[ $CI != "true" ]]; then
   exit 1
 fi
 
-SCRIPT_DIR=$( dirname -- "$0"; )
-cd "$SCRIPT_DIR/../"
+REPO_DIR=$(git rev-parse --show-toplevel)
+cd "$REPO_DIR"
 
 sudo chmod 666 /var/run/docker.sock
 
 DOCKER_NAME="${JOB_NAME}-${BUILD_NUMBER}"
 docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
-  -v "$WORKSPACE:/usr/src/workspace" -w /usr/src/workspace \
   -v /etc/passwd:/etc/passwd:ro \
+  -v "$REPO_DIR:/usr/src" -w /usr/src \
   -v "$WORKSPACE_TMP/.m2:/var/maven/.m2" -e MAVEN_CONFIG=/var/maven/.m2 \
-  maven:3.6.3-openjdk-17 mvn -Duser.home=/var/maven -f wavefront-spring-boot/pom.xml \
+  maven:3.6.3-openjdk-17 mvn -Duser.home=/var/maven --file pom.xml \
   	--no-transfer-progress \
     clean \
     javadoc:javadoc \

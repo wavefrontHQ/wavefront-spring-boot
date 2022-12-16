@@ -9,32 +9,33 @@ if [[ $CI != "true" ]]; then
   exit 1
 fi
 
-SCRIPT_DIR=$( dirname -- "$0"; )
-cd "$SCRIPT_DIR/../"
+REPO_DIR=$(git rev-parse --show-toplevel)
+cd "$REPO_DIR"
 
 sudo chmod 666 /var/run/docker.sock
 
 # Write content for settings.xml
 if [ "${RELEASE_TYPE}" = "milestone" ]; then
-	cat "${M2_SETTINGS_XML}" > "$WORKSPACE"/settings.xml
+	M2_SETTINGS_PATH="${M2_SETTINGS_XML}"
 else
-	cat "${M2_SETTINGS_XML_GPG}" > "$WORKSPACE"/settings.xml
+	M2_SETTINGS_PATH="${M2_SETTINGS_XML_GPG}"
 fi
 
 DOCKER_NAME="${JOB_NAME}-${BUILD_NUMBER}"
 CURRENT_PROJECT_VERSION=$(
   docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
-  -v "$WORKSPACE:/usr/src/workspace" -w /usr/src/workspace \
   -v /etc/passwd:/etc/passwd:ro \
+  -v "$REPO_DIR:/usr/src" -w /usr/src \
   -v "$GH_SSH_KEY_PATH:$HOME/.ssh/id_rsa:ro" \
   -v "$HOME/.ssh/known_hosts:$HOME/.ssh/known_hosts" \
   -v "$HOME/.gnupg:/var/gnupg" -e GNUPGHOME=/var/gnupg -e GPG_TTY=/dev/console \
   -v "$WORKSPACE_TMP/.m2:/var/maven/.m2" -e MAVEN_CONFIG=/var/maven/.m2 \
+  -v "$M2_SETTINGS_PATH:$M2_SETTINGS_PATH:ro" \
   -e GIT_AUTHOR_EMAIL -e GIT_AUTHOR_NAME -e GIT_COMMITTER_EMAIL -e GIT_COMMITTER_NAME \
-  maven:3.6.3-openjdk-17 mvn -Duser.home=/var/maven -f wavefront-spring-boot/pom.xml \
+  maven:3.6.3-openjdk-17 mvn -Duser.home=/var/maven --file pom.xml \
   	--no-transfer-progress \
-    -s settings.xml \
-    -q \
+    --settings "$M2_SETTINGS_PATH" \
+    --quiet \
     -Dexec.executable=echo \
     -Dexec.args='${project.version}' \
     --non-recursive \
@@ -50,39 +51,40 @@ else
 fi
 
 
-
 # mvn release:prepare
 docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
-  -v "$WORKSPACE:/usr/src/workspace" -w /usr/src/workspace \
   -v /etc/passwd:/etc/passwd:ro \
+  -v "$REPO_DIR:/usr/src" -w /usr/src \
   -v "$GH_SSH_KEY_PATH:$HOME/.ssh/id_rsa:ro" \
   -v "$HOME/.ssh/known_hosts:$HOME/.ssh/known_hosts" \
   -v "$HOME/.gnupg:/var/gnupg" -e GNUPGHOME=/var/gnupg -e GPG_TTY=/dev/console \
   -v "$WORKSPACE_TMP/.m2:/var/maven/.m2" -e MAVEN_CONFIG=/var/maven/.m2 \
+  -v "$M2_SETTINGS_PATH:$M2_SETTINGS_PATH:ro" \
   -e GIT_AUTHOR_EMAIL -e GIT_AUTHOR_NAME -e GIT_COMMITTER_EMAIL -e GIT_COMMITTER_NAME \
-  maven:3.6.3-openjdk-17 mvn -Duser.home=/var/maven -f wavefront-spring-boot/pom.xml \
+  maven:3.6.3-openjdk-17 mvn -Duser.home=/var/maven --file pom.xml \
   	--no-transfer-progress \
-    -s settings.xml \
+    --settings "$M2_SETTINGS_PATH" \
     clean release:prepare \
     -Darguments="-DskipTests -DreleaseType=${RELEASE_TYPE} -Drelease" \
     -DautoVersionSubmodules=true \
     -DreleaseVersion="${RELEASE_VERSION}" \
     -Dtag=v"${RELEASE_VERSION}" \
     -DdevelopmentVersion="${NEXT_VERSION}" \
-    -P release
+    --activate-profiles release
 
 # mvn release:perform
 docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
-  -v "$WORKSPACE:/usr/src/workspace" -w /usr/src/workspace \
   -v /etc/passwd:/etc/passwd:ro \
+  -v "$REPO_DIR:/usr/src" -w /usr/src \
   -v "$GH_SSH_KEY_PATH:$HOME/.ssh/id_rsa:ro" \
   -v "$HOME/.ssh/known_hosts:$HOME/.ssh/known_hosts" \
   -v "$HOME/.gnupg:/var/gnupg" -e GNUPGHOME=/var/gnupg -e GPG_TTY=/dev/console \
   -v "$WORKSPACE_TMP/.m2:/var/maven/.m2" -e MAVEN_CONFIG=/var/maven/.m2 \
+  -v "$M2_SETTINGS_PATH:$M2_SETTINGS_PATH:ro" \
   -e GIT_AUTHOR_EMAIL -e GIT_AUTHOR_NAME -e GIT_COMMITTER_EMAIL -e GIT_COMMITTER_NAME \
-  maven:3.6.3-openjdk-17 mvn -Duser.home=/var/maven -f wavefront-spring-boot/pom.xml \
+  maven:3.6.3-openjdk-17 mvn -Duser.home=/var/maven --file pom.xml \
   	--no-transfer-progress \
-    -s settings.xml \
+    --settings "$M2_SETTINGS_PATH" \
     release:perform \
     -Darguments="-DskipTests -DreleaseType=${RELEASE_TYPE} -Drelease" \
-    -P release
+    --activate-profiles release
