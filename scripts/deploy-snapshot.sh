@@ -26,6 +26,7 @@ docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
   -v "$M2_SETTINGS_PATH:$M2_SETTINGS_PATH:ro" \
   maven:3.6.3-openjdk-17 mvn -Duser.home=/var/maven --file pom.xml \
     --settings "$M2_SETTINGS_PATH" \
+    --batch-mode \
     help:effective-settings
 
 docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
@@ -35,4 +36,5 @@ docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
   -v "$M2_SETTINGS_PATH:$M2_SETTINGS_PATH:ro" \
   maven:3.6.3-openjdk-17 mvn -Duser.home=/var/maven --file pom.xml \
     --settings "$M2_SETTINGS_PATH" \
+    --batch-mode \
     clean javadoc:javadoc deploy

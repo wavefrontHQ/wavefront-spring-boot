@@ -36,7 +36,7 @@ docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
   -v "$M2_SETTINGS_PATH:$M2_SETTINGS_PATH:ro" \
   -e GIT_AUTHOR_EMAIL -e GIT_AUTHOR_NAME -e GIT_COMMITTER_EMAIL -e GIT_COMMITTER_NAME \
   maven:3.6.3-openjdk-17 mvn -Duser.home=/var/maven --file pom.xml \
-  	--no-transfer-progress \
+    --batch-mode \
     --settings "$M2_SETTINGS_PATH" \
     help:effective-settings
 
@@ -51,8 +51,8 @@ CURRENT_PROJECT_VERSION=$(
     -v "$M2_SETTINGS_PATH:$M2_SETTINGS_PATH:ro" \
     -e GIT_AUTHOR_EMAIL -e GIT_AUTHOR_NAME -e GIT_COMMITTER_EMAIL -e GIT_COMMITTER_NAME \
     maven:3.6.3-openjdk-17 mvn -Duser.home=/var/maven --file pom.xml \
-      --no-transfer-progress \
       --settings "$M2_SETTINGS_PATH" \
+      --batch-mode \
       --quiet \
       -Dexec.executable=echo \
       -Dexec.args='${project.version}' \
@@ -81,6 +81,7 @@ docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
   -e GIT_AUTHOR_EMAIL -e GIT_AUTHOR_NAME -e GIT_COMMITTER_EMAIL -e GIT_COMMITTER_NAME \
   maven:3.6.3-openjdk-17 mvn -Duser.home=/var/maven --file pom.xml \
     --settings "$M2_SETTINGS_PATH" \
+    --batch-mode \
     clean release:prepare \
     -Darguments="-DskipTests -DreleaseType=${RELEASE_TYPE} -Drelease" \
     -DautoVersionSubmodules=true \
@@ -101,6 +102,7 @@ docker run -t --rm --name "$DOCKER_NAME" -u 1000:1000 \
   -e GIT_AUTHOR_EMAIL -e GIT_AUTHOR_NAME -e GIT_COMMITTER_EMAIL -e GIT_COMMITTER_NAME \
   maven:3.6.3-openjdk-17 mvn -Duser.home=/var/maven --file pom.xml \
     --settings "$M2_SETTINGS_PATH" \
+    --batch-mode \
     release:perform \
     -Darguments="-DskipTests -DreleaseType=${RELEASE_TYPE} -Drelease" \
     --activate-profiles release
