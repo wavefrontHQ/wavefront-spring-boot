@@ -2,9 +2,9 @@
 
 ![build](https://github.com/wavefrontHQ/wavefront-spring-boot/actions/workflows/maven.yml/badge.svg) [![Released Version][maven-img]][maven]
 
-This project provides a Spring Boot 3 starter for Wavefront. Add the starter to a project to send metrics, histograms, and traces to a Wavefront cluster. If you don't have a Wavefront account, the starter will create a freemium account for you and save the API token in your home directory at `~/.wavefront_freemium`.
+This project provides a Spring Boot 3 starter for Wavefront. Add the starter to a project to send metrics, histograms, and traces to a Wavefront cluster. If you don't have a Wavefront account, the starter creates a freemium account for you and saves the API token in your home directory at `~/.wavefront_freemium`.
 
-*Note:* Spring Boot 2 users should refer to the [README](https://github.com/wavefrontHQ/wavefront-spring-boot/) on the `master` branch.
+> **Note**: Spring Boot 2 users should refer to the [README](https://github.com/wavefrontHQ/wavefront-spring-boot/) on the `master` branch.
 
 ## Table of Contents
 
@@ -23,74 +23,85 @@ This project provides a Spring Boot 3 starter for Wavefront. Add the starter to 
 * Maven 3.5+ or Gradle 7.5+\
   See [System Requirements](https://docs.spring.io/spring-boot/docs/3.0.x/reference/html/getting-started.html#getting-started.system-requirements) in the Spring Boot documentation.
 
-> Note: This starter reuses the existing Wavefront support for [Metrics](https://docs.spring.io/spring-boot/docs/3.0.x/reference/html/actuator.html#actuator.metrics.export.wavefront) and [Tracing](https://docs.spring.io/spring-boot/docs/3.0.x/reference/html/actuator.html#actuator.micrometer-tracing)
+> **Note**: This starter reuses the existing Wavefront support for [Metrics](https://docs.spring.io/spring-boot/docs/3.0.x/reference/html/actuator.html#actuator.metrics.export.wavefront) and [Tracing](https://docs.spring.io/spring-boot/docs/3.0.x/reference/html/actuator.html#actuator.micrometer-tracing)
 in Spring Boot and provides the Actuator (i.e., `spring-boot-starter-actuator`).
 
 ## Getting Started
 
-The easiest way to get started is to create a new project on [start.spring.io](https://start.spring.io).
-Select Spring Boot `3.0.0` or later and define the other parameters for your project.
-Click "Add dependency" and select `Wavefront` from the dependency list. To include tracing support, add the `Distributed Tracing` dependency as well.
+There are several ways to start:
 
-If you don't already have a Wavefront account and want a freemium one generated for you, follow the steps below under [**Maven**](#maven-install) or [**Gradle**](#gradle-install) to add the Wavefront Spring Boot BOM.
+### Create a New Project
 
-If you already have a Spring Boot application, you can also use [start.spring.io](https://start.spring.io) to explore a new project from your browser.
+The easiest way to get started is to:
+1. Create a new project on [start.spring.io](https://start.spring.io).
+1. Select Spring Boot `3.0.0` or later and define the other parameters for your project.
+1. Click "Add dependency" and select `Wavefront` from the dependency list. 
+1. To include tracing support, add the `Distributed Tracing` dependency as well.
+
+If you don't already have a Wavefront account and want a freemium one generated for you, follow the steps under [**Maven**](#maven-install) or [**Gradle**](#gradle-install) to add the Wavefront Spring Boot BOM.
+
+### Update an Existing Application
+
+If you already have a Spring Boot application, you can use [start.spring.io](https://start.spring.io) to explore a new project from your browser.
 This allows you to see the setup for the Spring Boot generation your project is using.
 
-For completeness, here is what you should follow to configure your project.
+Next. follow the steps under [**Maven**](#maven-install) or [**Gradle**](#gradle-install) to add the Wavefront Spring Boot BOM.
 
 > **Note**: The Wavefront for Spring Boot dependency needs to be compatible with the Spring Boot release version. See [System Requirements](https://docs.wavefront.com/wavefront_springboot3.html#versionCompatibility) to get the correct dependency version.
 
-### Maven <a name="maven-install"></a>
+#### Maven <a name="maven-install"></a>
 
-First, import the `wavefront-spring-boot-bom` Bill Of Materials (BOM).
+Follow these steps:
 
-Example:
-  ```
-  <dependencyManagement>
-    <dependencies>
+1. Import the `wavefront-spring-boot-bom` Bill Of Materials (BOM).
+    Example:
+      ```
+      <dependencyManagement>
+        <dependencies>
+          <dependency>
+            <groupId>com.wavefront</groupId>
+            <artifactId>wavefront-spring-boot-bom</artifactId>
+            <version>3.0.0</version>
+            <type>pom</type>
+            <scope>import</scope>
+          </dependency>
+        </dependencies>
+      </dependencyManagement>
+      ```
+
+1. Add the `wavefront-spring-boot-starter` to your project.
+
+    Example:
+      ```
       <dependency>
         <groupId>com.wavefront</groupId>
-        <artifactId>wavefront-spring-boot-bom</artifactId>
-        <version>3.0.0</version>
-        <type>pom</type>
-        <scope>import</scope>
+        <artifactId>wavefront-spring-boot-starter</artifactId>
       </dependency>
-    </dependencies>
-  </dependencyManagement>
-  ```
+      ```
 
-Finally, add the `wavefront-spring-boot-starter` to your project.
+#### Gradle <a name="gradle-install"></a>
 
-Example:
-  ```
-  <dependency>
-    <groupId>com.wavefront</groupId>
-    <artifactId>wavefront-spring-boot-starter</artifactId>
-  </dependency>
-  ```
+Follow these steps:
 
-### Gradle <a name="gradle-install"></a>
+1. Make sure your project uses the `io.spring.dependency-management` plugin and add the following to your `build.gradle` file:
 
-First, make sure your project uses the `io.spring.dependency-management` plugin and add the following to your `build.gradle` file:
+    ```
+      dependencyManagement {
+        imports {
+          mavenBom "com.wavefront:wavefront-spring-boot-bom:3.0.0"
+        }
+      }
+    ```
 
-```
-  dependencyManagement {
-    imports {
-      mavenBom "com.wavefront:wavefront-spring-boot-bom:3.0.0"
-    }
-  }
-```
+1. Add the `wavefront-spring-boot-starter` to your project.
 
-Finally, add the `wavefront-spring-boot-starter` to your project.
+    ```
+      dependencies {
+        ...
+        implementation 'com.wavefront:wavefront-spring-boot-starter'
 
-```
-  dependencies {
-    ...
-    implementation 'com.wavefront:wavefront-spring-boot-starter'
-
-  }
-```
+      }
+    ```
 
 ---
 Each time you restart your application, it either creates a new freemium account, or it restores from `~/.wavefront_freemium`.
@@ -112,27 +123,29 @@ https://wavefront.surf/us/example
 
 ## Tracing Support
 
-If you'd like to send traces to Wavefront, you can do so using [Micrometer Tracing](https://micrometer.io/docs/tracing). You'll first need to choose a Micrometer Tracer. For instructions, please refer to Micrometer's [Supported Tracer](https://micrometer.io/docs/tracing#_supported_tracers) documentation.
+If you'd like to send traces to Wavefront, you can do so using [Micrometer Tracing](https://micrometer.io/docs/tracing). Follow these steps:
 
-Finally, you'll need to add a Micrometer Tracing Reporter for Wavefront:
+1. Choose a Micrometer Tracer for your usecase. For instructions, see [Micrometer's Supported Tracer documentation](https://micrometer.io/docs/tracing#_supported_tracers).
 
-- Maven: Add the following dependency to the `pom.xml` file
+1. Add a Micrometer Tracing Reporter for Wavefront:
 
-  ```
-  <dependency>
-    <groupId>io.micrometer</groupId>
-    <artifactId>micrometer-tracing-reporter-wavefront</artifactId>
-  </dependency>
-  ```
+  - Maven: Add the following dependency to the `pom.xml` file
 
-- Gradle: Add the following dependency to the `build.gradle` file:
+    ```
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-tracing-reporter-wavefront</artifactId>
+    </dependency>
+    ```
 
-  ```
-  dependencies {
-    ...
-    implementation 'io.micrometer:micrometer-tracing-reporter-wavefront'
-  }
-  ```
+  - Gradle: Add the following dependency to the `build.gradle` file:
+
+    ```
+    dependencies {
+      ...
+      implementation 'io.micrometer:micrometer-tracing-reporter-wavefront'
+    }
+    ```
 
 ## Building
 To build the latest state of this project, invoke the following command from the root directory:
