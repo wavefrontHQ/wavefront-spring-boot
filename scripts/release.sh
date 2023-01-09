@@ -12,7 +12,7 @@ REPO_DIR=$(git rev-parse --show-toplevel)
 cd "$REPO_DIR"
 
 sudo chmod 666 /var/run/docker.sock
-mkdir -p "$WORKSPACE_TMP/.m2"
+mkdir -p "$WORKSPACE_TMP/.m2" && chown -R "$(whoami)" "$WORKSPACE_TMP/.m2"
 
 if [ "${RELEASE_TYPE}" = "milestone" ]; then
   # Credentials for publishing Milestones/RCs to repo.spring.io

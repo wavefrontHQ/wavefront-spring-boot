@@ -11,7 +11,7 @@ REPO_DIR=$(git rev-parse --show-toplevel)
 cd "$REPO_DIR"
 
 sudo chmod 666 /var/run/docker.sock
-mkdir -p "$WORKSPACE_TMP/.m2"
+mkdir -p "$WORKSPACE_TMP/.m2" && chown -R "$(whoami)" "$WORKSPACE_TMP/.m2"
 
 # Credentials for publishing to repo.spring.io
 M2_SETTINGS_PATH="${M2_SETTINGS_SPRINGIO_XML}"
