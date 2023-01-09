@@ -45,7 +45,7 @@ If you don't already have a Wavefront account and want a freemium one generated 
 If you already have a Spring Boot application, you can use [start.spring.io](https://start.spring.io) to explore a new project from your browser.
 This allows you to see the setup for the Spring Boot generation your project is using.
 
-Next. follow the steps under [**Maven**](#maven-install) or [**Gradle**](#gradle-install) to add the Wavefront Spring Boot BOM.
+Next, follow the steps under [**Maven**](#maven-install) or [**Gradle**](#gradle-install) to add the Wavefront Spring Boot BOM.
 
 > **Note**: The Wavefront for Spring Boot dependency needs to be compatible with the Spring Boot release version. See [System Requirements](https://docs.wavefront.com/wavefront_springboot3.html#versionCompatibility) to get the correct dependency version.
 
