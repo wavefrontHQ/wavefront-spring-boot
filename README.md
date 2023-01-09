@@ -1,10 +1,12 @@
-# Wavefront for Spring Boot
+# Wavefront for Spring Boot 3
 
 ![build](https://github.com/wavefrontHQ/wavefront-spring-boot/actions/workflows/maven.yml/badge.svg) [![Released Version][maven-img]][maven]
 
-This project provides a Spring Boot starter for Wavefront. Add the starter to a project to send metrics, histograms, and traces to a Wavefront cluster. If you don't have a Wavefront account, the starter will create a freemium account for you and save the API token in your home directory at `~/.wavefront_freemium`.
+This project provides a Spring Boot 3 starter for Wavefront. Add the starter to a project to send metrics, histograms, and traces to a Wavefront cluster. If you don't have a Wavefront account, the starter will create a freemium account for you and save the API token in your home directory at `~/.wavefront_freemium`.
 
-## Table of Content
+*Note:* Spring Boot 2 users should refer to the [README](https://github.com/wavefrontHQ/wavefront-spring-boot/) on the `master` branch.
+
+## Table of Contents
 
 * [Prerequisites](#prerequisites)
 * [Getting Started](#getting-started)
@@ -16,43 +18,41 @@ This project provides a Spring Boot starter for Wavefront. Add the starter to a 
 
 ## Prerequisites
 
-* Spring Boot 2.3 or above
-* Java 8 or above
-* Maven 3.3+ or Gradle 6.3 or later\
-  See [System Requirements](https://docs.spring.io/spring-boot/docs/2.3.x/reference/html/getting-started.html#getting-started-system-requirements) in the Spring Boot documentation.
+* Spring Boot 3.0 or above
+* Java 17 or above
+* Maven 3.5+ or Gradle 7.5+\
+  See [System Requirements](https://docs.spring.io/spring-boot/docs/3.0.x/reference/html/getting-started.html#getting-started.system-requirements) in the Spring Boot documentation.
 
-> Note: This starter reuses the [existing Wavefront support](https://docs.spring.io/spring-boot/docs/2.3.x/reference/html/production-ready-features.html#production-ready-metrics-export-wavefront)
+> Note: This starter reuses the existing Wavefront support for [Metrics](https://docs.spring.io/spring-boot/docs/3.0.x/reference/html/actuator.html#actuator.metrics.export.wavefront) and [Tracing](https://docs.spring.io/spring-boot/docs/3.0.x/reference/html/actuator.html#actuator.micrometer-tracing)
 in Spring Boot and provides the Actuator (i.e., `spring-boot-starter-actuator`).
 
 ## Getting Started
 
 The easiest way to get started is to create a new project on [start.spring.io](https://start.spring.io).
-Select Spring Boot `2.3.0` or later and define the other parameters for your project.
-Click "Add dependency" and select `Wavefront` from the dependency list.
+Select Spring Boot `3.0.0` or later and define the other parameters for your project.
+Click "Add dependency" and select `Wavefront` from the dependency list. To include tracing support, add the `Distributed Tracing` dependency as well.
 
-If you want to opt-in for tracing support, add the "[Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth)" entry as well.
+If you don't already have a Wavefront account and want a freemium one generated for you, follow the steps below under [**Maven**](#maven-install) or [**Gradle**](#gradle-install) to add the Wavefront Spring Boot BOM.
 
 If you already have a Spring Boot application, you can also use [start.spring.io](https://start.spring.io) to explore a new project from your browser.
 This allows you to see the setup for the Spring Boot generation your project is using.
 
 For completeness, here is what you should follow to configure your project.
 
-> **Note**: The Wavefront for Spring Boot dependency needs to be compatible with the Spring Boot release version. See [System Requirements](https://docs.wavefront.com/wavefront_springboot.html#versionCompatibility) to get the correct dependency version.
+> **Note**: The Wavefront for Spring Boot dependency needs to be compatible with the Spring Boot release version. See [System Requirements](https://docs.wavefront.com/wavefront_springboot3.html#versionCompatibility) to get the correct dependency version.
 
-Configure your project using Maven or Gradle.
+### Maven <a name="maven-install"></a>
 
-**Maven**
+First, import the `wavefront-spring-boot-bom` Bill Of Materials (BOM).
 
-- The core setup consists of importing the `wavefront-spring-boot-bom` Bill Of Materials (BOM).
-  
-  Example:
+Example:
   ```
   <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>com.wavefront</groupId>
         <artifactId>wavefront-spring-boot-bom</artifactId>
-        <version>2.1.1</version>
+        <version>3.0.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -60,9 +60,9 @@ Configure your project using Maven or Gradle.
   </dependencyManagement>
   ```
 
-- Add the `wavefront-spring-boot-starter` to your project.
-  
-  Example:
+Finally, add the `wavefront-spring-boot-starter` to your project.
+
+Example:
   ```
   <dependency>
     <groupId>com.wavefront</groupId>
@@ -70,30 +70,29 @@ Configure your project using Maven or Gradle.
   </dependency>
   ```
 
-**Gradle**
+### Gradle <a name="gradle-install"></a>
 
-- If you are using Gradle, make sure your project uses the `io.spring.dependency-management` plugin and add the following to your build.gradle file:
-  
-  Example:
-  ```
+First, make sure your project uses the `io.spring.dependency-management` plugin and add the following to your `build.gradle` file:
+
+```
   dependencyManagement {
     imports {
-      mavenBom "com.wavefront:wavefront-spring-boot-bom:2.1.1"
+      mavenBom "com.wavefront:wavefront-spring-boot-bom:3.0.0"
     }
   }
-  ```
+```
 
-- Add the `wavefront-spring-boot-starter` to your project.
-  
-  Example:
-  ```
+Finally, add the `wavefront-spring-boot-starter` to your project.
+
+```
   dependencies {
     ...
     implementation 'com.wavefront:wavefront-spring-boot-starter'
 
   }
-  ```
+```
 
+---
 Each time you restart your application, it either creates a new freemium account, or it restores from `~/.wavefront_freemium`.
 At the end of the startup phase, the console displays a message with a login URL.
 Use it to log in to the Wavefront service and access the data that has been collected so far.
@@ -102,6 +101,7 @@ Here is an example message when an existing account is restored from `~/.wavefro
 
 ```text
 Your existing Wavefront account information has been restored from disk.
+To share this account, make sure the following is added to your configuration:
 
 management.wavefront.api-token=2c96d63a-abcd-efgh-ijhk-841611451e07
 management.wavefront.uri=https://wavefront.surf
@@ -112,20 +112,16 @@ https://wavefront.surf/us/example
 
 ## Tracing Support
 
-If you'd like to send traces to Wavefront, you can do so using [Micrometer Tracing]
-(https://micrometer.io/docs/tracing).
+If you'd like to send traces to Wavefront, you can do so using [Micrometer Tracing](https://micrometer.io/docs/tracing). You'll first need to choose a Micrometer Tracer. For instructions, please refer to Micrometer's [Supported Tracer](https://micrometer.io/docs/tracing#_supported_tracers) documentation.
 
-Each Spring Boot generation has a matching Spring Cloud generation.
-See [Getting Started on the Spring Cloud documentation](https://spring.io/projects/spring-cloud#getting-started) for details.
-
-After you've added the spring-cloud-dependencies BOM, you can add Spring Cloud Sleuth as follows:
+Finally, you'll need to add a Micrometer Tracing Reporter for Wavefront:
 
 - Maven: Add the following dependency to the `pom.xml` file
-  
+
   ```
   <dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-sleuth</artifactId>
+    <groupId>io.micrometer</groupId>
+    <artifactId>micrometer-tracing-reporter-wavefront</artifactId>
   </dependency>
   ```
 
@@ -134,7 +130,7 @@ After you've added the spring-cloud-dependencies BOM, you can add Spring Cloud S
   ```
   dependencies {
     ...
-    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
+    implementation 'io.micrometer:micrometer-tracing-reporter-wavefront'
   }
   ```
 
@@ -155,8 +151,8 @@ $ ./mvnw spring-boot:run -pl wavefront-spring-boot-sample
 
 ## Documentation
 
-* The [Wavefront documentation](https://docs.wavefront.com/wavefront_springboot.html) includes a tutorial and instructions for examining services and traces inside Wavefront. 
-* You can [customize existing Spring Boot applications](https://docs.wavefront.com/wavefront_springboot.html#custom-configurations) to send data to Wavefront. 
+* The [Wavefront documentation](https://docs.wavefront.com/wavefront_springboot3.html) includes a tutorial and instructions for examining services and traces inside Wavefront.
+* You can [customize existing Spring Boot applications](https://docs.wavefront.com/wavefront_springboot3.html#custom-configurations) to send data to Wavefront.
 
 ## License
 
@@ -164,7 +160,6 @@ $ ./mvnw spring-boot:run -pl wavefront-spring-boot-sample
 
 ## Getting Support
 
-* Reach out to us on [Slack](https://www.wavefront.com/slack-us) and join the #springboot public channel.
 * If you run into any issues, let us know by creating a GitHub issue.
 * If you didn't find the information you are looking for in our [Wavefront Documentation](https://docs.wavefront.com/) create a GitHub issue or PR in our [docs repository](https://github.com/wavefrontHQ/docs).
 
