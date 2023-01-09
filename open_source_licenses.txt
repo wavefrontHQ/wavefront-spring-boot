@@ -1,6 +1,6 @@
 open_source_licenses.txt
 
-Wavefront by VMware for Spring Boot 2.3.0 GA
+Wavefront by VMware for Spring Boot 2.3.3 GA
 
 ======================================================================
 
@@ -2503,4 +2503,4 @@ All such requests should clearly specify: OPEN SOURCE FILES REQUEST, Attention G
 mail a copy of the Source Files to you on a CD or equivalent physical medium. This offer to obtain a copy of the Source
 Files is valid for three years from the date you acquired this software product.
 
-[WAVEFRONTSPRINGBOOT230GASP022720]
+[WAVEFRONTSPRINGBOOT233GASP022720]
