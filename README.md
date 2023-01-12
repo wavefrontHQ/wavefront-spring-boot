@@ -1,8 +1,10 @@
 # Wavefront for Spring Boot
 
-[![build status][ci-img]][ci] [![Released Version][maven-img]][maven]
+[![CI Status][ci-img]][ci] [![Released Version][maven-img]][maven]
 
 This project provides a Spring Boot starter for Wavefront. Add the starter to a project to send metrics, histograms, and traces to a Wavefront cluster. If you don't have a Wavefront account, the starter will create a freemium account for you and save the API token in your home directory at `~/.wavefront_freemium`.
+
+> **Note**: Spring Boot 3 users should refer to the [README](https://github.com/wavefrontHQ/wavefront-spring-boot/tree/springboot3) on the `springboot3` branch.
 
 ## Table of Content
 
@@ -192,7 +194,7 @@ $ ./mvnw spring-boot:run -pl wavefront-spring-boot-sample
 * If you run into any issues, let us know by creating a GitHub issue.
 * If you didn't find the information you are looking for in our [Wavefront Documentation](https://docs.wavefront.com/) create a GitHub issue or PR in our [docs repository](https://github.com/wavefrontHQ/docs).
 
-[ci-img]: https://travis-ci.com/wavefrontHQ/wavefront-spring-boot.svg?branch=master
-[ci]: https://travis-ci.com/wavefrontHQ/wavefront-spring-boot
+[ci-img]: https://github.com/wavefrontHQ/wavefront-spring-boot/actions/workflows/maven.yml/badge.svg?branch=master
+[ci]: https://github.com/wavefrontHQ/wavefront-spring-boot/actions/workflows/maven.yml?query=branch%3amaster
 [maven-img]: https://img.shields.io/maven-central/v/com.wavefront/wavefront-spring-boot.svg?maxAge=604800
 [maven]: https://search.maven.org/search?q=wavefront-spring-boot
