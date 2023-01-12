@@ -47,8 +47,6 @@ This allows you to see the setup for the Spring Boot generation your project is 
 
 Next, follow the steps under [**Maven**](#maven-install) or [**Gradle**](#gradle-install) to add the Wavefront Spring Boot BOM.
 
-> **Note**: The Wavefront for Spring Boot dependency needs to be compatible with the Spring Boot release version. See [System Requirements](https://docs.wavefront.com/wavefront_springboot3.html#versionCompatibility) to get the correct dependency version.
-
 #### Maven <a name="maven-install"></a>
 
 Follow these steps:
