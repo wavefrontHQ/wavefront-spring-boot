@@ -45,7 +45,6 @@ import static com.wavefront.sdk.common.Constants.NULL_TAG_VAL;
 import static com.wavefront.sdk.common.Constants.SERVICE_TAG_KEY;
 import static com.wavefront.sdk.common.Constants.SHARD_TAG_KEY;
 import static com.wavefront.sdk.common.Constants.SOURCE_KEY;
-import static com.wavefront.sdk.common.Constants.SPAN_LOG_KEY;
 
 /**
  * This converts a span recorded by Brave and invokes {@link WavefrontSender#sendSpan}.
@@ -333,9 +332,6 @@ public final class WavefrontSleuthSpanHandler implements Runnable, Closeable {
           add(Pair.of("_spanSecondaryId", kind));
         }
       }
-
-      // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L329-L332
-      if (hasAnnotations) add(Pair.of(SPAN_LOG_KEY, "true"));
 
       // https://github.com/wavefrontHQ/wavefront-proxy/blob/3dd1fa11711a04de2d9d418e2269f0f9fb464f36/proxy/src/main/java/com/wavefront/agent/listeners/tracing/ZipkinPortUnificationHandler.java#L324-L327
       if (span.getLocalIp() != null) {

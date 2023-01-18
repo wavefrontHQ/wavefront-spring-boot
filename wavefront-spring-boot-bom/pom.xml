@@ -5,7 +5,7 @@
     <groupId>com.wavefront</groupId>
     <artifactId>wavefront-spring-boot-build</artifactId>
     <version>2.3.4-SNAPSHOT</version>
-    <relativePath>../</relativePath>
+    <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>wavefront-spring-boot-bom</artifactId>
   <packaging>pom</packaging>
