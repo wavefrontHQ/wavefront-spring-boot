@@ -59,7 +59,7 @@ Follow these steps:
           <dependency>
             <groupId>com.wavefront</groupId>
             <artifactId>wavefront-spring-boot-bom</artifactId>
-            <version>3.0.0</version>
+            <version>3.0.1</version>
             <type>pom</type>
             <scope>import</scope>
           </dependency>
@@ -86,7 +86,7 @@ Follow these steps:
     ```
       dependencyManagement {
         imports {
-          mavenBom "com.wavefront:wavefront-spring-boot-bom:3.0.0"
+          mavenBom "com.wavefront:wavefront-spring-boot-bom:3.0.1"
         }
       }
     ```
@@ -123,27 +123,45 @@ https://wavefront.surf/us/example
 
 If you'd like to send traces to Wavefront, you can do so using [Micrometer Tracing](https://micrometer.io/docs/tracing). Follow these steps:
 
-1. Choose a Micrometer Tracer for your usecase. For instructions, see [Micrometer's Supported Tracer documentation](https://micrometer.io/docs/tracing#_supported_tracers).
+1. Choose a Micrometer Tracer for your usecase. For instructions, see [Micrometer's Supported Tracer documentation](https://micrometer.io/docs/tracing#_supported_tracers). For example, to use the Brave Tracer:
 
-1. Add a Micrometer Tracing Reporter for Wavefront:
+   - Maven: Add the following dependency to the `pom.xml` file
 
-  - Maven: Add the following dependency to the `pom.xml` file
+     ```
+     <dependency>
+       <groupId>io.micrometer</groupId>
+       <artifactId>micrometer-tracing-bridge-brave</artifactId>
+     </dependency>
+     ```
 
-    ```
-    <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-tracing-reporter-wavefront</artifactId>
-    </dependency>
-    ```
+   - Gradle: Add the following dependency to the `build.gradle` file:
 
-  - Gradle: Add the following dependency to the `build.gradle` file:
+     ```
+     dependencies {
+       ...
+       implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+     }
+     ```
 
-    ```
-    dependencies {
-      ...
-      implementation 'io.micrometer:micrometer-tracing-reporter-wavefront'
-    }
-    ```
+1. Add the Micrometer Tracing Reporter for Wavefront:
+
+   - Maven: Add the following dependency to the `pom.xml` file
+
+     ```
+     <dependency>
+       <groupId>io.micrometer</groupId>
+       <artifactId>micrometer-tracing-reporter-wavefront</artifactId>
+     </dependency>
+     ```
+
+   - Gradle: Add the following dependency to the `build.gradle` file:
+
+     ```
+     dependencies {
+       ...
+       implementation 'io.micrometer:micrometer-tracing-reporter-wavefront'
+     }
+     ```
 
 ## Building
 To build the latest state of this project, invoke the following command from the root directory:
