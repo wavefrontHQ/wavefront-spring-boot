@@ -162,6 +162,12 @@ If you'd like to send traces to Wavefront, you can do so using [Micrometer Traci
        implementation 'io.micrometer:micrometer-tracing-reporter-wavefront'
      }
      ```
+     
+1. For demo purposes, configure distributed tracing sampling to 100% in `application.properties`:
+
+   ```
+   management.tracing.sampling.probability=1.0
+   ```
 
 ## Building
 To build the latest state of this project, invoke the following command from the root directory:
