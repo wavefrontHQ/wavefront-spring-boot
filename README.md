@@ -4,7 +4,7 @@
 
 This project provides a Spring Boot 3 starter for Wavefront. Add the starter to a project to send metrics, histograms, and traces to a Wavefront cluster. If you don't have a Wavefront account, the starter creates a freemium account for you and saves the API token in your home directory at `~/.wavefront_freemium`.
 
-> **Note**: Spring Boot 2 users should refer to the [README](https://github.com/wavefrontHQ/wavefront-spring-boot/) on the `master` branch.
+> **Note**: Spring Boot 2 users should refer to the [README](https://github.com/wavefrontHQ/wavefront-spring-boot/tree/master) on the `master` branch.
 
 ## Table of Contents
 
