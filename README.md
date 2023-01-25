@@ -38,7 +38,7 @@ The easiest way to get started is to:
 1. Click "Add dependency" and select `Wavefront` from the dependency list. 
 1. To include tracing support, add the `Distributed Tracing` dependency as well.
 
-If you don't already have a Wavefront account and want a freemium one generated for you, follow the steps under [**Maven**](#maven-install) or [**Gradle**](#gradle-install) to add the Wavefront Spring Boot BOM.
+If you don't have a Wavefront account, the starter creates a freemium account for you and saves the API token in your home directory at `~/.wavefront_freemium`.
 
 ### Update an Existing Application
 
@@ -67,13 +67,17 @@ Follow these steps:
       </dependencyManagement>
       ```
 
-1. Add the `wavefront-spring-boot-starter` to your project.
+1. Add the `wavefront-spring-boot-starter` and `spring-boot-starter-actuator` dependencies to your project.
 
     Example:
       ```
       <dependency>
         <groupId>com.wavefront</groupId>
         <artifactId>wavefront-spring-boot-starter</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
       </dependency>
       ```
 
@@ -91,13 +95,13 @@ Follow these steps:
       }
     ```
 
-1. Add the `wavefront-spring-boot-starter` to your project.
+1. Add the `wavefront-spring-boot-starter` and `spring-boot-starter-actuator` dependencies to your project.
 
     ```
       dependencies {
         ...
         implementation 'com.wavefront:wavefront-spring-boot-starter'
-
+        implementation 'org.springframework.boot:spring-boot-starter-actuator'
       }
     ```
 
