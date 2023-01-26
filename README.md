@@ -1,3 +1,6 @@
+```
+VMware has ended active development of this project, this repository will no longer be updated.
+```
 # Wavefront for Spring Boot 3
 
 [![CI Status][ci-img]][ci] [![Released Version][maven-img]][maven]
