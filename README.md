@@ -11,7 +11,6 @@ This project provides a Spring Boot 3 starter for Wavefront. Add the starter to 
 * [Prerequisites](#prerequisites)
 * [Getting Started](#getting-started)
 * [Building](#building)
-* [Custom Configuration](#custom-configuration)
 * [Documentation](#documentation)
 * [License](#license)
 * [Getting Support](#getting-support)
@@ -51,8 +50,8 @@ Next, follow the steps under [**Maven**](#maven-install) or [**Gradle**](#gradle
 
 Follow these steps:
 
-1. Import the `wavefront-spring-boot-bom` Bill Of Materials (BOM).
-    Example:
+1. Import the `wavefront-spring-boot-bom` Bill Of Materials (BOM):
+
       ```
       <dependencyManagement>
         <dependencies>
@@ -67,17 +66,12 @@ Follow these steps:
       </dependencyManagement>
       ```
 
-1. Add the `wavefront-spring-boot-starter` and `spring-boot-starter-actuator` dependencies to your project.
+1. Add the `wavefront-spring-boot-starter` dependency to your project:
 
-    Example:
       ```
       <dependency>
         <groupId>com.wavefront</groupId>
         <artifactId>wavefront-spring-boot-starter</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-actuator</artifactId>
       </dependency>
       ```
 
@@ -95,15 +89,26 @@ Follow these steps:
       }
     ```
 
-1. Add the `wavefront-spring-boot-starter` and `spring-boot-starter-actuator` dependencies to your project.
+1. Add the `wavefront-spring-boot-starter` dependency to your project:
 
     ```
       dependencies {
         ...
         implementation 'com.wavefront:wavefront-spring-boot-starter'
-        implementation 'org.springframework.boot:spring-boot-starter-actuator'
       }
     ```
+
+#### Configure the Application and Service Names
+
+Set the Application and Service Name in `application.properties`. In Wavefront, the Application
+represents a logical grouping of individual Services. For example, a `shopping` application might be
+comprised of the `cart` and `payment` services. If your Spring Boot app is the `payment` service:
+
+```
+management.wavefront.application.name=shopping
+management.wavefront.application.service-name=payment
+```
+
 
 ---
 Each time you restart your application, it either creates a new freemium account, or it restores from `~/.wavefront_freemium`.
@@ -116,8 +121,8 @@ Here is an example message when an existing account is restored from `~/.wavefro
 Your existing Wavefront account information has been restored from disk.
 To share this account, make sure the following is added to your configuration:
 
-management.wavefront.api-token=2c96d63a-abcd-efgh-ijhk-841611451e07
-management.wavefront.uri=https://wavefront.surf
+  management.wavefront.api-token=2c96d63a-abcd-efgh-ijhk-841611451e07
+  management.wavefront.uri=https://wavefront.surf
 
 Connect to your Wavefront dashboard using this one-time use link:
 https://wavefront.surf/us/example
@@ -127,43 +132,23 @@ https://wavefront.surf/us/example
 
 If you'd like to send traces to Wavefront, you can do so using [Micrometer Tracing](https://micrometer.io/docs/tracing). Follow these steps:
 
-1. Choose a Micrometer Tracer for your usecase. For instructions, see [Micrometer's Supported Tracer documentation](https://micrometer.io/docs/tracing#_supported_tracers). For example, to use the Brave Tracer:
+1. Choose a Micrometer Tracer for your usecase. For instructions, see [Micrometer's Supported Tracer documentation](https://micrometer.io/docs/tracing#_supported_tracers). For example, to use the OpenTelemetry Tracer:
 
-   - Maven: Add the following dependency to the `pom.xml` file
-
-     ```
-     <dependency>
-       <groupId>io.micrometer</groupId>
-       <artifactId>micrometer-tracing-bridge-brave</artifactId>
-     </dependency>
-     ```
-
-   - Gradle: Add the following dependency to the `build.gradle` file:
-
-     ```
-     dependencies {
-       ...
-       implementation 'io.micrometer:micrometer-tracing-bridge-brave'
-     }
-     ```
-
-1. Add the Micrometer Tracing Reporter for Wavefront:
-
-   - Maven: Add the following dependency to the `pom.xml` file
+   - **Maven**: Add the following dependency to the `pom.xml` file:
 
      ```
      <dependency>
        <groupId>io.micrometer</groupId>
-       <artifactId>micrometer-tracing-reporter-wavefront</artifactId>
+       <artifactId>micrometer-tracing-bridge-otel</artifactId>
      </dependency>
      ```
 
-   - Gradle: Add the following dependency to the `build.gradle` file:
+   - **Gradle**: Add the following dependency to the `build.gradle` file:
 
      ```
      dependencies {
        ...
-       implementation 'io.micrometer:micrometer-tracing-reporter-wavefront'
+       implementation 'io.micrometer:micrometer-tracing-bridge-otel'
      }
      ```
      
