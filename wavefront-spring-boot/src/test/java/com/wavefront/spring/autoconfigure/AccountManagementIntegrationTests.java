@@ -3,7 +3,6 @@ package com.wavefront.spring.autoconfigure;
 import com.wavefront.spring.actuate.WavefrontEndpointAutoConfiguration;
 import com.wavefront.spring.autoconfigure.AccountManagementIntegrationTests.TestConfiguration;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -19,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Stephane Nicoll
  */
-@Disabled("TODO")
 @SpringBootTest(classes = TestConfiguration.class)
 @ExtendWith(OutputCaptureExtension.class)
 class AccountManagementIntegrationTests {
